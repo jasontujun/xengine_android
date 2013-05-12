@@ -14,6 +14,7 @@ import android.view.Window;
 import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import com.xengine.android.full.R;
 import com.xengine.android.full.media.audio.XAndroidAudio;
 import com.xengine.android.full.media.audio.XAudio;
 import com.xengine.android.full.media.audio.XMusic;
@@ -23,6 +24,8 @@ import com.xengine.android.full.media.graphics.XAndroidScreen;
 import com.xengine.android.full.media.graphics.XGraphics;
 import com.xengine.android.full.media.graphics.XScreen;
 import com.xengine.android.full.media.image.XAndroidImageLocalMgr;
+import com.xengine.android.full.system.file.XAndroidFileMgr;
+import com.xengine.android.full.system.file.XFileMgr;
 import com.xengine.android.full.system.mobile.XAndroidMobileMgr;
 import com.xengine.android.full.system.mobile.XMobileMgr;
 import com.xengine.android.full.system.ssm.XAndroidSSM;
@@ -65,6 +68,11 @@ public abstract class XBaseFrame extends Activity implements XUIFrame {
     private XSystemStateManager ssm;
 
     /**
+     * 手机第三方功能管理器
+     */
+    private XMobileMgr mobileMgr;
+
+    /**
      * 窗口中已经添加的图层
      */
     private ArrayList<XUILayer> layers = new ArrayList<XUILayer>();
@@ -102,45 +110,36 @@ public abstract class XBaseFrame extends Activity implements XUIFrame {
         }
     };
 
-    /**
-     * 手机第三方功能管理器
-     */
-    private XMobileMgr mobileMgr;
-
     @Override
     public final void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 用户自定义初始化（最开始允许用户的自定义工作。注：不要调用系统其他模块的功能）
         preInit(this);
 
-        ssm = XAndroidSSM.getInstance();
-        setSystemStateManager(ssm);
-
-        if(isFullScreen()) {
-            // 去掉标题栏，并全屏
+        // 初始化UI
+        if(isFullScreen()) {// 去掉标题栏，并全屏
             requestWindowFeature(Window.FEATURE_NO_TITLE);
 //            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
-
         root = new RelativeLayout(this);
         setContentView(root);
 
+        // 初始化各辅助模块
+        ssm = XAndroidSSM.getInstance();
         graphics = new XAndroidGraphics(this);
-
         audio = new XAndroidAudio(this);
-
         screen = new XAndroidScreen(this);
 
+        XFileMgr fileMgr = XAndroidFileMgr.getInstance();
+        fileMgr.setRootName(getString(R.string.app_name));
+        fileMgr.setDir(XFileMgr.FILE_TYPE_TMP, "tmp", true);
+        fileMgr.setDir(XFileMgr.FILE_TYPE_PHOTO, "photo", true);
+        XAndroidImageLocalMgr.getInstance().init(screen.getScreenWidth(), screen.getScreenHeight());
+        mobileMgr = new XAndroidMobileMgr(this, screen.getScreenWidth(), screen.getScreenHeight());
 
-        XAndroidImageLocalMgr.getInstance().
-                init(screen.getScreenWidth(), screen.getScreenHeight());
-
-        // 用户自定义初始化（设置ImgDir）
+        // 用户自定义初始化（）
         init(this);
-
-        // 初始化手机功能管理器
-        mobileMgr = new XAndroidMobileMgr(this,
-                screen.getScreenWidth(), screen.getScreenHeight());
-        mobileMgr.setPhotoDir(XAndroidImageLocalMgr.getInstance().getImgDir());
 
         onFrameCreated();
         for(XUILayer layer: layers) {

@@ -23,6 +23,11 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
      */
     protected ArrayList<XDataChangeListener<T>> listeners = new ArrayList<XDataChangeListener<T>>();
 
+    /**
+     * 自动通知监听者
+     */
+    protected boolean isAutoNotify = true;
+
     @Override
     public void sort(Comparator<T> comparator) {
         Collections.sort(itemList, comparator);
@@ -40,24 +45,28 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
 
     @Override
     public synchronized void add(T item) {
-        if(!itemList.contains(item)) {
+        if (!itemList.contains(item)) {
             itemList.add(item);
-            for(XDataChangeListener listener: listeners) {
-                listener.onAdd(item);
-            }
+            if (isAutoNotify)
+                for (XDataChangeListener<T> listener: listeners) {
+                    listener.onAdd(item);
+                }
         }
     }
 
     @Override
     public synchronized void addAll(List<T> items) {
-        if(items == null) return;
-        for(T item: items) {
+        if (items == null)
+            return;
+
+        for (T item: items) {
             if(!itemList.contains(item))
                 itemList.add(item);
         }
-        for(XDataChangeListener listener: listeners) {
-            listener.onAddAll(items);
-        }
+        if (isAutoNotify)
+            for(XDataChangeListener<T> listener: listeners) {
+                listener.onAddAll(items);
+            }
     }
 
     @Override
@@ -68,26 +77,29 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
     @Override
     public synchronized void delete(int index) {
         T item = itemList.remove(index);
-        for(XDataChangeListener listener: listeners) {
-            listener.onDelete(item);
-        }
+        if (isAutoNotify)
+            for (XDataChangeListener<T> listener: listeners) {
+                listener.onDelete(item);
+            }
     }
 
     @Override
     public synchronized void delete(T item) {
-        if(itemList.remove(item)) {
-            for(XDataChangeListener listener: listeners) {
-                listener.onDelete(item);
-            }
+        if (itemList.remove(item)) {
+            if (isAutoNotify)
+                for (XDataChangeListener<T> listener: listeners) {
+                    listener.onDelete(item);
+                }
         }
     }
 
     @Override
     public synchronized void deleteAll(List<T> items) {
-        if(itemList.removeAll(items)) {
-            for(XDataChangeListener listener: listeners) {
-                listener.onDeleteAll(items);
-            }
+        if (itemList.removeAll(items)) {
+            if (isAutoNotify)
+                for (XDataChangeListener<T> listener: listeners) {
+                    listener.onDeleteAll(items);
+                }
         }
     }
 
@@ -111,15 +123,16 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
 
     @Override
     public synchronized void clear() {
-        for(XDataChangeListener listener: listeners) {
-            listener.onDeleteAll(itemList);
-        }
+        if (isAutoNotify)
+            for (XDataChangeListener<T> listener: listeners) {
+                listener.onDeleteAll(itemList);
+            }
         itemList.clear();
     }
 
     @Override
     public void registerDataChangeListener(XDataChangeListener<T> listener) {
-        if(listener != null) {
+        if (listener != null) {
             listeners.add(listener);
         }
     }
@@ -131,9 +144,13 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
 
     @Override
     public void notifyDataChanged() {
-        for(XDataChangeListener listener: listeners) {
+        for (XDataChangeListener<T> listener: listeners) {
             listener.onChange();
         }
     }
 
+    @Override
+    public void setAutoNotifyListeners(boolean isAuto) {
+        this.isAutoNotify = isAuto;
+    }
 }

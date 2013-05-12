@@ -24,6 +24,11 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
      */
     protected ArrayList<XDataChangeListener<T>> listeners = new ArrayList<XDataChangeListener<T>>();
 
+    /**
+     * 自动通知监听者
+     */
+    protected boolean isAutoNotify = true;
+
     @Override
     public void sort(Comparator<T> comparator) {
         Collections.sort(itemList, comparator);
@@ -37,7 +42,7 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
     @Override
     public T getById(String id) {
         int index = getIndexById(id);
-        if(index != -1)
+        if (index != -1)
             return get(index);
         else
             return null;
@@ -50,40 +55,43 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public synchronized void add(T item) {
-        if(item == null)
+        if (item == null)
             return;
 
         int index = getIndexById(getId(item));
-        if(index == -1) {
+        if (index == -1) {
             itemList.add(item);
-            for(XDataChangeListener listener: listeners) {
-                listener.onAdd(item);
-            }
-        }else {
+            if (isAutoNotify)
+                for (XDataChangeListener<T> listener: listeners) {
+                    listener.onAdd(item);
+                }
+        } else {
             replace(index, item);
-            for(XDataChangeListener listener: listeners) {
-                listener.onChange();
-            }
+            if (isAutoNotify)
+                for(XDataChangeListener<T> listener: listeners) {
+                    listener.onChange();
+                }
         }
     }
 
     @Override
     public synchronized void addAll(List<T> items) {
-        if(items == null || items.size() == 0)
+        if (items == null || items.size() == 0)
             return;
 
-        for(int i = 0; i<items.size(); i++) {
+        for (int i = 0; i<items.size(); i++) {
             T item = items.get(i);
             int index = getIndexById(getId(item));
-            if(index == -1) {
+            if (index == -1) {
                 itemList.add(item);
-            }else {
+            } else {
                 replace(index, item);
             }
         }
-        for(XDataChangeListener listener: listeners) {
-            listener.onAddAll(items);
-        }
+        if (isAutoNotify)
+            for (XDataChangeListener<T> listener: listeners) {
+                listener.onAddAll(items);
+            }
     }
 
     @Override
@@ -94,42 +102,45 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
     @Override
     public synchronized void deleteById(String id) {
         int index = getIndexById(id);
-        if(index != -1)
+        if (index != -1)
             delete(index);
     }
 
     @Override
     public synchronized void delete(int index) {
         T item = itemList.remove(index);
-        for(XDataChangeListener listener: listeners) {
-            listener.onDelete(item);
-        }
+        if (isAutoNotify)
+            for (XDataChangeListener<T> listener: listeners) {
+                listener.onDelete(item);
+            }
     }
 
     @Override
     public synchronized void delete(T item) {
-        if(itemList.remove(item)) {
-            for(XDataChangeListener listener: listeners) {
-                listener.onDelete(item);
-            }
+        if (itemList.remove(item)) {
+            if (isAutoNotify)
+                for (XDataChangeListener<T> listener: listeners) {
+                    listener.onDelete(item);
+                }
         }
     }
 
     @Override
     public synchronized void deleteAll(List<T> items) {
-        if(itemList.removeAll(items)) {
-            for(XDataChangeListener listener: listeners) {
-                listener.onDeleteAll(items);
-            }
+        if (itemList.removeAll(items)) {
+            if (isAutoNotify)
+                for (XDataChangeListener<T> listener: listeners) {
+                    listener.onDeleteAll(items);
+                }
         }
     }
 
     @Override
     public synchronized void deleteAllById(List<String> ids) {
         List<T> items = new ArrayList<T>();
-        for(int i = 0; i < ids.size(); i++) {
+        for (int i = 0; i < ids.size(); i++) {
             T item = getById(ids.get(i));
-            if(item != null) {
+            if (item != null) {
                 items.add(item);
             }
         }
@@ -143,13 +154,13 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public boolean contains(T item) {
-        if(item == null) {
+        if (item == null)
             return false;
-        }
+
         final String id = getId(item);
-        for(int i = 0; i<size(); i++) {
+        for (int i = 0; i<size(); i++) {
             T tmp = get(i);
-            if(getId(tmp).equals(id)) {
+            if (getId(tmp).equals(id)) {
                 return true;
             }
         }
@@ -166,15 +177,16 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public synchronized void clear() {
-        for(XDataChangeListener listener: listeners) {
-            listener.onDeleteAll(itemList);
-        }
+        if (isAutoNotify)
+            for (XDataChangeListener<T> listener: listeners) {
+                listener.onDeleteAll(itemList);
+            }
         itemList.clear();
     }
 
     @Override
     public void registerDataChangeListener(XDataChangeListener<T> listener) {
-        if(listener != null) {
+        if (listener != null) {
             listeners.add(listener);
         }
     }
@@ -186,7 +198,7 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public void notifyDataChanged() {
-        for(XDataChangeListener listener: listeners) {
+        for(XDataChangeListener<T> listener: listeners) {
             listener.onChange();
         }
     }
@@ -204,13 +216,17 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public int getIndexById(String id) {
-        for(int i = 0; i<size(); i++) {
+        for (int i = 0; i<size(); i++) {
             T tmp = get(i);
-            if(getId(tmp).equals(id)) {
+            if (getId(tmp).equals(id)) {
                 return i;
             }
         }
         return -1;
     }
 
+    @Override
+    public void setAutoNotifyListeners(boolean isAuto) {
+        this.isAutoNotify = isAuto;
+    }
 }

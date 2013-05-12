@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.os.Environment;
 import android.os.StatFs;
+import com.xengine.android.full.system.file.XAndroidFileMgr;
+import com.xengine.android.full.system.file.XFileMgr;
 import com.xengine.android.full.utils.XLog;
 import com.xengine.android.full.utils.XStringUtil;
 
@@ -29,7 +31,9 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
         return instance;
     }
 
-    private XAndroidImageLocalMgr(){}
+    private XAndroidImageLocalMgr(){
+        imgDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
+    }
 
 
     private int screenWidth, screenHeight;
@@ -52,25 +56,6 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
 
     public int getScreenHeight() {
         return screenHeight;
-    }
-
-    /**
-     * 设置本地缓存图片的文件夹
-     * @param dirName 图片文件夹名称。如："/baihewan/tmp"
-     */
-    @Override
-    public void setImgDir(String dirName) {
-        this.imgDir = new File(Environment.getExternalStorageDirectory() + dirName);
-        if(!imgDir.exists()) {
-            this.imgDir.mkdirs();
-        }else {
-            clearImgDir();
-        }
-    }
-
-    @Override
-    public File getImgDir() {
-        return imgDir;
     }
 
     @Override
@@ -353,26 +338,8 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
         }
     }
 
-
     @Override
-    public void clearImgDir() {
-        if(imgDir == null || !imgDir.exists()) {
-            return;
-        }
-
-        File[] files = imgDir.listFiles();
-        for(int i = 0; i <files.length; i++) {
-            String name = files[i].getName();
-            if(files[i].delete()) {
-                XLog.d(TAG,"删除图片成功："+name);
-            }else {
-                XLog.d(TAG,"删除图片失败："+name);
-            }
-        }
-        if(imgDir.delete()) {
-            XLog.d(TAG,"删除临时图片文件夹成功");
-        }else {
-            XLog.d(TAG,"删除临时图片文件夹失败");
-        }
+    public void clearTmpDir() {
+        XAndroidFileMgr.getInstance().clearDir(XFileMgr.FILE_TYPE_TMP);
     }
 }

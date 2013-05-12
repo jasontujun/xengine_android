@@ -14,9 +14,9 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
         extends XBaseAdapterIdDataSource<T> implements XWithUsername<T> {
 
     public int getIndexByUsernameId(String username, String id) {
-        for(int i = 0; i<size(); i++) {
+        for (int i = 0; i<size(); i++) {
             T tmp = get(i);
-            if(getUsername(tmp).equals(username) &&
+            if (getUsername(tmp).equals(username) &&
                     getId(tmp).equals(id)) {
                 return i;
             }
@@ -26,40 +26,43 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
 
     @Override
     public synchronized void add(T item) {
-        if(item == null)
+        if (item == null)
             return;
 
         int index = getIndexByUsernameId(getUsername(item), getId(item));
-        if(index == -1) {
+        if (index == -1) {
             itemList.add(item);
-            for(XDataChangeListener listener: listeners) {
-                listener.onAdd(item);
-            }
-        }else {
+            if (isAutoNotify)
+                for (XDataChangeListener<T> listener: listeners) {
+                    listener.onAdd(item);
+                }
+        } else {
             replace(index, item);
-            for(XDataChangeListener listener: listeners) {
-                listener.onChange();
-            }
+            if (isAutoNotify)
+                for (XDataChangeListener<T> listener: listeners) {
+                    listener.onChange();
+                }
         }
     }
 
     @Override
     public synchronized void addAll(List<T> items) {
-        if(items == null || items.size() == 0)
+        if (items == null || items.size() == 0)
             return;
 
-        for(int i = 0; i<items.size(); i++) {
+        for (int i = 0; i<items.size(); i++) {
             T item = items.get(i);
             int index = getIndexByUsernameId(getUsername(item), getId(item));
-            if(index == -1) {
+            if (index == -1) {
                 itemList.add(item);
-            }else {
+            } else {
                 replace(index, item);
             }
         }
-        for(XDataChangeListener listener: listeners) {
-            listener.onAddAll(items);
-        }
+        if (isAutoNotify)
+            for (XDataChangeListener<T> listener: listeners) {
+                listener.onAddAll(items);
+            }
     }
 
 
@@ -71,9 +74,9 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
     @Override
     public List<T> getByUsername(String username) {
         List<T> result = new ArrayList<T>();
-        for(int i = 0; i<size(); i++) {
+        for (int i = 0; i<size(); i++) {
             T item = get(i);
-            if(getUsername(item).equals(username)) {
+            if (getUsername(item).equals(username)) {
                 result.add(item);
             }
         }
@@ -88,7 +91,7 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
      */
     public T getByUsernameId(String username, String id) {
         int index = getIndexByUsernameId(username, id);
-        if(index != -1) {
+        if (index != -1) {
             return get(index);
         }
         return null;
@@ -112,7 +115,7 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
      */
     public synchronized void deleteByUsernameId(String username, String id) {
         int index = getIndexByUsernameId(username, id);
-        if(index != -1)
+        if (index != -1)
             delete(index);
     }
 
@@ -123,9 +126,9 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
      */
     public synchronized void deleteAllByUsernameId(String username, List<String> ids) {
         List<T> result = new ArrayList<T>();
-        for(int i = 0; i<ids.size(); i++) {
+        for (int i = 0; i < ids.size(); i++) {
             T item = getByUsernameId(username, ids.get(i));
-            if(item != null) {
+            if (item != null) {
                 result.add(item);
             }
         }

@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
 import com.xengine.android.full.media.image.XAndroidImageLocalMgr;
+import com.xengine.android.full.system.file.XAndroidFileMgr;
+import com.xengine.android.full.system.file.XFileMgr;
 import com.xengine.android.full.utils.XLog;
 
 import java.io.File;
@@ -49,39 +51,12 @@ public class XAndroidMobileMgr implements XMobileMgr {
         this.screenHeight = screenHeight;
         this.telephonyManager = (TelephonyManager) activity.
                 getSystemService(Context.TELEPHONY_SERVICE);
-    }
-
-
-    @Override
-    public void setPhotoDir(File photoDir) {
-        this.photoDir = photoDir;
-    }
-
-    @Override
-    public File getPhotoDir() {
-        return photoDir;
+        photoDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_PHOTO);
     }
 
     @Override
     public void clearPhotoDir() {
-        if(photoDir == null || !photoDir.exists()) {
-            return;
-        }
-
-        File[] files = photoDir.listFiles();
-        for(int i = 0; i <files.length; i++) {
-            String name = files[i].getName();
-            if(files[i].delete()) {
-                XLog.d(TAG, "删除图片成功：" + name);
-            }else {
-                XLog.d(TAG,"删除图片失败："+name);
-            }
-        }
-        if(photoDir.delete()) {
-            XLog.d(TAG,"删除临时图片文件夹成功");
-        }else {
-            XLog.d(TAG,"删除临时图片文件夹失败");
-        }
+        XAndroidFileMgr.getInstance().clearDir(XFileMgr.FILE_TYPE_PHOTO);
     }
 
     /**

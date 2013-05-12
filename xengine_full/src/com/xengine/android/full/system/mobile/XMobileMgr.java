@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 
-import java.io.File;
-
 /**
  * Created by jasontujun.
  * Date: 12-11-2
@@ -28,14 +26,6 @@ public interface XMobileMgr {
      */
     public static final int SCAN_QR_CODE = 298427;
 
-
-    /**
-     * 设置缓存照片的文件夹
-     * @param photoDir
-     */
-    void setPhotoDir(File photoDir);
-
-    File getPhotoDir();
 
     /**
      * 清空缓存照片的文件夹
