@@ -39,6 +39,11 @@ public class XAndroidFileMgr implements XFileMgr {
     }
 
     @Override
+    public String getRootName() {
+        return rootName;
+    }
+
+    @Override
     public boolean setDir(int type, String dirName, boolean clear) {
         if (type < 0) // 小于0的类型忽略
             return false;

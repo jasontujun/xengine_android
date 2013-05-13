@@ -15,6 +15,8 @@ public interface XFileMgr {
 
     void setRootName(String rootName);
 
+    String getRootName();
+
     /**
      * 设置子文件夹类型和子文件夹路径。
      * 如果子文件夹不存在，则尝试创建；如果存在，则清空子文件夹

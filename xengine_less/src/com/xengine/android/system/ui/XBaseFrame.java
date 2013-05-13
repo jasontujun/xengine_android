@@ -31,6 +31,7 @@ import com.xengine.android.system.mobile.XMobileMgr;
 import com.xengine.android.system.ssm.XAndroidSSM;
 import com.xengine.android.system.ssm.XSystemStateManager;
 import com.xengine.android.utils.XLog;
+import com.xengine.android.utils.XStringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,7 +115,8 @@ public abstract class XBaseFrame extends Activity implements XUIFrame {
     public final void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 用户自定义初始化（最开始允许用户的自定义工作。注：不要调用系统其他模块的功能）
+        // 用户自定义初始化（最开始允许用户的自定义工作）
+        // 注：1.设置FileMgr的RootName 2.不要调用系统其他模块的功能
         preInit(this);
 
         // 初始化UI
@@ -132,7 +134,8 @@ public abstract class XBaseFrame extends Activity implements XUIFrame {
         screen = new XAndroidScreen(this);
 
         XFileMgr fileMgr = XAndroidFileMgr.getInstance();
-        fileMgr.setRootName(getString(R.string.app_name));
+        if (XStringUtil.isNullOrEmpty(fileMgr.getRootName()))
+            fileMgr.setRootName(getString(R.string.app_name));
         fileMgr.setDir(XFileMgr.FILE_TYPE_TMP, "tmp", true);
         fileMgr.setDir(XFileMgr.FILE_TYPE_PHOTO, "photo", true);
         XAndroidImageLocalMgr.getInstance().init(screen.getScreenWidth(), screen.getScreenHeight());
