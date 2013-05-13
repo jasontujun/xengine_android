@@ -13,7 +13,7 @@ import com.xengine.android.data.db.XSQLiteHelper;
  * Date: 12-3-8
  * Time: 下午7:29
  */
-public abstract class XBaseAdapterIdDBDataSource<T> extends XBaseAdapterIdDataSource<T> implements XWithDatabase<T>{
+public abstract class XBaseAdapterIdDBDataSource<T> extends XBaseAdapterIdDataSource<T> implements XWithDatabase<T> {
     private XSQLiteHelper dbHelper = XSQLiteHelper.getInstance();
 
     @Override
@@ -22,16 +22,30 @@ public abstract class XBaseAdapterIdDBDataSource<T> extends XBaseAdapterIdDataSo
     }
 
     @Override
+    public void addToDatabase() {
+        XDBTable<T> table = getDatabaseTable();
+        if (!dbHelper.isTableExist(table))
+            dbHelper.createTable(table);
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        for (int i = 0; i < size(); i++) {
+            ContentValues cv = table.getContentValues(get(i));
+            db.insert(table.getName(), null, cv);
+        }
+        db.close();
+    }
+
+    @Override
     public void saveToDatabase() {
         XDBTable<T> table = getDatabaseTable();
-        if(dbHelper.isTableExist(table)) {
+        if (dbHelper.isTableExist(table)) {
             dbHelper.dropTable(table);
         }
         dbHelper.createTable(table);
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        for(int i = 0; i < size(); i++) {
+        for (int i = 0; i < size(); i++) {
             ContentValues cv = table.getContentValues(get(i));
             db.insert(table.getName(), null, cv);
         }
@@ -46,7 +60,7 @@ public abstract class XBaseAdapterIdDBDataSource<T> extends XBaseAdapterIdDataSo
 
         clear();
         Cursor cur = db.rawQuery("SELECT * FROM " + table.getName(), null);
-        if(cur.moveToFirst()) {
+        if (cur.moveToFirst()) {
             while (!cur.isAfterLast()) {
                 T item = table.getFilledInstance(cur);
                 add(item);

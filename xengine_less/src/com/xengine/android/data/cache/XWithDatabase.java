@@ -10,6 +10,7 @@ import com.xengine.android.data.db.XSQLiteHelper;
  * Time: 下午7:12
  */
 public interface XWithDatabase<T> {
+    void addToDatabase();
     void saveToDatabase();
     void loadFromDatabase();
     XDBTable<T> getDatabaseTable();

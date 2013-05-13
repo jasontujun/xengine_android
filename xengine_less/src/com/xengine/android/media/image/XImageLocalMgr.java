@@ -41,19 +41,6 @@ public interface XImageLocalMgr {
         SMALL// 缩略图尺寸（省空间）
     }
 
-
-    /**
-     * 获取图片缓存文件夹
-     * @return
-     */
-    void setImgDir(String dirName);
-
-    /**
-     * 获取图片缓存文件夹
-     * @return
-     */
-    File getImgDir();
-
     /**
      * 通过本地文件名，获取文件
      * @param imgName
@@ -149,7 +136,7 @@ public interface XImageLocalMgr {
     boolean saveImageToSd(String imgName, InputStream inputStream);
 
     /**
-     * 清空图片缓存文件夹
+     * 清空缓存文件夹
      */
-    void clearImgDir();
+    void clearTmpDir();
 }

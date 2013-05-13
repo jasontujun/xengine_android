@@ -30,14 +30,6 @@ public interface XMobileMgr {
 
 
     /**
-     * 设置缓存照片的文件夹
-     * @param photoDir
-     */
-    void setPhotoDir(File photoDir);
-
-    File getPhotoDir();
-
-    /**
      * 清空缓存照片的文件夹
      */
     void clearPhotoDir();

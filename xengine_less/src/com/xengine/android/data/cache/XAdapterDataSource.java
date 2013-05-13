@@ -97,4 +97,10 @@ public interface XAdapterDataSource<T> extends XDataSource {
      * @param listener 数据变化监听器
      */
     void unregisterDataChangeListener(XDataChangeListener<T> listener);
+
+    /**
+     * 设置是否在增删操作时，自动通知监听者
+     * @param isAuto
+     */
+    void setAutoNotifyListeners(boolean isAuto);
 }

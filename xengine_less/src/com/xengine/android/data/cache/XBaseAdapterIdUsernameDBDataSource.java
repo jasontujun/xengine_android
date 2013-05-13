@@ -25,16 +25,30 @@ public abstract class XBaseAdapterIdUsernameDBDataSource<T>
     }
 
     @Override
+    public void addToDatabase() {
+        XDBTable<T> table = getDatabaseTable();
+        if (!dbHelper.isTableExist(table))
+            dbHelper.createTable(table);
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        for (int i = 0; i < size(); i++) {
+            ContentValues cv = table.getContentValues(get(i));
+            db.insert(table.getName(), null, cv);
+        }
+        db.close();
+    }
+
+    @Override
     public void saveToDatabase() {
         XDBTable<T> table = getDatabaseTable();
-        if(dbHelper.isTableExist(table)) {
+        if (dbHelper.isTableExist(table)) {
             dbHelper.dropTable(table);
         }
         dbHelper.createTable(table);
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        for(int i = 0; i < size(); i++) {
+        for (int i = 0; i < size(); i++) {
             ContentValues cv = table.getContentValues(get(i));
             db.insert(table.getName(), null, cv);
         }
@@ -49,7 +63,7 @@ public abstract class XBaseAdapterIdUsernameDBDataSource<T>
 
         clear();
         Cursor cur = db.rawQuery("SELECT * FROM " + table.getName(), null);
-        if(cur.moveToFirst()) {
+        if (cur.moveToFirst()) {
             while (!cur.isAfterLast()) {
                 T item = table.getFilledInstance(cur);
                 add(item);
