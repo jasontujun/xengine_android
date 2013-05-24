@@ -1,6 +1,7 @@
 package com.xengine.android.full.system.file;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -43,4 +44,28 @@ public interface XFileMgr {
      * @param type 文件类型
      */
     void clearDir(int type);
+
+    /**
+     * 复制文件
+     * @param oldFile
+     * @param newFile
+     * @return
+     */
+    boolean copyFile(File oldFile, File newFile);
+
+    /**
+     * 将File转换为byte[]
+     * @param file
+     * @return
+     * @throws java.io.IOException
+     */
+    byte[] file2byte(File file) throws IOException;
+
+    /**
+     * 将byte[]转换为File
+     * @param bytes
+     * @param file
+     * @return
+     */
+    boolean byte2file(byte[] bytes, File file);
 }
