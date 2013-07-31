@@ -25,7 +25,7 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
     private static XAndroidImageLocalMgr instance;
 
     public static synchronized XAndroidImageLocalMgr getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new XAndroidImageLocalMgr();
         }
         return instance;
@@ -69,7 +69,7 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
         switch (size) {
             case ORIGIN: {
                 File imgFile = getImgFile(imgName);
-                if(imgFile.exists()) {
+                if (imgFile.exists()) {
                     InputStream is = new FileInputStream(imgFile);
                     Bitmap bmp = BitmapFactory.decodeStream(is);
                     is.close();
@@ -93,7 +93,7 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
     @Override
     public Bitmap getLocalImage(String imgName, int sampleWidth, int sampleHeight) throws IOException {
         File imgFile = getImgFile(imgName);
-        if(imgFile.exists()) {
+        if (imgFile.exists()) {
             InputStream is = new FileInputStream(imgFile);
             // 计算samplesize...
             BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -116,9 +116,9 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
     public Bitmap processImage2Bmp(byte[] data, int sWidth, int sHeight) {
         try {
             // 计算samplesize...
-            if(sWidth <= 0)
+            if (sWidth <= 0)
                 sWidth = screenWidth;
-            if(sHeight <= 0)
+            if (sHeight <= 0)
                 sHeight = screenHeight;
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
@@ -138,18 +138,18 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
     @Override
     public Bitmap processImage2Bmp(InputStream is1, InputStream is2,
                                    int sWidth, int sHeight, Rect outPadding) {
-        if(is1 == null || is2 == null)
+        if (is1 == null || is2 == null)
             return null;
 
         try {
-            if(outPadding == null) {
+            if (outPadding == null) {
                 outPadding = new Rect(-1, -1, -1, -1);
             }
             Rect copyOutPadding = new Rect(outPadding);
             // 计算samplesize...
-            if(sWidth <= 0)
+            if (sWidth <= 0)
                 sWidth = screenWidth;
-            if(sHeight <= 0)
+            if (sHeight <= 0)
                 sHeight = screenHeight;
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
@@ -180,7 +180,7 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
         Bitmap bmp = processImage2Bmp(data, sWidth, sHeight);
 
         // 计算压缩率
-        if(compress < 0 || compress > 100) {
+        if (compress < 0 || compress > 100) {
             compress = DEFAULT_COMPRESS;
         }
 
@@ -194,7 +194,7 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
             Bitmap bmp = processImage2Bmp(is1, is2, sWidth, sHeight, outPadding);
 
             // 计算压缩率
-            if(compress < 0 || compress > 100) {
+            if (compress < 0 || compress > 100) {
                 compress = DEFAULT_COMPRESS;
             }
 
@@ -277,14 +277,14 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
         if (bm == null || XStringUtil.isNullOrEmpty(imgName)) {
             return false;
         }
-//        //判断sdcard上的空间
+//        // TODO 判断sdcard上的空间
 //        if (FREE_SD_SPACE_NEEDED_TO_CACHE >freeSpaceOnSd()) {
 //            XLog.d(TAG, "Low free space onsd, do not cache");
 //            return false;
 //        }
         try {
             File imgFile = getImgFile(imgName);
-            if(!imgDir.exists()) {
+            if (!imgDir.exists()) {
                 imgDir.mkdirs();
             }
             imgFile.createNewFile();
@@ -306,13 +306,13 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
 
     @Override
     public boolean saveImageToSd(String imgName, InputStream inputStream) {
-        if(inputStream == null || XStringUtil.isNullOrEmpty(imgName))
+        if (inputStream == null || XStringUtil.isNullOrEmpty(imgName))
             return false;
 
         try {
             // 创建文件夹
             File imgFile = getImgFile(imgName);
-            if(!imgDir.exists()) {
+            if (!imgDir.exists()) {
                 imgDir.mkdirs();
             }
             imgFile.createNewFile();
