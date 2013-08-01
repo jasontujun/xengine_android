@@ -1,4 +1,4 @@
-package com.xengine.android.media.image;
+package com.xengine.android.session.series;
 
 import java.util.List;
 
@@ -8,21 +8,21 @@ import java.util.List;
  * Date: 12-10-30
  * Time: 下午8:48
  */
-public interface XSerial<T> {
+public interface XSerial<V, T> {
 
     /**
      * 添加单个任务进线性队列中，并启动队列执行
-     * @param imgUrl
-     * @param listener
+     * @param data 数据
+     * @param listener 监听器
      */
-    void startTask(String imgUrl, T listener);
+    void startTask(V data, T listener);
 
     /**
      * 添加一堆任务进线性队列中，并启动队列执行
-     * @param imgUrlList
-     * @param listenerList
+     * @param dataList 数据列表
+     * @param listenerList 监听器列表
      */
-    void startTasks(List<String> imgUrlList, List<T> listenerList);
+    void startTasks(List<V> dataList, List<T> listenerList);
 
     /**
      * 暂停任务队列的执行

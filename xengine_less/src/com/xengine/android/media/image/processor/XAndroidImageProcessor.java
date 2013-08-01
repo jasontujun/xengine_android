@@ -1,4 +1,4 @@
-package com.xengine.android.media.image;
+package com.xengine.android.media.image.processor;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,32 +13,31 @@ import com.xengine.android.utils.XStringUtil;
 import java.io.*;
 
 /**
- * Android下的本地图片存储及管理类。
- * 统一管理本程序的本地缓存图片。所以用单例模式。
+ * Android下的本地图片的处理和存取类。
+ * 统一处理和存取本程序的临时图片文件,所以用单例模式。
  * Created by jasontujun.
  * Date: 12-10-29
  * Time: 下午9:28
  */
-public class XAndroidImageLocalMgr implements XImageLocalMgr {
+public class XAndroidImageProcessor implements XImageProcessor {
     private static final String TAG = "IMG";
 
-    private static XAndroidImageLocalMgr instance;
+    private static XAndroidImageProcessor instance;
 
-    public static synchronized XAndroidImageLocalMgr getInstance() {
+    public static synchronized XAndroidImageProcessor getInstance() {
         if (instance == null) {
-            instance = new XAndroidImageLocalMgr();
+            instance = new XAndroidImageProcessor();
         }
         return instance;
     }
 
-    private XAndroidImageLocalMgr(){
-        imgDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
+    private XAndroidImageProcessor(){
+        mImgDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
     }
 
 
-    private int screenWidth, screenHeight;
-
-    private File imgDir;// 临时图片缓存文件夹
+    private int mScreenWidth, mScreenHeight;// 屏幕的宽和高
+    private File mImgDir;// 临时图片缓存文件夹
 
     /**
      * 初始化函数
@@ -46,21 +45,21 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
      * @param sHeight 屏幕高度（单位：pixel）
      */
     public void init(int sWidth, int sHeight) {
-        screenWidth = sWidth;
-        screenHeight = sHeight;
+        mScreenWidth = sWidth;
+        mScreenHeight = sHeight;
     }
 
     public int getScreenWidth() {
-        return screenWidth;
+        return mScreenWidth;
     }
 
     public int getScreenHeight() {
-        return screenHeight;
+        return mScreenHeight;
     }
 
     @Override
     public File getImgFile(String imgName) {
-        return new File(imgDir, imgName);
+        return new File(mImgDir, imgName);
     }
 
 
@@ -79,7 +78,7 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
                 break;
             }
             case SCREEN: {
-                return getLocalImage(imgName, screenWidth, screenHeight);
+                return getLocalImage(imgName, mScreenWidth, mScreenHeight);
             }
             case SMALL: {
                 return getLocalImage(imgName, SMALL_SCREEN_WIDTH, SMALL_SCREEN_HEIGHT);
@@ -117,9 +116,9 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
         try {
             // 计算samplesize...
             if (sWidth <= 0)
-                sWidth = screenWidth;
+                sWidth = mScreenWidth;
             if (sHeight <= 0)
-                sHeight = screenHeight;
+                sHeight = mScreenHeight;
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
             BitmapFactory.decodeByteArray(data, 0, data.length, opts);
@@ -148,9 +147,9 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
             Rect copyOutPadding = new Rect(outPadding);
             // 计算samplesize...
             if (sWidth <= 0)
-                sWidth = screenWidth;
+                sWidth = mScreenWidth;
             if (sHeight <= 0)
-                sHeight = screenHeight;
+                sHeight = mScreenHeight;
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
             BitmapFactory.decodeStream(is1, copyOutPadding, opts);
@@ -175,31 +174,30 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
 
 
     @Override
-    public boolean processImage2File(byte[] data, String fileName,
-                                     int compress, int sWidth, int sHeight) {
+    public boolean processImage2File(byte[] data, String fileName, int sWidth, int sHeight,
+                                     Bitmap.CompressFormat format, int compress) {
         Bitmap bmp = processImage2Bmp(data, sWidth, sHeight);
-
         // 计算压缩率
         if (compress < 0 || compress > 100) {
             compress = DEFAULT_COMPRESS;
         }
 
         // 将图片保存到本地
-        return saveImageToSd(fileName, bmp, Bitmap.CompressFormat.PNG, compress);
+        return saveImageToSd(fileName, bmp, format, compress);
     }
 
     @Override
     public boolean processImage2File(InputStream is1, InputStream is2, String fileName,
-                                    int compress, int sWidth, int sHeight, Rect outPadding) {
+                                     int sWidth, int sHeight, Rect outPadding,
+                                     Bitmap.CompressFormat format, int compress) {
             Bitmap bmp = processImage2Bmp(is1, is2, sWidth, sHeight, outPadding);
-
             // 计算压缩率
             if (compress < 0 || compress > 100) {
                 compress = DEFAULT_COMPRESS;
             }
 
             // 将图片保存到本地
-            return saveImageToSd(fileName, bmp, Bitmap.CompressFormat.PNG, compress);
+            return saveImageToSd(fileName, bmp, format, compress);
     }
 
 
@@ -284,8 +282,8 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
 //        }
         try {
             File imgFile = getImgFile(imgName);
-            if (!imgDir.exists()) {
-                imgDir.mkdirs();
+            if (!mImgDir.exists()) {
+                mImgDir.mkdirs();
             }
             imgFile.createNewFile();
             FileOutputStream fos = new FileOutputStream(imgFile);
@@ -312,8 +310,8 @@ public class XAndroidImageLocalMgr implements XImageLocalMgr {
         try {
             // 创建文件夹
             File imgFile = getImgFile(imgName);
-            if (!imgDir.exists()) {
-                imgDir.mkdirs();
+            if (!mImgDir.exists()) {
+                mImgDir.mkdirs();
             }
             imgFile.createNewFile();
             // 读取数据

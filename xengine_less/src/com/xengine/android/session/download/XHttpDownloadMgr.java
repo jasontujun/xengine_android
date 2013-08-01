@@ -1,6 +1,9 @@
 package com.xengine.android.session.download;
 
+import com.xengine.android.session.http.XHttp;
 import com.xengine.android.utils.XStringUtil;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,23 +17,31 @@ import java.io.InputStream;
  * Time: 下午5:59
  * To change this template use File | Settings | File Templates.
  */
-public abstract class XBaseDownloadMgr implements XDownloadMgr {
+public class XHttpDownloadMgr implements XDownloadMgr {
 
+    private XHttp mHttpClient;
     private XDownloadListener mListener;
 
+    public XHttpDownloadMgr(XHttp httpClient) {
+        this.mHttpClient = httpClient;
+    }
+
     @Override
-    public boolean download2File(String url, String path, String fileName) {
+    public boolean download(String url, String path, String fileName) {
         if (mListener != null)
             mListener.onStart(url);
 
-        InputStream is = download(url);
-        if (is == null) { // 没有下载流
+        HttpGet httpGet = new HttpGet(url);
+        HttpResponse response = mHttpClient.execute(httpGet, false);
+
+        if (response == null) {
             if (mListener != null)
-                mListener.onError(url, "无法获取文件");
+                mListener.onError(url, "No Response");
             return false;
         }
 
         try {
+            InputStream is = response.getEntity().getContent();
             String localFileName;// 取得文件名，如果输入新文件名，则使用新文件名
             if (XStringUtil.isNullOrEmpty(fileName))
                 localFileName = url.substring(url.lastIndexOf("/") + 1);
@@ -46,7 +57,7 @@ public abstract class XBaseDownloadMgr implements XDownloadMgr {
                 FOS.write(buf, 0, numRead);
                 downloadPosition += numRead;
                 if (mListener != null)
-                    mListener.onDownloading(url, downloadPosition);
+                    mListener.doDownload(url, downloadPosition);
             }
             is.close();
             if (mListener != null)
@@ -54,8 +65,12 @@ public abstract class XBaseDownloadMgr implements XDownloadMgr {
             return true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            if (mListener != null)
+                mListener.onError(url, "File Not Found");
         } catch (IOException e) {
             e.printStackTrace();
+            if (mListener != null)
+                mListener.onError(url, "IO Exception");
         }
         return false;
     }

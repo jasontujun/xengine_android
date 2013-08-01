@@ -1,4 +1,4 @@
-package com.xengine.android.media.image;
+package com.xengine.android.media.image.processor;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
@@ -8,12 +8,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * 图片本地存储处理及图片文件管理的接口。
+ * 本地图片的处理和存取接口。
  * Created by jasontujun.
  * Date: 12-10-29
  * Time: 下午10:09
  */
-public interface XImageLocalMgr {
+public interface XImageProcessor {
     /**
      * 默认图片压缩率
      */
@@ -99,8 +99,8 @@ public interface XImageLocalMgr {
      * @param sHeight 显示高度
      * @return
      */
-    boolean processImage2File(byte[] data, String fileName,
-                              int compress, int sWidth, int sHeight);
+    boolean processImage2File(byte[] data, String fileName, int sWidth, int sHeight,
+                              Bitmap.CompressFormat format, int compress);
 
     /**
      * 处理图片(samplesize, 压缩，存入文件)，
@@ -115,7 +115,8 @@ public interface XImageLocalMgr {
      * @return 保存的文件名
      */
     boolean processImage2File(InputStream is1, InputStream is2, String fileName,
-                              int compress, int sWidth, int sHeight, Rect outPadding);
+                              int sWidth, int sHeight, Rect outPadding,
+                              Bitmap.CompressFormat format, int compress);
 
     /**
      * 压缩并保存图片到SD卡上。

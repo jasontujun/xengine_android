@@ -5,12 +5,13 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
-import com.xengine.android.media.image.XAndroidImageLocalMgr;
+import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.system.file.XAndroidFileMgr;
 import com.xengine.android.system.file.XFileMgr;
 import com.xengine.android.utils.XLog;
@@ -154,12 +155,12 @@ public class XAndroidMobileMgr implements XMobileMgr {
                     InputStream is = cr.openInputStream(originalUri);
                     InputStream is2 = cr.openInputStream(originalUri);
                     String imgName = createImgName();
-                    boolean result = XAndroidImageLocalMgr.getInstance().processImage2File(
-                            is, is2, imgName, 75, screenWidth, screenHeight,
-                            new Rect(-1, -1, -1, -1));
+                    boolean result = XAndroidImageProcessor.getInstance().processImage2File(
+                            is, is2, imgName, screenWidth, screenHeight,
+                            new Rect(-1, -1, -1, -1), Bitmap.CompressFormat.PNG, 75);
 
                     if(result) {
-                        mCurrentPhotoFile = XAndroidImageLocalMgr.getInstance().getImgFile(imgName);
+                        mCurrentPhotoFile = XAndroidImageProcessor.getInstance().getImgFile(imgName);
                         photoListener.onSuccess(mCurrentPhotoFile);
                     } else {
                         photoListener.onFail();

@@ -1,4 +1,4 @@
-package com.xengine.android.session.download;
+package com.xengine.android.session.upload;
 
 /**
  * Created with IntelliJ IDEA.
@@ -7,13 +7,11 @@ package com.xengine.android.session.download;
  * Time: 下午6:17
  * To change this template use File | Settings | File Templates.
  */
-public interface XDownloadListener {
+public interface XUploadListener {
 
     void onStart(String url);
 
-    void doDownload(String url, long position);
-
-    void onComplete(String url, String localFileName);
+    void onComplete(String url, Object response);
 
     void onError(String url, String errorStr);
 }

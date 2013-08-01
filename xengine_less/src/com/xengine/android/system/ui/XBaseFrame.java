@@ -23,7 +23,7 @@ import com.xengine.android.media.graphics.XAndroidGraphics;
 import com.xengine.android.media.graphics.XAndroidScreen;
 import com.xengine.android.media.graphics.XGraphics;
 import com.xengine.android.media.graphics.XScreen;
-import com.xengine.android.media.image.XAndroidImageLocalMgr;
+import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.system.file.XAndroidFileMgr;
 import com.xengine.android.system.file.XFileMgr;
 import com.xengine.android.system.mobile.XAndroidMobileMgr;
@@ -138,7 +138,7 @@ public abstract class XBaseFrame extends Activity implements XUIFrame {
             fileMgr.setRootName(getString(R.string.app_name));
         fileMgr.setDir(XFileMgr.FILE_TYPE_TMP, "tmp", true);
         fileMgr.setDir(XFileMgr.FILE_TYPE_PHOTO, "photo", true);
-        XAndroidImageLocalMgr.getInstance().init(screen.getScreenWidth(), screen.getScreenHeight());
+        XAndroidImageProcessor.getInstance().init(screen.getScreenWidth(), screen.getScreenHeight());
         mobileMgr = new XAndroidMobileMgr(this, screen.getScreenWidth(), screen.getScreenHeight());
 
         // 用户自定义初始化（）

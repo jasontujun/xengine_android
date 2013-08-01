@@ -1,0 +1,135 @@
+package com.xengine.android.media.image.download;
+
+import android.graphics.Bitmap;
+import android.graphics.Rect;
+import com.xengine.android.media.image.processor.XAndroidImageProcessor;
+import com.xengine.android.media.image.processor.XImageProcessor;
+import com.xengine.android.session.http.XHttp;
+import com.xengine.android.utils.XStringUtil;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.BufferedHttpEntity;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+/**
+ * 图片下载管理器。
+ * Created by jasontujun.
+ * Date: 12-2-27
+ * Time: 下午8:03
+ */
+public class XHttpImageDownloadMgr implements XImageDownloadMgr {
+
+    private XHttp mHttpClient;
+    private int mScreenWidth, mScreenHeight;
+
+    public XHttpImageDownloadMgr(XHttp httpClient, int screenWidth, int screenHeight) {
+        mHttpClient = httpClient;
+        mScreenWidth = screenWidth;
+        mScreenHeight = screenHeight;
+    }
+
+
+    @Override
+    public String downloadImg2File(String imgUrl, String format) {
+        return downloadImg2File(
+                imgUrl,
+                format,
+                XImageProcessor.DEFAULT_COMPRESS,
+                mScreenWidth,
+                mScreenHeight);
+    }
+
+
+    @Override
+    public String downloadImg2File(String imgUrl, String format, int compress) {
+        return downloadImg2File(
+                imgUrl,
+                format,
+                compress,
+                mScreenWidth,
+                mScreenHeight);
+    }
+
+
+    @Override
+    public String downloadImg2File(String imgUrl, String format,
+                                   int compress, int sWidth, int sHeight) {
+        HttpGet httpGet = new HttpGet(imgUrl);
+        HttpResponse response = mHttpClient.execute(httpGet, false);
+        if (response == null)
+            return null;
+
+        // 处理GIF图片（TODO 还有问题）
+//        if(imgUrl.endsWith("gif") || imgUrl.endsWith("GIF")) {
+//            return XAndroidImageMgr.getInstance().processGif2File(response);
+//        }
+
+        HttpEntity entity = response.getEntity();
+        try {
+            BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(entity);
+            InputStream is = bufferedHttpEntity.getContent();
+            InputStream is2 = bufferedHttpEntity.getContent();
+            // 确定图片格式
+            String imgFormat = format;
+            if (XStringUtil.isNullOrEmpty(format)) {
+                String lowerImgUrl = imgUrl.toLowerCase();
+                if (lowerImgUrl.endsWith(FORMAT_JPG))
+                    imgFormat = FORMAT_JPG;
+                else if (lowerImgUrl.endsWith(FORMAT_JPEG))
+                    imgFormat = FORMAT_JPEG;
+                else if (lowerImgUrl.endsWith(FORMAT_PNG))
+                    imgFormat = FORMAT_PNG;
+                else if (lowerImgUrl.endsWith(FORMAT_GIF))
+                    imgFormat = FORMAT_GIF;
+                else
+                    imgFormat = DEFAULT_FORMAT;
+            }
+            // 生成文件名
+            String imgName = "IMAGE_" + System.currentTimeMillis() + "." + imgFormat;
+            Bitmap.CompressFormat cFormat = Bitmap.CompressFormat.JPEG;
+            if (imgFormat.equals(FORMAT_PNG))
+                cFormat = Bitmap.CompressFormat.PNG;
+            boolean result = XAndroidImageProcessor.getInstance().
+                    processImage2File(is, is2, imgName, sWidth, sHeight,
+                            new Rect(-1, -1, -1, -1), cFormat, compress);
+            entity.consumeContent();
+            return result ? imgName : null ;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    @Override
+    public Bitmap downloadImg2Bmp(String imgUrl, String format) {
+        return downloadImg2Bmp(imgUrl, format, mScreenWidth, mScreenHeight);
+    }
+
+    @Override
+    public Bitmap downloadImg2Bmp(String imgUrl, String format, int sWidth, int sHeight) {
+        HttpGet httpGet = new HttpGet(imgUrl);
+        HttpResponse response = mHttpClient.execute(httpGet, false);
+        if (response == null)
+            return null;
+
+        try {
+            HttpEntity entity = response.getEntity();
+            BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(entity);
+            InputStream is = bufferedHttpEntity.getContent();
+            InputStream is2 = bufferedHttpEntity.getContent();
+            Bitmap result = XAndroidImageProcessor.getInstance().
+                    processImage2Bmp(is, is2, sWidth, sHeight,
+                            new Rect(-1, -1, -1, -1));
+            entity.consumeContent();
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+}
