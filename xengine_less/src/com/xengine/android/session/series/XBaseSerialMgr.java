@@ -34,8 +34,16 @@ public abstract class XBaseSerialMgr<V, T> implements XSerial<V, T> {
 
     @Override
     public void startTasks(List<V> dataList, List<T> listenerList) {
-        for(int i = 0; i< dataList.size(); i++)
-            addNewTask(createTask(dataList.get(i), listenerList.get(i)));
+        if (dataList == null || dataList.size() == 0)
+            return;
+        if (listenerList != null && dataList.size() != listenerList.size())
+            return;
+
+        for(int i = 0; i< dataList.size(); i++) {
+            T listener = (listenerList == null) ? null : listenerList.get(i);
+            if (listenerList != null)
+            addNewTask(createTask(dataList.get(i), listener));
+        }
         fireDownload();
     }
 

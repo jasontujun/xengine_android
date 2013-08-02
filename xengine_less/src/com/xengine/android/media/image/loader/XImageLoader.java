@@ -6,6 +6,7 @@ import android.widget.ImageView;
 import com.xengine.android.media.image.processor.XImageProcessor;
 
 /**
+ * 内存加载图片的接口
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-8-1

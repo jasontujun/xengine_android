@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * 文件存储管理接口
  * Created with IntelliJ IDEA.
  * User: jasontujun
  * Date: 13-5-11

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * 利用Http方式进行文件下载的管理类
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-7-31
@@ -19,8 +20,8 @@ import java.io.InputStream;
  */
 public class XHttpDownloadMgr implements XDownloadMgr {
 
-    private XHttp mHttpClient;
-    private XDownloadListener mListener;
+    protected XHttp mHttpClient;
+    protected XDownloadListener mListener;
 
     public XHttpDownloadMgr(XHttp httpClient) {
         this.mHttpClient = httpClient;

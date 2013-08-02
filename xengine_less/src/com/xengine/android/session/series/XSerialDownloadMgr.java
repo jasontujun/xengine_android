@@ -1,7 +1,6 @@
 package com.xengine.android.session.series;
 
 import android.os.AsyncTask;
-import com.xengine.android.session.download.XDownloadListener;
 import com.xengine.android.session.download.XDownloadMgr;
 
 /**
@@ -12,8 +11,8 @@ import com.xengine.android.session.download.XDownloadMgr;
  * Date: 12-3-16
  * Time: 上午9:38
  */
-public class XSerialDownloadMgr
-        extends XBaseSerialMgr<XSerialDownloadMgr.DownloadParams, XDownloadListener> {
+public final class XSerialDownloadMgr
+        extends XBaseSerialMgr<XSerialDownloadMgr.DownloadParams, XSerialDownloadListener> {
 
     private XDownloadMgr mDownloadMgr;
 
@@ -23,7 +22,7 @@ public class XSerialDownloadMgr
     }
 
     @Override
-    protected AsyncTask createTask(DownloadParams data, XDownloadListener listener) {
+    protected AsyncTask createTask(DownloadParams data, XSerialDownloadListener listener) {
         return new SerialDownloadTask(data, listener);
     }
 
@@ -45,9 +44,9 @@ public class XSerialDownloadMgr
      private class SerialDownloadTask extends AsyncTask<Void, Void, Boolean> {
 
         private DownloadParams mParams;
-        private XDownloadListener mListener;
+        private XSerialDownloadListener mListener;
 
-        public SerialDownloadTask(DownloadParams param, XDownloadListener listener) {
+        public SerialDownloadTask(DownloadParams param, XSerialDownloadListener listener) {
             mParams = param;
             mListener = listener;
         }
@@ -58,6 +57,8 @@ public class XSerialDownloadMgr
 
         @Override
         protected void onPreExecute() {
+            if (mListener != null)
+                mListener.beforeDownload(mParams.url);
             mDownloadMgr.setDownloadListener(mListener);
         }
 
@@ -69,12 +70,16 @@ public class XSerialDownloadMgr
         @Override
         protected void onPostExecute(Boolean result) {
             mDownloadMgr.setDownloadListener(null);
+            if (mListener != null)
+                mListener.afterDownload(mParams.url);
             notifyTaskFinished(this);
         }
 
         @Override
         protected void onCancelled() {
             super.onCancelled();
+            if (mListener != null)
+                mListener.afterDownload(mParams.url);
             notifyTaskFinished(this);
         }
     }

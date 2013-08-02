@@ -1,22 +1,21 @@
 package com.xengine.android.session.series;
 
 import android.os.AsyncTask;
-import com.xengine.android.session.upload.XUploadListener;
 import com.xengine.android.session.upload.XUploadMgr;
 
 import java.io.File;
 import java.util.Map;
 
 /**
- * 图片线性上传管理类。
+ * 线性上传管理类。
  * Created by 赵之韵.
  * Modified by jasontujun
  * Email: ttxzmorln@163.com
  * Date: 12-3-16
  * Time: 上午9:38
  */
-public class XSerialUploadMgr extends
-        XBaseSerialMgr<XSerialUploadMgr.UploadParams, XUploadListener> {
+public final class XSerialUploadMgr extends
+        XBaseSerialMgr<XSerialUploadMgr.UploadParams, XSerialUploadListener> {
 
     private XUploadMgr mUploadMgr;
 
@@ -26,7 +25,7 @@ public class XSerialUploadMgr extends
     }
 
     @Override
-    protected AsyncTask createTask(UploadParams data, XUploadListener listener) {
+    protected AsyncTask createTask(UploadParams data, XSerialUploadListener listener) {
         return new SerialUploadTask(data, listener);
     }
 
@@ -50,9 +49,9 @@ public class XSerialUploadMgr extends
 
         private String mId;
         private UploadParams mParams;
-        private XUploadListener mListener;
+        private XSerialUploadListener mListener;
 
-        public SerialUploadTask(UploadParams param, XUploadListener listener) {
+        public SerialUploadTask(UploadParams param, XSerialUploadListener listener) {
             mParams = param;
             mListener = listener;
             mId = "" + System.currentTimeMillis();
@@ -64,6 +63,8 @@ public class XSerialUploadMgr extends
 
         @Override
         protected void onPreExecute() {
+            if (mListener != null)
+                mListener.beforeUpload(mParams.url);
             mUploadMgr.setUploadListener(mListener);
         }
 
@@ -80,12 +81,16 @@ public class XSerialUploadMgr extends
         @Override
         protected void onPostExecute(Boolean result) {
             mUploadMgr.setUploadListener(null);
+            if (mListener != null)
+                mListener.afterUpload(mParams.url);
             notifyTaskFinished(this);
         }
 
         @Override
         protected void onCancelled() {
             super.onCancelled();
+            if (mListener != null)
+                mListener.afterUpload(mParams.url);
             notifyTaskFinished(this);
         }
     }

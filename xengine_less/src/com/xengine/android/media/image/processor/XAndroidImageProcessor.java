@@ -19,7 +19,7 @@ import java.io.*;
  * Date: 12-10-29
  * Time: 下午9:28
  */
-public class XAndroidImageProcessor implements XImageProcessor {
+public final class XAndroidImageProcessor implements XImageProcessor {
     private static final String TAG = "IMG";
 
     private static XAndroidImageProcessor instance;

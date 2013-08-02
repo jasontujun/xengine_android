@@ -7,10 +7,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.view.animation.AnimationUtils;
+import android.view.animation.AlphaAnimation;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
-import com.xengine.android.R;
 import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.media.image.processor.XImageProcessor;
 import com.xengine.android.utils.XStringUtil;
@@ -28,7 +27,6 @@ import java.util.Map;
  * 二级缓存（内存 + Sd卡的图片缓存）。
  * 异步方式加载。
  * 同步方式加载。
- * 统一管理本程序的缓存图片,所以用单例模式。
  * Created by jasontujun.
  * Date: 12-10-9
  * Time: 下午1:22
@@ -311,8 +309,12 @@ public abstract class XBaseImageLoader implements XImageLoader {
     }
 
     private void showViewAnimation(Context context, ImageView imageView) {
-        if(isFading)
-            imageView.startAnimation(AnimationUtils.loadAnimation(context, R.anim.fade));
+        if(isFading) {
+            AlphaAnimation fadeAnimation = new AlphaAnimation(0 ,1);
+            fadeAnimation.setDuration(context.getResources().
+                    getInteger(android.R.integer.config_shortAnimTime));
+            imageView.startAnimation(fadeAnimation);
+        }
     }
 
 

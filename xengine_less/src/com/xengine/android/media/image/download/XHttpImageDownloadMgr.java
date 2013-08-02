@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.media.image.processor.XImageProcessor;
+import com.xengine.android.session.download.XHttpDownloadMgr;
 import com.xengine.android.session.http.XHttp;
 import com.xengine.android.utils.XStringUtil;
 import org.apache.http.HttpEntity;
@@ -20,13 +21,13 @@ import java.io.InputStream;
  * Date: 12-2-27
  * Time: 下午8:03
  */
-public class XHttpImageDownloadMgr implements XImageDownloadMgr {
+public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
+        implements XImageDownloadMgr {
 
-    private XHttp mHttpClient;
     private int mScreenWidth, mScreenHeight;
 
     public XHttpImageDownloadMgr(XHttp httpClient, int screenWidth, int screenHeight) {
-        mHttpClient = httpClient;
+        super(httpClient);
         mScreenWidth = screenWidth;
         mScreenHeight = screenHeight;
     }
@@ -57,16 +58,21 @@ public class XHttpImageDownloadMgr implements XImageDownloadMgr {
     @Override
     public String downloadImg2File(String imgUrl, String format,
                                    int compress, int sWidth, int sHeight) {
+        if (mListener != null)
+            mListener.onStart(imgUrl);
+
         HttpGet httpGet = new HttpGet(imgUrl);
         HttpResponse response = mHttpClient.execute(httpGet, false);
-        if (response == null)
+        if (response == null) {
+            if (mListener != null)
+                mListener.onError(imgUrl, "No Response");
             return null;
+        }
 
         // 处理GIF图片（TODO 还有问题）
 //        if(imgUrl.endsWith("gif") || imgUrl.endsWith("GIF")) {
 //            return XAndroidImageMgr.getInstance().processGif2File(response);
 //        }
-
         HttpEntity entity = response.getEntity();
         try {
             BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(entity);
@@ -92,13 +98,18 @@ public class XHttpImageDownloadMgr implements XImageDownloadMgr {
             Bitmap.CompressFormat cFormat = Bitmap.CompressFormat.JPEG;
             if (imgFormat.equals(FORMAT_PNG))
                 cFormat = Bitmap.CompressFormat.PNG;
-            boolean result = XAndroidImageProcessor.getInstance().
+            boolean processResult = XAndroidImageProcessor.getInstance().
                     processImage2File(is, is2, imgName, sWidth, sHeight,
                             new Rect(-1, -1, -1, -1), cFormat, compress);
             entity.consumeContent();
-            return result ? imgName : null ;
+            String result = processResult ? imgName : null;
+            if (mListener != null)
+                mListener.onComplete(imgUrl, result);
+            return result;
         } catch (IOException e) {
             e.printStackTrace();
+            if (mListener != null)
+                mListener.onError(imgUrl, "IO Exception");
         }
         return null;
     }
@@ -111,10 +122,16 @@ public class XHttpImageDownloadMgr implements XImageDownloadMgr {
 
     @Override
     public Bitmap downloadImg2Bmp(String imgUrl, String format, int sWidth, int sHeight) {
+        if (mListener != null)
+            mListener.onStart(imgUrl);
+
         HttpGet httpGet = new HttpGet(imgUrl);
         HttpResponse response = mHttpClient.execute(httpGet, false);
-        if (response == null)
+        if (response == null) {
+            if (mListener != null)
+                mListener.onError(imgUrl, "No Response");
             return null;
+        }
 
         try {
             HttpEntity entity = response.getEntity();
@@ -125,9 +142,13 @@ public class XHttpImageDownloadMgr implements XImageDownloadMgr {
                     processImage2Bmp(is, is2, sWidth, sHeight,
                             new Rect(-1, -1, -1, -1));
             entity.consumeContent();
+            if (mListener != null)
+                mListener.onComplete(imgUrl, null);
             return result;
         } catch (IOException e) {
             e.printStackTrace();
+            if (mListener != null)
+                mListener.onError(imgUrl, "IO Exception");
         }
         return null;
     }
