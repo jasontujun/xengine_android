@@ -1,5 +1,7 @@
 package com.xengine.android.session.download;
 
+import java.io.File;
+
 /**
  * 文件下载管理类
  * Created with IntelliJ IDEA.
@@ -13,7 +15,15 @@ public interface XDownloadMgr {
     /**
      * 访问url执行下载并以文件形式保存到本地，返回图片的本地文件名。
      * @param url url地址
-     * @param path 本地路径
+     * @param localFile 本地文件文件名。若为空，则保存为远程url地址的名称
+     * @return
+     */
+    boolean download(String url, File localFile);
+
+    /**
+     * 访问url执行下载并以文件形式保存到本地，返回图片的本地文件名。
+     * @param url url地址
+     * @param path 本地路径(不以"/"结尾)
      * @param fileName 文件名。若为空，则保存为远程url地址的名称
      * @return
      */

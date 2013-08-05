@@ -1,14 +1,14 @@
 package com.xengine.android.session.download;
 
 import com.xengine.android.session.http.XHttp;
+import com.xengine.android.system.file.XAndroidFileMgr;
+import com.xengine.android.system.file.XFileMgr;
+import com.xengine.android.utils.XLog;
 import com.xengine.android.utils.XStringUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * 利用Http方式进行文件下载的管理类
@@ -19,6 +19,7 @@ import java.io.InputStream;
  * To change this template use File | Settings | File Templates.
  */
 public class XHttpDownloadMgr implements XDownloadMgr {
+    private static final String TAG = XHttpDownloadMgr.class.getSimpleName();
 
     protected XHttp mHttpClient;
     protected XDownloadListener mListener;
@@ -28,7 +29,17 @@ public class XHttpDownloadMgr implements XDownloadMgr {
     }
 
     @Override
+    public boolean download(String url, File localFile) {
+        if (localFile == null)
+            localFile = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
+        return download(url, localFile.getParent(), localFile.getName());
+    }
+
+    @Override
     public boolean download(String url, String path, String fileName) {
+        if (XStringUtil.isNullOrEmpty(url) || XStringUtil.isNullOrEmpty(path))
+            return false;
+
         if (mListener != null)
             mListener.onStart(url);
 
@@ -49,8 +60,9 @@ public class XHttpDownloadMgr implements XDownloadMgr {
             else
                 localFileName = fileName;
 
-            FileOutputStream FOS = null; // 创建写入文件内存流，
-            FOS = new FileOutputStream(path + localFileName);
+            String localPath = path + File.separator + localFileName;
+            XLog.d(TAG, "localPath: " + localPath);
+            FileOutputStream FOS = new FileOutputStream(localPath);
             byte buf[] = new byte[1024];
             long downloadPosition = 0;
             int numRead;

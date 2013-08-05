@@ -12,9 +12,14 @@ import java.io.IOException;
  */
 public interface XFileMgr {
 
-    static final int FILE_TYPE_TMP = 0;
-    static final int FILE_TYPE_PHOTO = 1;
+    static final int FILE_ROOT = 0;
+    static final int FILE_TYPE_TMP = 1;
+    static final int FILE_TYPE_PHOTO = 2;
 
+    /**
+     * 设置根目录的文件夹名称。
+     * @param rootName
+     */
     void setRootName(String rootName);
 
     String getRootName();
@@ -35,6 +40,7 @@ public interface XFileMgr {
      * 根据子文件夹类型获取文件夹
      * @param type 文件夹类型
      * @return 如果存在，返回对应文件夹；如果不存在，返回null
+     * @see #FILE_ROOT
      * @see #FILE_TYPE_TMP
      * @see #FILE_TYPE_PHOTO
      */

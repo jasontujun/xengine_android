@@ -2,6 +2,7 @@ package com.xengine.android.system.file;
 
 import android.os.Environment;
 import com.xengine.android.utils.XLog;
+import com.xengine.android.utils.XStringUtil;
 
 import java.io.*;
 import java.util.HashMap;
@@ -27,33 +28,43 @@ public class XAndroidFileMgr implements XFileMgr {
     }
 
     private XAndroidFileMgr(){
-        subDirs = new HashMap<Integer, File>();
+        mSubDirs = new HashMap<Integer, File>();
     }
 
-    private String rootName;
-    private Map<Integer, File> subDirs;
+    private String mRootName;
+    private Map<Integer, File> mSubDirs;
 
     @Override
     public void setRootName(String rootName) {
-        this.rootName = rootName;
+        if (XStringUtil.isNullOrEmpty(rootName))
+            return;
+        if (!XStringUtil.isNullOrEmpty(mRootName) && mRootName.equals(rootName))
+            return;
+
+        mRootName = rootName;
+        File rootDir = new File(Environment.getExternalStorageDirectory()
+                + File.separator + mRootName);
+        mSubDirs.put(FILE_ROOT, rootDir);
     }
 
     @Override
     public String getRootName() {
-        return rootName;
+        return mRootName;
     }
 
     @Override
     public boolean setDir(int type, String dirName, boolean clear) {
         if (type < 0) // 小于0的类型忽略
             return false;
+        if (XStringUtil.isNullOrEmpty(dirName))
+            return false;
 
-        if (subDirs.containsKey(type) && 0 <= type && type <= 10) // 重复设置保留文件夹
+        if (mSubDirs.containsKey(type) && 0 <= type && type <= 10) // 重复设置保留文件夹
             return false;
 
         File subDir = new File(Environment.getExternalStorageDirectory()
-                + File.separator + rootName + File.separator  + dirName);
-        subDirs.put(type, subDir);
+                + File.separator + mRootName + File.separator  + dirName);
+        mSubDirs.put(type, subDir);
 
         if (!subDir.exists())
             return subDir.mkdirs();
@@ -65,7 +76,7 @@ public class XAndroidFileMgr implements XFileMgr {
 
     @Override
     public File getDir(int type) {
-        return subDirs.get(type);
+        return mSubDirs.get(type);
     }
 
     @Override
