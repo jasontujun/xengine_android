@@ -1,7 +1,7 @@
 package com.xengine.android.media.image.loader;
 
 /**
- * 图片Url类型
+ * 本地图片地址的特殊值，用于标记图片加载过程中的一些特殊状态。
  * Created by jasontujun.
  * Date: 12-10-25
  * Time: 下午10:59

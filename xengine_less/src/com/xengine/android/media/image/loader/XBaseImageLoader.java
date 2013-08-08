@@ -63,7 +63,7 @@ public abstract class XBaseImageLoader implements XImageLoader{
         try {
             String localImageFile = getLocalImage(imageUrl);
             Bitmap bmp = XAndroidImageProcessor.getInstance()
-                    .getLocalImage(localImageFile, size);// 加载size尺寸大小的图片
+                    .getLocalImage(localImageFile, size);// 加载对应尺寸的图片
             if(bmp != null) {
                 mImageCache.saveCacheBitmap(imageUrl, bmp, size);// 缓存图片
                 return bmp;

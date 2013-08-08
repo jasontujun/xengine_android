@@ -8,7 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
-import com.xengine.android.media.image.download.XImageDownloadMgr;
+import com.xengine.android.media.image.download.XImageDownload;
 import com.xengine.android.media.image.loader.cache.XAndroidImageCache;
 import com.xengine.android.media.image.processor.XImageProcessor;
 import com.xengine.android.session.series.XSerialDownloadListener;
@@ -28,10 +28,10 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
         implements XImageRemoteLoader<ImageView> {
     private static final String TAG = XImageViewRemoteLoader.class.getSimpleName();
 
-    protected XImageDownloadMgr mImageDownloadMgr;// 图片下载管理器
+    protected XImageDownload mImageDownloadMgr;// 图片下载管理器
     protected boolean mIsFading;// 标识是否开启渐变效果
 
-    public XImageViewRemoteLoader(XImageDownloadMgr imageDownloadMgr) {
+    public XImageViewRemoteLoader(XImageDownload imageDownloadMgr) {
         mImageCache = XAndroidImageCache.getInstance();
         mIsFading = true;
         mImageDownloadMgr = imageDownloadMgr;
@@ -54,31 +54,33 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
             return;
         }
 
-        // 如果没有，则启动异步加载（先取消之前可能对同一张图片的加载工作）
+        // 如果没有，则将imageView设置为对应状态的图标，准备启动异步线程
+        // （先取消之前可能对同一个ImageView但不同图片的加载工作）
         if (cancelPotentialWork(imageUrl, imageView)) {
-            // 图标提示（“加载中”）
+            // 如果local_image标记为“加载中”，即图片正在下载，什么都不做
             String localImageFile = getLocalImage(imageUrl);
             if (XImageLocalUrl.IMG_LOADING.equals(localImageFile)) {
                 imageView.setImageResource(mLoadingImageResource);
                 return;
             }
 
-            // 如果是真正图片，则需要异步加载
             Resources resources = context.getResources();
-            Bitmap mPlaceHolderBitmap;
+            Bitmap mTmpBitmap;
             final RemoteAsyncImageTask task;
             if (XStringUtil.isNullOrEmpty(localImageFile)) {
-                mPlaceHolderBitmap = BitmapFactory.decodeResource(resources, mDefaultImageResource);// 缺省图片
+                mTmpBitmap = BitmapFactory.decodeResource(resources, mDefaultImageResource);// 缺省图片
                 task = new RemoteAsyncImageTask(context, imageView, imageUrl, size, true, listener);
             } else if (localImageFile.equals(XImageLocalUrl.IMG_ERROR)) {
-                mPlaceHolderBitmap = BitmapFactory.decodeResource(resources, mErrorImageResource);// 错误图片
+                mTmpBitmap = BitmapFactory.decodeResource(resources, mErrorImageResource);// 错误图片
                 task = new RemoteAsyncImageTask(context, imageView, imageUrl, size, true, listener);
             } else {
-                mPlaceHolderBitmap = BitmapFactory.decodeResource(resources, mEmptyImageResource);// 占位图片
+                mTmpBitmap = BitmapFactory.decodeResource(resources, mEmptyImageResource);// 占位图片
                 task = new RemoteAsyncImageTask(context, imageView, imageUrl, size, false, listener);
             }
-            final AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mPlaceHolderBitmap, task);
+            final AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mTmpBitmap, task);
             imageView.setImageDrawable(asyncDrawable);
+
+            // 启动异步线程
             task.execute(null);
         }
     }
@@ -186,27 +188,38 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
 
         @Override
         protected void onPreExecute() {
+            XLog.d(TAG, "RemoteAsyncImageTask onPreExecute(), url:" + mImageUrl);
             if (mDownload) {
                 if (mListener != null)
                     mListener.beforeDownload(mImageUrl); // 通知监听者
                 mImageDownloadMgr.setDownloadListener(mListener);// 设置监听
 
-                setLocalImage(getImageUrl(), XImageLocalUrl.IMG_LOADING);
-                final ImageView imageView = mImageViewReference.get();
-                if (imageView != null)
-                    imageView.setImageResource(mLoadingImageResource);
+                // local_image设置为“加载中”
+                setLocalImage(mImageUrl, XImageLocalUrl.IMG_LOADING);
+                if (mImageViewReference != null) {
+                    ImageView imageView = mImageViewReference.get();
+                    if (imageView != null) {
+                        Resources resources = mContext.getResources();
+                        Bitmap loadingBitmap = BitmapFactory.decodeResource(resources,
+                                mLoadingImageResource);
+                        final AsyncDrawable asyncDrawable = new AsyncDrawable(resources,
+                                loadingBitmap, this);
+                        imageView.setImageDrawable(asyncDrawable);
+                    }
+                }
             }
         }
 
         // download and decode image in background.
         @Override
         protected Bitmap doInBackground(Void... params) {
+            XLog.d(TAG, "RemoteAsyncImageTask doInBackground(), url:" + mImageUrl);
             if (mDownload) {
-                String localUrl = mImageDownloadMgr.downloadImg2File(getImageUrl(), null);
+                String localUrl = mImageDownloadMgr.downloadImg2File(mImageUrl, null);
                 if (XStringUtil.isNullOrEmpty(localUrl))
-                    setLocalImage(getImageUrl(), XImageLocalUrl.IMG_ERROR);
+                    setLocalImage(mImageUrl, XImageLocalUrl.IMG_ERROR);// local_image设置为“错误”
                 else
-                    setLocalImage(getImageUrl(), localUrl);
+                    setLocalImage(mImageUrl, localUrl);// local_image设置为“加载中”
             }
             return loadRealImage(mContext, mImageUrl, mSize);
         }
@@ -215,7 +228,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
         // Once complete, see if ImageView is still around and set bitmap.
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            XLog.d(TAG, "SerialTask onPostExecute. url:" + getImageUrl());
+            XLog.d(TAG, "RemoteAsyncImageTask onPostExecute(), url:" + mImageUrl);
             if (isCancelled()) {
                 bitmap = null;
             }
@@ -224,6 +237,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
             if (mDownload && mListener != null) // 通知监听者
                 mListener.afterDownload(mImageUrl);
 
+            // 设置真正的图片
             if (mImageViewReference != null && bitmap != null) {
                 final ImageView imageView = mImageViewReference.get();
                 final RemoteAsyncImageTask asyncImageViewTask = getAsyncImageTask(imageView);
@@ -236,9 +250,26 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
 
         @Override
         protected void onCancelled() {
+            XLog.d(TAG, "RemoteAsyncImageTask onCancelled. url:" + mImageUrl);
             super.onCancelled();
+
+            // cancel时，如果local_image设置为“加载中”,则设置为空
+            String localImageFile = getLocalImage(mImageUrl);
+            boolean reset = XImageLocalUrl.IMG_LOADING.equals(localImageFile);
+            if (reset)
+                setLocalImage(mImageUrl, null);// local_image设置为空，待下次重新下载
+
             mImageDownloadMgr.setDownloadListener(null);// 取消监听
-            XLog.d(TAG, "SerialTask onCancelled. url:" + getImageUrl());
+            if (mDownload && mListener != null) // 通知监听者
+                mListener.afterDownload(mImageUrl);
+
+            // 设置为缺省图片
+//            if (reset && mImageViewReference != null) {
+//                ImageView imageView = mImageViewReference.get();
+//                final RemoteAsyncImageTask asyncImageViewTask = getAsyncImageTask(imageView);
+//                if (this == asyncImageViewTask && imageView != null)
+//                    imageView.setImageResource(mDefaultImageResource);
+//            }
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.xengine.android.media.image.download;
 
 import android.graphics.Bitmap;
-import com.xengine.android.session.download.XDownloadMgr;
+import com.xengine.android.session.download.XDownload;
 
 /**
  * 图片下载接口
@@ -9,7 +9,7 @@ import com.xengine.android.session.download.XDownloadMgr;
  * Date: 12-10-30
  * Time: 下午4:08
  */
-public interface XImageDownloadMgr extends XDownloadMgr {
+public interface XImageDownload extends XDownload {
 
     public static final String FORMAT_PNG = "png";
     public static final String FORMAT_JPG = "jpg";

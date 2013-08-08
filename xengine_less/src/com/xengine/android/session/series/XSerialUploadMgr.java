@@ -1,7 +1,7 @@
 package com.xengine.android.session.series;
 
 import android.os.AsyncTask;
-import com.xengine.android.session.upload.XUploadMgr;
+import com.xengine.android.session.upload.XUpload;
 
 import java.io.File;
 import java.util.Map;
@@ -17,9 +17,9 @@ import java.util.Map;
 public final class XSerialUploadMgr extends
         XBaseSerialMgr<XSerialUploadMgr.UploadParams, XSerialUploadListener> {
 
-    private XUploadMgr mUploadMgr;
+    private XUpload mUploadMgr;
 
-    public XSerialUploadMgr(XUploadMgr uploadMgr) {
+    public XSerialUploadMgr(XUpload uploadMgr) {
         super();
         mUploadMgr = uploadMgr;
     }

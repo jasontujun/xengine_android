@@ -18,7 +18,7 @@ import java.io.*;
  * Time: 下午5:59
  * To change this template use File | Settings | File Templates.
  */
-public class XHttpDownloadMgr implements XDownloadMgr {
+public class XHttpDownloadMgr implements XDownload {
     private static final String TAG = XHttpDownloadMgr.class.getSimpleName();
 
     protected XHttp mHttpClient;

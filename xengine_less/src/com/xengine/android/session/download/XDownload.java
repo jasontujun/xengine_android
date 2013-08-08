@@ -10,7 +10,7 @@ import java.io.File;
  * Time: 下午5:21
  * To change this template use File | Settings | File Templates.
  */
-public interface XDownloadMgr {
+public interface XDownload {
 
     /**
      * 访问url执行下载并以文件形式保存到本地，返回图片的本地文件名。

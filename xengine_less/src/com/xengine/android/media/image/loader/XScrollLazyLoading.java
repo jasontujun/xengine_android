@@ -9,7 +9,18 @@ package com.xengine.android.media.image.loader;
  * To change this template use File | Settings | File Templates.
  */
 public interface XScrollLazyLoading {
-    void wakeUp();
-    void fallAsleep();
-    void fallAsleepAndClear();
+    /**
+     * 停止滑动，开始加载。
+     */
+    void onIdle();
+
+    /**
+     * 滑动中，停止加载。
+     */
+    void onScroll();
+
+    /**
+     * 停止加载并清空加载任务。
+     */
+    void stopAndClear();
 }

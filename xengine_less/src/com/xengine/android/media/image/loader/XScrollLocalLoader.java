@@ -64,17 +64,17 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
     }
 
     @Override
-    public void fallAsleep() {
+    public void onScroll() {
         mSerialMgr.stop();
     }
 
     @Override
-    public void wakeUp() {
+    public void onIdle() {
         mSerialMgr.start();
     }
 
     @Override
-    public void fallAsleepAndClear() {
+    public void stopAndClear() {
         mSerialMgr.stopAndReset();
     }
 

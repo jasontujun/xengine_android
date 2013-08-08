@@ -11,7 +11,7 @@ import java.util.Map;
  * Time: 上午10:36
  * To change this template use File | Settings | File Templates.
  */
-public interface XUploadMgr {
+public interface XUpload {
 
     /**
      * 上传文件

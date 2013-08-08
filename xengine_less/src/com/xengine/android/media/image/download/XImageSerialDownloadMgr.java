@@ -5,7 +5,7 @@ import com.xengine.android.session.series.XBaseSerialMgr;
 import com.xengine.android.session.series.XSerialDownloadListener;
 
 /**
- * 线性下载管理类。
+ * 线性下载图片管理类。
  * Created by 赵之韵.
  * Modified by jasontujun
  * Email: ttxzmorln@163.com
@@ -15,9 +15,9 @@ import com.xengine.android.session.series.XSerialDownloadListener;
 public final class XImageSerialDownloadMgr
         extends XBaseSerialMgr<String, XSerialDownloadListener> {
 
-    private XImageDownloadMgr mImageDownloadMgr;
+    private XImageDownload mImageDownloadMgr;
 
-    public XImageSerialDownloadMgr(XImageDownloadMgr imageDownloadMgr) {
+    public XImageSerialDownloadMgr(XImageDownload imageDownloadMgr) {
         super();
         mImageDownloadMgr = imageDownloadMgr;
     }

@@ -20,7 +20,7 @@ import java.util.Map;
  * Time: 上午10:54
  * To change this template use File | Settings | File Templates.
  */
-public class XHttpUploadMgr implements XUploadMgr {
+public class XHttpUploadMgr implements XUpload {
 
     private XHttp mHttpClient;
     private XUploadListener mListener;

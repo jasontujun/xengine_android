@@ -22,7 +22,7 @@ import java.io.InputStream;
  * Time: 下午8:03
  */
 public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
-        implements XImageDownloadMgr {
+        implements XImageDownload {
 
     private int mScreenWidth, mScreenHeight;
 

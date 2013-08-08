@@ -1,7 +1,7 @@
 package com.xengine.android.session.series;
 
 import android.os.AsyncTask;
-import com.xengine.android.session.download.XDownloadMgr;
+import com.xengine.android.session.download.XDownload;
 
 /**
  * 线性下载管理类。
@@ -14,9 +14,9 @@ import com.xengine.android.session.download.XDownloadMgr;
 public final class XSerialDownloadMgr
         extends XBaseSerialMgr<XSerialDownloadMgr.DownloadParams, XSerialDownloadListener> {
 
-    private XDownloadMgr mDownloadMgr;
+    private XDownload mDownloadMgr;
 
-    public XSerialDownloadMgr(XDownloadMgr downloadMgr) {
+    public XSerialDownloadMgr(XDownload downloadMgr) {
         super();
         mDownloadMgr = downloadMgr;
     }
