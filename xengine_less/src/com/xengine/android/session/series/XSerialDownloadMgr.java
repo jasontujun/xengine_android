@@ -78,6 +78,7 @@ public final class XSerialDownloadMgr
         @Override
         protected void onCancelled() {
             super.onCancelled();
+            mDownloadMgr.setDownloadListener(null);
             if (mListener != null)
                 mListener.afterDownload(mParams.url);
             notifyTaskFinished(this);

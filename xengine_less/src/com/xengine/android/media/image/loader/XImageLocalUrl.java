@@ -8,7 +8,7 @@ package com.xengine.android.media.image.loader;
  */
 public class XImageLocalUrl {
 
-    public static final String IMG_LOADING = "loading";// 图片加载
+    public static final String IMG_LOADING = "loading";// 图片正在下载
 
     public static final String IMG_ERROR = "error";// 图片加载错误
 }

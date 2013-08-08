@@ -89,6 +89,7 @@ public final class XSerialUploadMgr extends
         @Override
         protected void onCancelled() {
             super.onCancelled();
+            mUploadMgr.setUploadListener(null);
             if (mListener != null)
                 mListener.afterUpload(mParams.url);
             notifyTaskFinished(this);

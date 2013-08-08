@@ -1,6 +1,6 @@
 package com.xengine.android.session.series;
 
-import java.util.List;
+import android.os.AsyncTask;
 
 /**
  * 线性任务执行的接口
@@ -8,21 +8,19 @@ import java.util.List;
  * Date: 12-10-30
  * Time: 下午8:48
  */
-public interface XSerial<V, T> {
+public interface XSerial {
 
     /**
-     * 添加单个任务进线性队列中，并启动队列执行
-     * @param data 数据
-     * @param listener 监听器
+     * 添加任务
+     * @param task
+     * @return
      */
-    void startTask(V data, T listener);
+    boolean addNewTask(AsyncTask task);
 
     /**
-     * 添加一堆任务进线性队列中，并启动队列执行
-     * @param dataList 数据列表
-     * @param listenerList 监听器列表
+     * 暂停任务队列的执行
      */
-    void startTasks(List<V> dataList, List<T> listenerList);
+    void start();
 
     /**
      * 暂停任务队列的执行

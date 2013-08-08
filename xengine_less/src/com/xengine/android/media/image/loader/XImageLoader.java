@@ -1,16 +1,16 @@
 package com.xengine.android.media.image.loader;
 
 import android.content.Context;
-import android.widget.ImageSwitcher;
-import android.widget.ImageView;
+import android.graphics.Bitmap;
 import com.xengine.android.media.image.processor.XImageProcessor;
 
 /**
- * 内存加载图片的接口
+ * 图片加载器接口。
+ * 包含了图片加载器的最基本操作。
  * Created with IntelliJ IDEA.
  * User: tujun
- * Date: 13-8-1
- * Time: 下午7:11
+ * Date: 13-8-7
+ * Time: 下午3:50
  * To change this template use File | Settings | File Templates.
  */
 public interface XImageLoader {
@@ -33,38 +33,19 @@ public interface XImageLoader {
     void clearImageCache();
 
     /**
-     * 异步加载图片(对ImageView)
+     * 加载真正的图片(并缓存到内存中)
      * @param context
      * @param imageUrl
-     * @param imageView
      * @param size
+     * @return
      */
-    void asyncLoadBitmap(Context context, String imageUrl,
-                                ImageView imageView, XImageProcessor.ImageSize size);
+    Bitmap loadRealImage(Context context, String imageUrl,
+                         XImageProcessor.ImageSize size);
 
     /**
-     * 异步加载图片(对ImageSwitcher)
-     * @param context
-     * @param imageUrl
-     * @param imageSwitcher
-     * @param size
+     * 根据图片的远程url获取本地下载保存的图片文件地址。
+     * @param imgUrl 图片的远程url
+     * @return 如果存在，返回文件名；不存在则返回null
      */
-    void asyncLoadBitmap(Context context, String imageUrl,
-                    ImageSwitcher imageSwitcher, XImageProcessor.ImageSize size);
-
-    /**
-     * 同步加载图片(对ImageView)
-     * @param context
-     * @param imageUrl
-     * @param imageView
-     * @param size
-     */
-    public void syncLoadBitmap(Context context, String imageUrl,
-                               ImageView imageView, XImageProcessor.ImageSize size);
-
-    /**
-     * 设置显示图片时候的渐变效果
-     * @param fading
-     */
-    void setFading(boolean fading);
+    String getLocalImage(String imgUrl);
 }

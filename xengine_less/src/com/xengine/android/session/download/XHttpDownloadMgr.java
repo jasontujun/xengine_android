@@ -37,6 +37,9 @@ public class XHttpDownloadMgr implements XDownloadMgr {
 
     @Override
     public boolean download(String url, String path, String fileName) {
+        XLog.d(TAG, "url: " + url);
+        XLog.d(TAG, "path: " + path);
+        XLog.d(TAG, "fileName: " + fileName);
         if (XStringUtil.isNullOrEmpty(url) || XStringUtil.isNullOrEmpty(path))
             return false;
 
