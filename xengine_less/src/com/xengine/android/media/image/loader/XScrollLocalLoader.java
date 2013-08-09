@@ -13,7 +13,6 @@ import com.xengine.android.utils.XLog;
 /**
  * 滑动延迟加载的本地图片加载器。（用于ListView或GridView）
  * 特点：
- * 特点：
  * 1. 只负责本地加载，不涉及下载.
  * 2. 二级缓存（内存 + sd卡的图片缓存）。
  * 3. 异步方式加载。
@@ -58,7 +57,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
             Resources resources = context.getResources();
             Bitmap mPlaceHolderBitmap = BitmapFactory.
                     decodeResource(resources, mEmptyImageResource);// 占位图片
-            final AsyncImageViewTask task = new AsyncImageViewTask(context, imageView, imageUrl, size);
+            final LocalImageViewAsyncTask task = new ScrollLocalAsyncTask(context, imageView, imageUrl, size);
             final AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mPlaceHolderBitmap, task);
             imageView.setImageDrawable(asyncDrawable);
 
@@ -69,37 +68,26 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
 
     @Override
     public void onScroll() {
+        XLog.d(TAG, "onScroll()");
         mSerialMgr.stop();
     }
 
     @Override
     public void onIdle() {
+        XLog.d(TAG, "onIdle()");
         mSerialMgr.start();
     }
 
     @Override
     public void stopAndClear() {
+        XLog.d(TAG, "stopAndClear()");
         mSerialMgr.stopAndReset();
     }
 
-    private class TaskParam {
-        Context context;
-        String imageUrl;
-        ImageView imageView;
-        XImageProcessor.ImageSize size;
-    }
-
-    private class SerialTaskMgr extends XBaseSerialMgr<TaskParam, Void> {
-
-        @Override
-        protected AsyncTask createTask(TaskParam data, Void listener) {
-            return new SerialAsyncImageViewTask(data.context,
-                    data.imageView, data.imageUrl, data.size);
-        }
-
+    private class SerialTaskMgr extends XBaseSerialMgr {
         @Override
         protected String getTaskId(AsyncTask task) {
-            return ((SerialAsyncImageViewTask) task).getImageUrl();
+            return ((ScrollLocalAsyncTask) task).getImageUrl();
         }
 
         @Override
@@ -117,12 +105,12 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
     }
 
     /**
-     * 线性下载并加载图片的AsyncTask
+     * 线性地本地加载图片的AsyncTask
      */
-    private class SerialAsyncImageViewTask extends AsyncImageViewTask {
+    private class ScrollLocalAsyncTask extends LocalImageViewAsyncTask {
 
-        public SerialAsyncImageViewTask(Context context, ImageView imageView, String imageUrl,
-                                        XImageProcessor.ImageSize size) {
+        public ScrollLocalAsyncTask(Context context, ImageView imageView, String imageUrl,
+                                    XImageProcessor.ImageSize size) {
             super(context, imageView, imageUrl, size);
         }
 

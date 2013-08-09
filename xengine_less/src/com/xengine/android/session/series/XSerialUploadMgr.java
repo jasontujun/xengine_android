@@ -15,7 +15,7 @@ import java.util.Map;
  * Time: 上午9:38
  */
 public final class XSerialUploadMgr extends
-        XBaseSerialMgr<XSerialUploadMgr.UploadParams, XSerialUploadListener> {
+        XWrapperSerialMgr<XSerialUploadMgr.UploadParams, XSerialUploadListener> {
 
     private XUpload mUploadMgr;
 

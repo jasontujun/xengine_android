@@ -46,7 +46,7 @@ public abstract class XImageSwitcherLocalLoader extends XBaseImageLoader
             }
 
             // 如果是真正图片，则需要异步加载
-            final AsyncImageSwitcherTask task = new AsyncImageSwitcherTask(context, imageSwitcher, imageUrl, size);
+            final LocalImageSwitcherAsyncTask task = new LocalImageSwitcherAsyncTask(context, imageSwitcher, imageUrl, size);
             imageSwitcher.setTag(task);
             task.execute(null);
         }
@@ -106,7 +106,7 @@ public abstract class XImageSwitcherLocalLoader extends XBaseImageLoader
      */
     private static boolean cancelPotentialWork(String imageUrl,
                                                  ImageSwitcher imageSwitcher) {
-        final AsyncImageSwitcherTask asyncImageTask = getAsyncImageTask(imageSwitcher);
+        final LocalImageSwitcherAsyncTask asyncImageTask = getAsyncImageTask(imageSwitcher);
         if (asyncImageTask != null) {
             final String url = asyncImageTask.getImageUrl();
             if (url == null || !url.equals(imageUrl)) {
@@ -126,26 +126,26 @@ public abstract class XImageSwitcherLocalLoader extends XBaseImageLoader
      * @param imageSwitcher
      * @return
      */
-    private static AsyncImageSwitcherTask getAsyncImageTask(ImageSwitcher imageSwitcher) {
+    private static LocalImageSwitcherAsyncTask getAsyncImageTask(ImageSwitcher imageSwitcher) {
         if (imageSwitcher != null) {
             Object tag = imageSwitcher.getTag();
-            if (tag != null && tag instanceof AsyncImageSwitcherTask)
-                return (AsyncImageSwitcherTask) tag;
+            if (tag != null && tag instanceof LocalImageSwitcherAsyncTask)
+                return (LocalImageSwitcherAsyncTask) tag;
         }
         return null;
     }
 
     /**
-     * 异步加载图片(用于ImageSwitcher)
+     * 异步本地加载图片(用于ImageSwitcher)
      */
-    protected class AsyncImageSwitcherTask extends AsyncTask<Void, Void, Bitmap> {
+    protected class LocalImageSwitcherAsyncTask extends AsyncTask<Void, Void, Bitmap> {
         private Context context;
         private final WeakReference<ImageSwitcher> switcherReference;
         private String imageUrl;
         private XImageProcessor.ImageSize size;// 加载的图片尺寸
 
-        public AsyncImageSwitcherTask(Context context, ImageSwitcher switcher, String imageUrl,
-                                      XImageProcessor.ImageSize size) {
+        public LocalImageSwitcherAsyncTask(Context context, ImageSwitcher switcher, String imageUrl,
+                                           XImageProcessor.ImageSize size) {
             // Use a WeakReference to ensure the ImageView can be garbage collected
             this.context = context;
             this.switcherReference = new WeakReference<ImageSwitcher>(switcher);
@@ -172,7 +172,7 @@ public abstract class XImageSwitcherLocalLoader extends XBaseImageLoader
 
             if (switcherReference != null && bitmap != null) {
                 final ImageSwitcher switcher = switcherReference.get();
-                final AsyncImageSwitcherTask asyncImageTask = getAsyncImageTask(switcher);
+                final LocalImageSwitcherAsyncTask asyncImageTask = getAsyncImageTask(switcher);
                 if (this == asyncImageTask && switcher != null) {
                     switcher.setImageDrawable(new BitmapDrawable(bitmap));
                     switcher.setTag(null);

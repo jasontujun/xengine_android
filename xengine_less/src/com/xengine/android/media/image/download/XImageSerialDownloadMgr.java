@@ -1,7 +1,7 @@
 package com.xengine.android.media.image.download;
 
 import android.os.AsyncTask;
-import com.xengine.android.session.series.XBaseSerialMgr;
+import com.xengine.android.session.series.XWrapperSerialMgr;
 import com.xengine.android.session.series.XSerialDownloadListener;
 
 /**
@@ -13,7 +13,7 @@ import com.xengine.android.session.series.XSerialDownloadListener;
  * Time: 上午9:38
  */
 public final class XImageSerialDownloadMgr
-        extends XBaseSerialMgr<String, XSerialDownloadListener> {
+        extends XWrapperSerialMgr<String, XSerialDownloadListener> {
 
     private XImageDownload mImageDownloadMgr;
 

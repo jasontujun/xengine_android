@@ -12,7 +12,7 @@ import com.xengine.android.session.download.XDownload;
  * Time: 上午9:38
  */
 public final class XSerialDownloadMgr
-        extends XBaseSerialMgr<XSerialDownloadMgr.DownloadParams, XSerialDownloadListener> {
+        extends XWrapperSerialMgr<XSerialDownloadMgr.DownloadParams, XSerialDownloadListener> {
 
     private XDownload mDownloadMgr;
 

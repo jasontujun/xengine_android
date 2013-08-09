@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
 import com.xengine.android.media.image.processor.XImageProcessor;
+import com.xengine.android.utils.XLog;
 import com.xengine.android.utils.XStringUtil;
 
 import java.lang.ref.WeakReference;
@@ -28,6 +29,7 @@ import java.lang.ref.WeakReference;
  */
 public abstract class XImageViewLocalLoader extends XBaseImageLoader
         implements XImageLocalLoader<ImageView> {
+    private static final String TAG = XImageViewLocalLoader.class.getSimpleName();
 
     protected boolean mIsFading;// 标识是否开启渐变效果
 
@@ -60,7 +62,7 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
             Resources resources = context.getResources();
             Bitmap mPlaceHolderBitmap = BitmapFactory.
                     decodeResource(resources, mEmptyImageResource);// 占位图片
-            final AsyncImageViewTask task = new AsyncImageViewTask(context, imageView, imageUrl, size);
+            final LocalImageViewAsyncTask task = new LocalImageViewAsyncTask(context, imageView, imageUrl, size);
             final AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mPlaceHolderBitmap, task);
             imageView.setImageDrawable(asyncDrawable);
             task.execute(null);
@@ -122,12 +124,12 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
      * @return
      */
     protected static boolean cancelPotentialWork(String imageUrl, ImageView imageView) {
-        final AsyncImageViewTask asyncImageViewTask = getAsyncImageTask(imageView);
-        if (asyncImageViewTask != null) {
-            final String url = asyncImageViewTask.getImageUrl();
+        final LocalImageViewAsyncTask localImageViewAsyncTask = getAsyncImageTask(imageView);
+        if (localImageViewAsyncTask != null) {
+            final String url = localImageViewAsyncTask.getImageUrl();
             if (url == null || !url.equals(imageUrl)) {
                 // Cancel previous task
-                asyncImageViewTask.cancel(true);
+                localImageViewAsyncTask.cancel(true);
             } else {
                 // The same work is already in progress
                 return false;
@@ -142,19 +144,21 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
      * @param imageView
      * @return
      */
-    protected static AsyncImageViewTask getAsyncImageTask(ImageView imageView) {
+    protected static LocalImageViewAsyncTask getAsyncImageTask(ImageView imageView) {
         if (imageView != null) {
             final Drawable drawable = imageView.getDrawable();
             if (drawable instanceof AsyncDrawable) {
                 final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-                return (AsyncImageViewTask)asyncDrawable.getBitmapWorkerTask();
+                AsyncTask task = asyncDrawable.getBitmapWorkerTask();
+                if (task instanceof LocalImageViewAsyncTask)
+                    return (LocalImageViewAsyncTask) task;
             }
         }
         return null;
     }
 
     protected void showViewAnimation(Context context, ImageView imageView) {
-        if(mIsFading) {
+        if (mIsFading) {
             AlphaAnimation fadeAnimation = new AlphaAnimation(0 ,1);
             fadeAnimation.setDuration(context.getResources().
                     getInteger(android.R.integer.config_shortAnimTime));
@@ -163,16 +167,16 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
     }
 
     /**
-     * 异步加载图片的AsyncTask(用于ImageView)
+     * 异步本地加载图片的AsyncTask(用于ImageView)
      */
-    public class AsyncImageViewTask extends AsyncTask<Void, Void, Bitmap> {
+    public class LocalImageViewAsyncTask extends AsyncTask<Void, Void, Bitmap> {
         private Context context;
         private final WeakReference<ImageView> imageViewReference;
         private String imageUrl;
         private XImageProcessor.ImageSize size;// 加载的图片尺寸
 
-        public AsyncImageViewTask(Context context, ImageView imageView, String imageUrl,
-                                  XImageProcessor.ImageSize size) {
+        public LocalImageViewAsyncTask(Context context, ImageView imageView, String imageUrl,
+                                       XImageProcessor.ImageSize size) {
             // Use a WeakReference to ensure the ImageView can be garbage collected
             this.context = context;
             this.imageViewReference = new WeakReference<ImageView>(imageView);
@@ -187,20 +191,22 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
         // Decode image in background.
         @Override
         protected Bitmap doInBackground(Void... params) {
+            XLog.d(TAG, "LocalImageViewAsyncTask doInBackground(). url:" + imageUrl);
             return loadRealImage(context, imageUrl, size);
         }
 
         // Once complete, see if ImageView is still around and set bitmap.
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            if (isCancelled()) {
+            XLog.d(TAG, "LocalImageViewAsyncTask onPostExecute(). url:" + imageUrl);
+            if (isCancelled())
                 bitmap = null;
-            }
 
             if (imageViewReference != null && bitmap != null) {
                 final ImageView imageView = imageViewReference.get();
-                final AsyncImageViewTask asyncImageViewTask = getAsyncImageTask(imageView);
-                if (this == asyncImageViewTask && imageView != null) {
+                final LocalImageViewAsyncTask localImageViewAsyncTask = getAsyncImageTask(imageView);
+                if (this == localImageViewAsyncTask && imageView != null) {
+                    XLog.d(TAG, "set real image. url:" + imageUrl);
                     imageView.setImageBitmap(bitmap);
                     showViewAnimation(context, imageView);
                 }

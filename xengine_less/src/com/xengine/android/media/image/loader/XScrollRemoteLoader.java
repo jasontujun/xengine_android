@@ -20,7 +20,8 @@ import com.xengine.android.utils.XStringUtil;
  * 2. 加载器先从一级缓存（内存）和二级缓存（sd卡）中寻找，如果没有则从网上下载。
  * 3. 异步方式加载。
  * 4. 延迟加载特性：只有停止时才加载，滑动时候不加载。
- * 5. 单队列（一个异步线程）线性执行，每个时刻只有一个异步任务在执行。
+ * 5. 双队列（两个个异步线程）：下载队列负责异步下载任务，加载队列负责异步加载图片。
+ * @see XScrollLocalLoader
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-8-6
@@ -31,11 +32,14 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         implements XScrollLazyLoading {
     private static final String TAG = XScrollRemoteLoader.class.getSimpleName();
 
-    private SerialTaskMgr mSerialMgr;// 线性执行器
+    private SerialDownloadMgr mSerialDownloadMgr;// 图片下载的线性队列
+    private XScrollLocalLoader mScrollLocalLoader;// 本地加载的线性队列（直接复用XScrollLocalLoader）
 
-    public XScrollRemoteLoader(XImageDownload imageDownloadMgr) {
+    public XScrollRemoteLoader(XImageDownload imageDownloadMgr,
+                               XScrollLocalLoader scrollLocalLoader) {
         super(imageDownloadMgr);
-        mSerialMgr = new SerialTaskMgr();
+        mSerialDownloadMgr = new SerialDownloadMgr();
+        mScrollLocalLoader = scrollLocalLoader;
     }
 
     @Override
@@ -51,74 +55,67 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
             return;
         }
 
-        // 如果没有，则将imageView设置为对应状态的图标，准备启动异步线程
+        // 如果该图片已经下载下来，则直接进入本地加载队列即可
+        String localImageFile = getLocalImage(imageUrl);
+        if (!XStringUtil.isNullOrEmpty(localImageFile) &&
+                !XImageLocalUrl.IMG_LOADING.equals(localImageFile) &&
+                !XImageLocalUrl.IMG_ERROR.equals(localImageFile)){
+            mScrollLocalLoader.asyncLoadBitmap(context, imageUrl, imageView, size);
+            return;
+        }
+
+        // 启动异步线程进行下载，将imageView设置为对应状态的图标
         // （先取消之前可能对同一个ImageView但不同图片的加载工作）
         if (cancelPotentialWork(imageUrl, imageView)) {
             // 如果local_image标记为“加载中”，即图片正在下载，什么都不做
-            String localImageFile = getLocalImage(imageUrl);
             if (XImageLocalUrl.IMG_LOADING.equals(localImageFile)) {
                 imageView.setImageResource(mLoadingImageResource);
                 return;
             }
 
             Resources resources = context.getResources();
-            Bitmap mTmpBitmap;
-            final RemoteAsyncImageTask task;
+            Bitmap mTmpBitmap = null;
+            RemoteImageAsyncTask task = null;
             if (XStringUtil.isNullOrEmpty(localImageFile)) {
                 mTmpBitmap = BitmapFactory.decodeResource(resources, mDefaultImageResource);// 缺省图片
-                task = new SerialAsyncImageTask(context, imageView, imageUrl, size, true, listener);
-            } else if (localImageFile.equals(XImageLocalUrl.IMG_ERROR)) {
+            } else if (XImageLocalUrl.IMG_ERROR.equals(localImageFile)) {
                 mTmpBitmap = BitmapFactory.decodeResource(resources, mErrorImageResource);// 错误图片
-                task = new SerialAsyncImageTask(context, imageView, imageUrl, size, true, listener);
-            } else {
-                mTmpBitmap = BitmapFactory.decodeResource(resources, mEmptyImageResource);// 占位图片
-                task = new SerialAsyncImageTask(context, imageView, imageUrl, size, false, listener);
             }
-            final AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mTmpBitmap, task);
-            imageView.setImageDrawable(asyncDrawable);
-
-            // 添加进队列中，等待执行
-            mSerialMgr.addNewTask(task);
+            if (mTmpBitmap != null) {
+                task = new ScrollRemoteAsyncTask(context, imageView, imageUrl, size, listener);
+                final AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mTmpBitmap, task);
+                imageView.setImageDrawable(asyncDrawable);
+                // 添加进队列中，等待执行
+                mSerialDownloadMgr.addNewTask(task);
+            }
         }
     }
 
     @Override
     public void onScroll() {
-        mSerialMgr.stop();
+        mSerialDownloadMgr.stop();
+        mScrollLocalLoader.onScroll();
     }
 
     @Override
     public void onIdle() {
-        mSerialMgr.start();
+        mSerialDownloadMgr.start();
+        mScrollLocalLoader.onIdle();
     }
 
     @Override
     public void stopAndClear() {
-        mSerialMgr.stopAndReset();
-    }
-
-    private class TaskParam {
-        Context context;
-        String imageUrl;
-        ImageView imageView;
-        XImageProcessor.ImageSize size;
-        boolean isDownload;
+        mSerialDownloadMgr.stopAndReset();
+        mScrollLocalLoader.stopAndClear();
     }
 
     /**
-     * 基于XBaseSerialMgr实现的线性任务执行器
+     * 基于XBaseSerialMgr实现的线性图片下载执行器
      */
-    private class SerialTaskMgr extends XBaseSerialMgr<TaskParam, XSerialDownloadListener> {
-
-        @Override
-        protected AsyncTask createTask(TaskParam data, XSerialDownloadListener listener) {
-            return new SerialAsyncImageTask(data.context,
-                    data.imageView, data.imageUrl, data.size, data.isDownload, listener);
-        }
-
+    private class SerialDownloadMgr extends XBaseSerialMgr {
         @Override
         protected String getTaskId(AsyncTask task) {
-            return ((RemoteAsyncImageTask) task).getImageUrl();
+            return ((ScrollRemoteAsyncTask) task).getImageUrl();
         }
 
         @Override
@@ -136,28 +133,61 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
     }
 
     /**
-     * 线性下载并加载图片的AsyncTask
+     * 线性地下载图片的AsyncTask
      */
-    private class SerialAsyncImageTask extends RemoteAsyncImageTask {
+    private class ScrollRemoteAsyncTask extends RemoteImageAsyncTask {
+        private String localUrl;
 
-        public SerialAsyncImageTask(Context context, ImageView imageView, String imageUrl,
-                                    XImageProcessor.ImageSize size, boolean download,
-                                    XSerialDownloadListener listener) {
-            super(context, imageView, imageUrl, size, download, listener);
+        public ScrollRemoteAsyncTask(Context context, ImageView imageView, String imageUrl,
+                                     XImageProcessor.ImageSize size,
+                                     XSerialDownloadListener listener) {
+            super(context, imageView, imageUrl, size, true, listener);
+            localUrl = null;
         }
 
+        // download and decode image in background.
+        @Override
+        protected Bitmap doInBackground(Void... params) {
+            XLog.d(TAG, "RemoteImageAsyncTask doInBackground(), url:" + mImageUrl);
+            localUrl = mImageDownloadMgr.downloadImg2File(mImageUrl, null);
+            if (XStringUtil.isNullOrEmpty(localUrl))
+                setLocalImage(mImageUrl, XImageLocalUrl.IMG_ERROR);// local_image设置为“错误”
+            else
+                setLocalImage(mImageUrl, localUrl);// local_image设置为“加载中”
+            return null;
+        }
+
+
+        // Once complete, see if ImageView is still around and set bitmap.
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            super.onPostExecute(bitmap);
+            XLog.d(TAG, "RemoteImageAsyncTask onPostExecute(), url:" + mImageUrl);
+
+            mImageDownloadMgr.setDownloadListener(null);// 取消监听
+            if (mListener != null) // 通知监听者
+                mListener.afterDownload(mImageUrl);
+
+            // 创建一个加载任务，并加进图片加载队列中
+            if (mImageViewReference != null) {
+                final ImageView imageView = mImageViewReference.get();
+                final RemoteImageAsyncTask asyncImageViewTask = getAsyncImageTask(imageView);
+                if (this == asyncImageViewTask && imageView != null) {
+                    XLog.d(TAG, "add local load task. url:" + mImageUrl);
+                    // KEY! 启动另一个任务，交给加载线程负责图片加载
+                    mScrollLocalLoader.asyncLoadBitmap(mContext, mImageUrl, imageView, mSize);
+                    mScrollLocalLoader.onIdle();// 启动
+                }
+            }
+
             XLog.d(TAG, "notifyTaskFinished.");
-            mSerialMgr.notifyTaskFinished(this);
+            mSerialDownloadMgr.notifyTaskFinished(this);
         }
 
         @Override
         protected void onCancelled() {
             super.onCancelled();
             XLog.d(TAG, "notifyTaskFinished.");
-            mSerialMgr.notifyTaskFinished(this);
+            mSerialDownloadMgr.notifyTaskFinished(this);
         }
     }
 }
