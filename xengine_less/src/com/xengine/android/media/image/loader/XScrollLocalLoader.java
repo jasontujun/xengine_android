@@ -11,10 +11,14 @@ import com.xengine.android.session.series.XBaseSerialMgr;
 import com.xengine.android.utils.XLog;
 
 /**
- * 用于ListView或GridView的本地图片加载器。
+ * 滑动延迟加载的本地图片加载器。（用于ListView或GridView）
  * 特点：
- * 1.带有延迟加载特性：只有停止时才加载，滑动时候不加载。
- * 2.加载器先从一级缓存（内存）和二级缓存（sd卡）中寻找，如果没有则从网上下载。
+ * 特点：
+ * 1. 只负责本地加载，不涉及下载.
+ * 2. 二级缓存（内存 + sd卡的图片缓存）。
+ * 3. 异步方式加载。
+ * 4. 延迟加载特性：只有停止时才加载，滑动时候不加载。
+ * 5. 单队列（一个异步线程）线性执行，每个时刻只有一个异步任务在执行。
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-8-6
@@ -101,6 +105,14 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         @Override
         public void notifyTaskFinished(AsyncTask task) {
             super.notifyTaskFinished(task);
+        }
+
+        /**
+         * 覆盖stop方法，停止时并不cancel当前任务，只是设置一个标记。
+         */
+        @Override
+        public void stop() {
+            mIsWorking = false;
         }
     }
 

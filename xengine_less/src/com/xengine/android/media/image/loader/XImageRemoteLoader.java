@@ -7,9 +7,10 @@ import com.xengine.android.session.series.XSerialDownloadListener;
 
 /**
  * 图片远程加载器的接口。
- * 包括本地加载，如果本地没有则下载。
- * 二级缓存（内存 + sd卡的图片缓存）。
- * 异步方式加载。
+ * 特点：
+ * 1. 包括本地加载，如果本地没有则下载。
+ * 2. 加载器先从一级缓存（内存）和二级缓存（sd卡）中寻找，如果没有则从网上下载。
+ * 3. 异步方式加载。
  * @see XImageViewRemoteLoader
  * Created with IntelliJ IDEA.
  * User: tujun

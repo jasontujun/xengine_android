@@ -17,9 +17,9 @@ import java.util.List;
  */
 public abstract class XBaseSerialMgr<V, T> implements XSerial {
 
-    private AsyncTask mNextTask;
+    protected AsyncTask mNextTask;
     protected LinkedList<AsyncTask> mTobeExecuted;
-    private boolean mIsWorking;
+    protected boolean mIsWorking;
 
     public XBaseSerialMgr() {
         mTobeExecuted = new LinkedList<AsyncTask>();

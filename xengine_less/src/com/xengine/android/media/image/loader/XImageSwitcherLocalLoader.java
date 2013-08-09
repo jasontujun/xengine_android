@@ -12,10 +12,13 @@ import java.lang.ref.WeakReference;
 
 /**
  * 本地图片加载器(用于ImageSwitcher)。
- * 只负责本地加载，不涉及下载。
- * 二级缓存（内存 + sd卡的图片缓存）。
- * 异步方式加载。
- * 同步方式加载。
+ * 特点：
+ * 1. 只负责本地加载，不涉及下载.
+ * 2. 二级缓存（内存 + sd卡的图片缓存）。
+ * 3. 异步方式加载。
+ * 4. 同步方式加载。
+ * 5. 多线程并发，无序且比较耗费资源
+ * @see XImageViewLocalLoader 用于ImageView的本地图片加载器
  * Created by jasontujun.
  * Date: 12-10-9
  * Time: 下午1:22

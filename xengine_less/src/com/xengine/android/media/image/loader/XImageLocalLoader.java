@@ -6,10 +6,11 @@ import com.xengine.android.media.image.processor.XImageProcessor;
 
 /**
  * 本地图片加载器的接口。
- * 只负责本地加载，不涉及下载。
- * 二级缓存（内存 + sd卡的图片缓存）。
- * 异步方式加载。
- * 同步方式加载。
+ * 特点：
+ * 1. 只负责本地加载，不涉及下载.
+ * 2. 二级缓存（内存 + sd卡的图片缓存）。
+ * 3. 异步方式加载。
+ * 4. 同步方式加载。
  * @see XImageViewLocalLoader
  * @see XImageSwitcherLocalLoader
  * Created with IntelliJ IDEA.
