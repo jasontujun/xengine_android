@@ -3,7 +3,7 @@ package com.xengine.android.media.image.loader;
 import android.content.Context;
 import android.view.View;
 import com.xengine.android.media.image.processor.XImageProcessor;
-import com.xengine.android.session.series.XSerialDownloadListener;
+import com.xengine.android.session.download.XSerialDownloadListener;
 
 /**
  * 图片远程加载器的接口。

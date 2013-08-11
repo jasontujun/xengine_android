@@ -1,4 +1,4 @@
-package com.xengine.android.session.series;
+package com.xengine.android.system.series;
 
 import android.os.AsyncTask;
 
@@ -32,9 +32,14 @@ public abstract class XBaseSerialMgr implements XSerial {
      * @return
      */
     private boolean containsTask(String id) {
+        // id为null，则认为不包含此任务
+        if (id == null)
+            return false;
+
         Iterator<AsyncTask> it = mTobeExecuted.iterator();
         while (it.hasNext()) {
-            if (getTaskId(it.next()).equals(id))
+            String taskId = getTaskId(it.next());
+            if (taskId != null && taskId.equals(id))
                 return true;
         }
         return false;
@@ -109,5 +114,10 @@ public abstract class XBaseSerialMgr implements XSerial {
             mIsWorking = false;// 没有任务，标记结束
     }
 
+    /**
+     * 获取task的id。如果返回的id为null，则认为此task唯一
+     * @param task
+     * @return 返回该task的id。
+     */
     protected abstract String getTaskId(AsyncTask task);
 }

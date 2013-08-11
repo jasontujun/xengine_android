@@ -1,4 +1,4 @@
-package com.xengine.android.session.series;
+package com.xengine.android.session.download;
 
 import com.xengine.android.session.download.XDownloadListener;
 

@@ -1,8 +1,8 @@
 package com.xengine.android.media.image.download;
 
 import android.os.AsyncTask;
-import com.xengine.android.session.series.XWrapperSerialMgr;
-import com.xengine.android.session.series.XSerialDownloadListener;
+import com.xengine.android.system.series.XWrapperSerialMgr;
+import com.xengine.android.session.download.XSerialDownloadListener;
 
 /**
  * 线性下载图片管理类。

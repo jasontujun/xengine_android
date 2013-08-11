@@ -7,7 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.widget.ImageView;
 import com.xengine.android.media.image.processor.XImageProcessor;
-import com.xengine.android.session.series.XBaseSerialMgr;
+import com.xengine.android.system.series.XBaseSerialMgr;
 import com.xengine.android.utils.XLog;
 
 /**
@@ -87,7 +87,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
     private class SerialTaskMgr extends XBaseSerialMgr {
         @Override
         protected String getTaskId(AsyncTask task) {
-            return ((ScrollLocalAsyncTask) task).getImageUrl();
+            return null;// TIP 不是以url为id，每个加载task都是独立的
         }
 
         @Override

@@ -8,8 +8,8 @@ import android.os.AsyncTask;
 import android.widget.ImageView;
 import com.xengine.android.media.image.download.XImageDownload;
 import com.xengine.android.media.image.processor.XImageProcessor;
-import com.xengine.android.session.series.XBaseSerialMgr;
-import com.xengine.android.session.series.XSerialDownloadListener;
+import com.xengine.android.system.series.XBaseSerialMgr;
+import com.xengine.android.session.download.XSerialDownloadListener;
 import com.xengine.android.utils.XLog;
 import com.xengine.android.utils.XStringUtil;
 
@@ -60,13 +60,15 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         if (!XStringUtil.isNullOrEmpty(localImageFile) &&
                 !XImageLocalUrl.IMG_LOADING.equals(localImageFile) &&
                 !XImageLocalUrl.IMG_ERROR.equals(localImageFile)){
-            mScrollLocalLoader.asyncLoadBitmap(context, imageUrl, imageView, size);
+            if (cancelPotentialWork(imageUrl, imageView))
+                mScrollLocalLoader.asyncLoadBitmap(context, imageUrl, imageView, size);
             return;
         }
 
         // 启动异步线程进行下载，将imageView设置为对应状态的图标
-        // （先取消之前可能对同一个ImageView但不同图片的加载工作）
-        if (cancelPotentialWork(imageUrl, imageView)) {
+        // （先取消之前可能对同一个ImageView但不同图片的下载工作）
+        if (XScrollLocalLoader.cancelPotentialWork(imageUrl, imageView) &&
+                cancelPotentialWork(imageUrl, imageView)) {
             // 如果local_image标记为“加载中”，即图片正在下载，什么都不做
             if (XImageLocalUrl.IMG_LOADING.equals(localImageFile)) {
                 imageView.setImageResource(mLoadingImageResource);
@@ -136,49 +138,16 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
      * 线性地下载图片的AsyncTask
      */
     private class ScrollRemoteAsyncTask extends RemoteImageAsyncTask {
-        private String localUrl;
 
         public ScrollRemoteAsyncTask(Context context, ImageView imageView, String imageUrl,
                                      XImageProcessor.ImageSize size,
                                      XSerialDownloadListener listener) {
             super(context, imageView, imageUrl, size, true, listener);
-            localUrl = null;
         }
 
-        // download and decode image in background.
-        @Override
-        protected Bitmap doInBackground(Void... params) {
-            XLog.d(TAG, "RemoteImageAsyncTask doInBackground(), url:" + mImageUrl);
-            localUrl = mImageDownloadMgr.downloadImg2File(mImageUrl, null);
-            if (XStringUtil.isNullOrEmpty(localUrl))
-                setLocalImage(mImageUrl, XImageLocalUrl.IMG_ERROR);// local_image设置为“错误”
-            else
-                setLocalImage(mImageUrl, localUrl);// local_image设置为“加载中”
-            return null;
-        }
-
-
-        // Once complete, see if ImageView is still around and set bitmap.
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            XLog.d(TAG, "RemoteImageAsyncTask onPostExecute(), url:" + mImageUrl);
-
-            mImageDownloadMgr.setDownloadListener(null);// 取消监听
-            if (mListener != null) // 通知监听者
-                mListener.afterDownload(mImageUrl);
-
-            // 创建一个加载任务，并加进图片加载队列中
-            if (mImageViewReference != null) {
-                final ImageView imageView = mImageViewReference.get();
-                final RemoteImageAsyncTask asyncImageViewTask = getAsyncImageTask(imageView);
-                if (this == asyncImageViewTask && imageView != null) {
-                    XLog.d(TAG, "add local load task. url:" + mImageUrl);
-                    // KEY! 启动另一个任务，交给加载线程负责图片加载
-                    mScrollLocalLoader.asyncLoadBitmap(mContext, mImageUrl, imageView, mSize);
-                    mScrollLocalLoader.onIdle();// 启动
-                }
-            }
-
+            super.onPostExecute(bitmap);
             XLog.d(TAG, "notifyTaskFinished.");
             mSerialDownloadMgr.notifyTaskFinished(this);
         }

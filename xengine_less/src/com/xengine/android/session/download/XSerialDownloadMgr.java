@@ -1,7 +1,7 @@
-package com.xengine.android.session.series;
+package com.xengine.android.session.download;
 
 import android.os.AsyncTask;
-import com.xengine.android.session.download.XDownload;
+import com.xengine.android.system.series.XWrapperSerialMgr;
 
 /**
  * 线性下载管理类。
