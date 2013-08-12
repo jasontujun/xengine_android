@@ -205,6 +205,7 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
             if (imageViewReference != null && bitmap != null) {
                 final ImageView imageView = imageViewReference.get();
                 final LocalImageViewAsyncTask localImageViewAsyncTask = getAsyncImageTask(imageView);
+                // 加载前的检测，保证asyncTask没被替代
                 if (this == localImageViewAsyncTask && imageView != null) {
                     XLog.d(TAG, "set real image. url:" + imageUrl);
                     imageView.setImageBitmap(bitmap);

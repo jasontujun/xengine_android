@@ -223,6 +223,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
             if (mImageViewReference != null && bitmap != null) {
                 final ImageView imageView = mImageViewReference.get();
                 final RemoteImageAsyncTask asyncImageViewTask = getAsyncImageTask(imageView);
+                // 加载前的检测，保证asyncTask没被替代
                 if (this == asyncImageViewTask && imageView != null) {
                     imageView.setImageBitmap(bitmap);
                     showViewAnimation(mContext, imageView);
