@@ -103,6 +103,8 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
                         asyncDrawable = new AsyncDrawable(resources, mTmpBitmap, sameUrlTask);
                         imageView.setImageDrawable(asyncDrawable);
                     }
+                } else {
+                    mSerialDownloadMgr.tryStart();// 尝试启动
                 }
             }
         }
@@ -154,6 +156,12 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
     }
 
     @Override
+    public void setWorking() {
+        mSerialDownloadMgr.setWorking();
+        mScrollLocalLoader.setWorking();
+    }
+
+    @Override
     public void onScroll() {
         mSerialDownloadMgr.stop();
         mScrollLocalLoader.onScroll();
@@ -194,6 +202,26 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
                     return (ScrollRemoteAsyncTask)task;
             }
             return null;
+        }
+
+        /**
+         * 启动，将标记设置为启动
+         */
+        public void setWorking() {
+            mIsWorking = true;
+        }
+
+        /**
+         * 根据当前标记，尝试启动。但不改变当前标记。
+         */
+        public void tryStart() {
+            if (!mIsWorking)
+                return;
+
+            mNextTask = mTobeExecuted.peek();
+            if (mNextTask != null &&
+                    mNextTask.getStatus() == AsyncTask.Status.PENDING)
+                mNextTask.execute(null);
         }
 
         /**

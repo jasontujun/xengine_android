@@ -63,7 +63,13 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
 
             // 添加进队列中，等待执行
             mSerialMgr.addNewTask(task);
+            mSerialMgr.tryStart();
         }
+    }
+
+    @Override
+    public void setWorking() {
+        mSerialMgr.setWorking();
     }
 
     @Override
@@ -93,6 +99,26 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         @Override
         public void notifyTaskFinished(AsyncTask task) {
             super.notifyTaskFinished(task);
+        }
+
+        /**
+         * 启动，将标记设置为启动
+         */
+        public void setWorking() {
+            mIsWorking = true;
+        }
+
+        /**
+         * 根据当前标记，尝试启动。但不改变当前标记。
+         */
+        public void tryStart() {
+            if (!mIsWorking)
+                return;
+
+            mNextTask = mTobeExecuted.peek();
+            if (mNextTask != null &&
+                    mNextTask.getStatus() == AsyncTask.Status.PENDING)
+                mNextTask.execute(null);
         }
 
         /**

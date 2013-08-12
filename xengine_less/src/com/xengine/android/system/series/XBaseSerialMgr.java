@@ -63,16 +63,11 @@ public abstract class XBaseSerialMgr implements XSerial {
      */
     @Override
     public void start() {
-        if (mIsWorking)
-            return;
         mIsWorking = true;
 
         mNextTask = mTobeExecuted.peek();
-        if (mNextTask == null) {
-            mIsWorking = false;
-            return;
-        }
-        if (mNextTask.getStatus() == AsyncTask.Status.PENDING)
+        if (mNextTask != null &&
+                mNextTask.getStatus() == AsyncTask.Status.PENDING)
             mNextTask.execute(null);
     }
 
