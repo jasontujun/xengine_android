@@ -67,9 +67,35 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         }
     }
 
+    /**
+     * 取消该组件上之前的异步加载任务(用于ImageView)
+     * @param imageUrl
+     * @param imageView
+     * @return
+     */
+    protected static boolean cancelPotentialWork(String imageUrl, ImageView imageView) {
+        final ScrollLocalAsyncTask scrollLocalAsyncTask =
+                (ScrollLocalAsyncTask) getAsyncImageTask(imageView);
+        if (scrollLocalAsyncTask != null) {
+            final String url = scrollLocalAsyncTask.getImageUrl();
+            if (scrollLocalAsyncTask.isInvalidate()) {
+                return true;
+            } else if (url == null || !url.equals(imageUrl)) {
+                // Cancel previous task
+                scrollLocalAsyncTask.cancel(true);
+            } else {
+                // The same work is already in progress
+                return false;
+            }
+        }
+        // No task associated with the ImageView, or an existing task was cancelled
+        return true;
+    }
+
     @Override
     public void setWorking() {
         mSerialMgr.setWorking();
+        mSerialMgr.tryStart();// 尝试启动
     }
 
     @Override
@@ -134,16 +160,24 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
      * 线性地本地加载图片的AsyncTask
      */
     private class ScrollLocalAsyncTask extends LocalImageViewAsyncTask {
+        // 标识该task是否还在队列中(针对task不再队列里但在imageView里的情况)
+        private boolean isInvalidate;
 
         public ScrollLocalAsyncTask(Context context, ImageView imageView, String imageUrl,
                                     XImageProcessor.ImageSize size) {
             super(context, imageView, imageUrl, size);
+            isInvalidate = false;
+        }
+
+        public boolean isInvalidate() {
+            return isInvalidate;
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             XLog.d(TAG, "notifyTaskFinished.");
+            isInvalidate = true;
             mSerialMgr.notifyTaskFinished(this);
         }
 
@@ -151,6 +185,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         protected void onCancelled() {
             super.onCancelled();
             XLog.d(TAG, "notifyTaskFinished.");
+            isInvalidate = true;
             mSerialMgr.notifyTaskFinished(this);
         }
     }

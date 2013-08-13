@@ -211,9 +211,8 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             XLog.d(TAG, "RemoteImageAsyncTask onPostExecute(), url:" + mImageUrl);
-            if (isCancelled()) {
+            if (isCancelled())
                 bitmap = null;
-            }
 
             mImageDownloadMgr.setDownloadListener(null);// 取消监听
             if (mDownload && mListener != null) // 通知监听者

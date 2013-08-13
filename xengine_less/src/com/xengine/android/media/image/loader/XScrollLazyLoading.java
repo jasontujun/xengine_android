@@ -10,7 +10,7 @@ package com.xengine.android.media.image.loader;
  */
 public interface XScrollLazyLoading {
     /**
-     * 将延迟加载器设置为开启状态。
+     * 开始加载。
      */
     void setWorking();
 
