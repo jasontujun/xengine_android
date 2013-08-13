@@ -277,7 +277,7 @@ public final class XAndroidImageProcessor implements XImageProcessor {
         }
 //        // TODO 判断sdcard上的空间
 //        if (FREE_SD_SPACE_NEEDED_TO_CACHE >freeSpaceOnSd()) {
-//            XLog.d(TAG, "Low free space onsd, do not cache");
+//            XLog.d(TAG, "Low free space onsd, do not mCache");
 //            return false;
 //        }
         try {

@@ -6,5 +6,6 @@ package com.xengine.android.data.cache;
  * Date: 12-3-30
  * Time: 下午2:35
  */
-public interface XFilteredAdapterDataSource<T> extends XAdapterDataSource<T>, XWithFilter<T> {
+public interface XFilteredAdapterDataSource<T>
+        extends XAdapterDataSource<T>, XWithFilter<T> {
 }
