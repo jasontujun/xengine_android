@@ -37,6 +37,16 @@ public interface XScreen {
     float px2dp(float px);
 
     /**
+     * 将sp值转换成px像素值
+     */
+    int sp2px(float sp);
+
+    /**
+     * 将px值转换成sp值
+     */
+    float px2sp(float px);
+
+    /**
      * 显示屏幕是否比正常定义的长度要长，比如正常情况下屏幕应该是320X480dp的，但是小米手机就是320X569dp的。
      * @return 如果比正常大小要长就返回true
      */

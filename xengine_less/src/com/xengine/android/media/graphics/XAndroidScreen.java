@@ -100,12 +100,22 @@ public class XAndroidScreen implements XScreen{
 
     @Override
     public int dp2px(float dp) {
-        return (int) (dp*displayMetrics.density);
+        return (int) (dp * displayMetrics.density + 0.5f);
     }
 
     @Override
     public float px2dp(float px) {
-        return px/displayMetrics.density;
+        return px / displayMetrics.density + 0.5f;
+    }
+
+    @Override
+    public int sp2px(float sp) {
+        return (int) (sp * displayMetrics.scaledDensity + 0.5f);
+    }
+
+    @Override
+    public float px2sp(float px) {
+        return px / displayMetrics.scaledDensity + 0.5f;
     }
 
     @Override
