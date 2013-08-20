@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
 import com.xengine.android.media.image.download.XImageDownload;
@@ -13,7 +14,6 @@ import com.xengine.android.media.image.loader.cache.XAndroidImageCache;
 import com.xengine.android.media.image.processor.XImageProcessor;
 import com.xengine.android.session.download.XSerialDownloadListener;
 import com.xengine.android.utils.XLog;
-import com.xengine.android.utils.XStringUtil;
 
 import java.lang.ref.WeakReference;
 
@@ -74,7 +74,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
             Resources resources = context.getResources();
             Bitmap mTmpBitmap;
             final RemoteImageAsyncTask task;
-            if (XStringUtil.isNullOrEmpty(localImageFile)) {
+            if (TextUtils.isEmpty(localImageFile)) {
                 mTmpBitmap = BitmapFactory.decodeResource(resources, mDefaultImageResource);// 缺省图片
                 task = new RemoteImageAsyncTask(context, imageView, imageUrl, size, true, listener);
             } else if (localImageFile.equals(XImageLocalUrl.IMG_ERROR)) {
@@ -133,7 +133,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
     }
 
     protected void showViewAnimation(Context context, ImageView imageView) {
-        if(mIsFading) {
+        if (mIsFading) {
             AlphaAnimation fadeAnimation = new AlphaAnimation(0 ,1);
             fadeAnimation.setDuration(context.getResources().
                     getInteger(android.R.integer.config_shortAnimTime));
@@ -198,7 +198,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
             XLog.d(TAG, "RemoteImageAsyncTask doInBackground(), url:" + mImageUrl);
             if (mDownload) {
                 String localUrl = mImageDownloadMgr.downloadImg2File(mImageUrl, null);
-                if (XStringUtil.isNullOrEmpty(localUrl))
+                if (TextUtils.isEmpty(localUrl))
                     setLocalImage(mImageUrl, XImageLocalUrl.IMG_ERROR);// local_image设置为“错误”
                 else
                     setLocalImage(mImageUrl, localUrl);// local_image设置为“加载中”

@@ -1,10 +1,10 @@
 package com.xengine.android.session.download;
 
+import android.text.TextUtils;
 import com.xengine.android.session.http.XHttp;
 import com.xengine.android.system.file.XAndroidFileMgr;
 import com.xengine.android.system.file.XFileMgr;
 import com.xengine.android.utils.XLog;
-import com.xengine.android.utils.XStringUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
@@ -40,7 +40,7 @@ public class XHttpDownloadMgr implements XDownload {
         XLog.d(TAG, "url: " + url);
         XLog.d(TAG, "path: " + path);
         XLog.d(TAG, "fileName: " + fileName);
-        if (XStringUtil.isNullOrEmpty(url) || XStringUtil.isNullOrEmpty(path))
+        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(path))
             return false;
 
         if (mListener != null)
@@ -58,7 +58,7 @@ public class XHttpDownloadMgr implements XDownload {
         try {
             InputStream is = response.getEntity().getContent();
             String localFileName;// 取得文件名，如果输入新文件名，则使用新文件名
-            if (XStringUtil.isNullOrEmpty(fileName))
+            if (TextUtils.isEmpty(fileName))
                 localFileName = url.substring(url.lastIndexOf("/") + 1);
             else
                 localFileName = fileName;

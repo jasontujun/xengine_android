@@ -5,13 +5,13 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.widget.ImageView;
 import com.xengine.android.media.image.download.XImageDownload;
 import com.xengine.android.media.image.processor.XImageProcessor;
 import com.xengine.android.session.download.XSerialDownloadListener;
 import com.xengine.android.system.series.XBaseSerialMgr;
 import com.xengine.android.utils.XLog;
-import com.xengine.android.utils.XStringUtil;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
@@ -63,7 +63,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
 
         // 如果该图片已经下载下来，则直接进入本地加载队列即可
         String localImageFile = getLocalImage(imageUrl);
-        if (!XStringUtil.isNullOrEmpty(localImageFile) &&
+        if (!TextUtils.isEmpty(localImageFile) &&
                 !XImageLocalUrl.IMG_LOADING.equals(localImageFile) &&
                 !XImageLocalUrl.IMG_ERROR.equals(localImageFile)){
             if (cancelPotentialWork(imageUrl, imageView))
@@ -86,7 +86,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
             Resources resources = context.getResources();
             Bitmap mTmpBitmap = null;
             ScrollRemoteAsyncTask task = null;
-            if (XStringUtil.isNullOrEmpty(localImageFile)) {
+            if (TextUtils.isEmpty(localImageFile)) {
                 mTmpBitmap = BitmapFactory.decodeResource(resources, mDefaultImageResource);// 缺省图片
             } else if (XImageLocalUrl.IMG_ERROR.equals(localImageFile)) {
                 mTmpBitmap = BitmapFactory.decodeResource(resources, mErrorImageResource);// 错误图片

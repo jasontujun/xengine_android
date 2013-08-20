@@ -6,11 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
 import com.xengine.android.media.image.processor.XImageProcessor;
 import com.xengine.android.utils.XLog;
-import com.xengine.android.utils.XStringUtil;
 
 import java.lang.ref.WeakReference;
 
@@ -99,7 +99,7 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
      */
     protected boolean loadErrorImage(String imageUrl, ImageView imageView) {
         String localImageFile = getLocalImage(imageUrl);
-        if (XStringUtil.isNullOrEmpty(localImageFile)) {
+        if (TextUtils.isEmpty(localImageFile)) {
             // 返回缺省图片（图片不存在）
             imageView.setImageResource(mDefaultImageResource);
             return true;

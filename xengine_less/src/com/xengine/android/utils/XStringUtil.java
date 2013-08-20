@@ -1,5 +1,7 @@
 package com.xengine.android.utils;
 
+import android.text.TextUtils;
+
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -14,14 +16,6 @@ import java.util.regex.Pattern;
  */
 public class XStringUtil {
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
-    public static boolean isNull(String str) {
-        return str == null;
-    }
-
-    public static boolean isNullOrEmpty(String str) {
-        return str == null || str.trim().length() < 1;
-    }
 
     public static boolean equals(String str1, String str2) {
         return str1 != null && str2 != null && str1.equals(str2);
@@ -40,7 +34,7 @@ public class XStringUtil {
     }
 
     public static String unquote(String s, String quote) {
-        if (!isNullOrEmpty(s) && !isNullOrEmpty(quote)) {
+        if (!TextUtils.isEmpty(s) && !TextUtils.isEmpty(quote)) {
             if (s.startsWith(quote) && s.endsWith(quote)) {
                 return s.substring(1, s.length() - quote.length());
             }
@@ -153,7 +147,7 @@ public class XStringUtil {
      */
     public static boolean isEmail(String email) {
         boolean flag = true;
-        if (!isNullOrEmpty(email)) {
+        if (!TextUtils.isEmpty(email)) {
             //通过正则表达式验证Emial是否合法
             flag = email.matches("^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@" +
                     "([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$");
@@ -222,7 +216,7 @@ public class XStringUtil {
     }
     
     public static Calendar str2calendar(String str) {
-        if (isNullOrEmpty(str)) {
+        if (TextUtils.isEmpty(str)) {
             return null;
         }
         String[] strList = str.split("-");

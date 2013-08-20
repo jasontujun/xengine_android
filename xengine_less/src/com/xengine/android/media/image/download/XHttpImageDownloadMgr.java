@@ -2,11 +2,11 @@ package com.xengine.android.media.image.download;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.text.TextUtils;
 import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.media.image.processor.XImageProcessor;
 import com.xengine.android.session.download.XHttpDownloadMgr;
 import com.xengine.android.session.http.XHttp;
-import com.xengine.android.utils.XStringUtil;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -80,7 +80,7 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
             InputStream is2 = bufferedHttpEntity.getContent();
             // 确定图片格式
             String imgFormat = format;
-            if (XStringUtil.isNullOrEmpty(format)) {
+            if (TextUtils.isEmpty(format)) {
                 String lowerImgUrl = imgUrl.toLowerCase();
                 if (lowerImgUrl.endsWith(FORMAT_JPG))
                     imgFormat = FORMAT_JPG;

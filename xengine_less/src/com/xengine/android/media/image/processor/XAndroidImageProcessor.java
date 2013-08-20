@@ -5,10 +5,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.os.Environment;
 import android.os.StatFs;
+import android.text.TextUtils;
 import com.xengine.android.system.file.XAndroidFileMgr;
 import com.xengine.android.system.file.XFileMgr;
 import com.xengine.android.utils.XLog;
-import com.xengine.android.utils.XStringUtil;
 
 import java.io.*;
 
@@ -272,7 +272,7 @@ public final class XAndroidImageProcessor implements XImageProcessor {
     @Override
     public boolean saveImageToSd(String imgName, Bitmap bm,
                                  Bitmap.CompressFormat format, int compress) {
-        if (bm == null || XStringUtil.isNullOrEmpty(imgName)) {
+        if (bm == null || TextUtils.isEmpty(imgName)) {
             return false;
         }
 //        // TODO 判断sdcard上的空间
@@ -304,7 +304,7 @@ public final class XAndroidImageProcessor implements XImageProcessor {
 
     @Override
     public boolean saveImageToSd(String imgName, InputStream inputStream) {
-        if (inputStream == null || XStringUtil.isNullOrEmpty(imgName))
+        if (inputStream == null || TextUtils.isEmpty(imgName))
             return false;
 
         try {

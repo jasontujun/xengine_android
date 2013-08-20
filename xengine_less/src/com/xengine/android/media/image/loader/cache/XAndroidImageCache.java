@@ -1,8 +1,8 @@
 package com.xengine.android.media.image.loader.cache;
 
 import android.graphics.Bitmap;
+import android.text.TextUtils;
 import com.xengine.android.media.image.processor.XImageProcessor;
-import com.xengine.android.utils.XStringUtil;
 
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
@@ -61,7 +61,7 @@ public final class XAndroidImageCache implements XImageCache {
 
     @Override
     public boolean saveCacheBitmap(String imageUrl, Bitmap bmp, XImageProcessor.ImageSize size) {
-        if (bmp == null || XStringUtil.isNullOrEmpty(imageUrl))
+        if (bmp == null || TextUtils.isEmpty(imageUrl))
             return false;
 
         switch (size) {

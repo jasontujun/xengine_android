@@ -1,8 +1,8 @@
 package com.xengine.android.system.file;
 
 import android.os.Environment;
+import android.text.TextUtils;
 import com.xengine.android.utils.XLog;
-import com.xengine.android.utils.XStringUtil;
 
 import java.io.*;
 import java.util.HashMap;
@@ -36,9 +36,9 @@ public class XAndroidFileMgr implements XFileMgr {
 
     @Override
     public void setRootName(String rootName) {
-        if (XStringUtil.isNullOrEmpty(rootName))
+        if (TextUtils.isEmpty(rootName))
             return;
-        if (!XStringUtil.isNullOrEmpty(mRootName) && mRootName.equals(rootName))
+        if (!TextUtils.isEmpty(mRootName) && mRootName.equals(rootName))
             return;
 
         mRootName = rootName;
@@ -56,7 +56,7 @@ public class XAndroidFileMgr implements XFileMgr {
     public boolean setDir(int type, String dirName, boolean clear) {
         if (type < 0) // 小于0的类型忽略
             return false;
-        if (XStringUtil.isNullOrEmpty(dirName))
+        if (TextUtils.isEmpty(dirName))
             return false;
 
         if (mSubDirs.containsKey(type) && 0 <= type && type <= 10) // 重复设置保留文件夹

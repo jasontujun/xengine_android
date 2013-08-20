@@ -8,6 +8,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -31,7 +32,6 @@ import com.xengine.android.system.mobile.XMobileMgr;
 import com.xengine.android.system.ssm.XAndroidSSM;
 import com.xengine.android.system.ssm.XSystemStateManager;
 import com.xengine.android.utils.XLog;
-import com.xengine.android.utils.XStringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -134,7 +134,7 @@ public abstract class XBaseFrame extends Activity implements XUIFrame {
         screen = new XAndroidScreen(this);
 
         XFileMgr fileMgr = XAndroidFileMgr.getInstance();
-        if (XStringUtil.isNullOrEmpty(fileMgr.getRootName()))
+        if (TextUtils.isEmpty(fileMgr.getRootName()))
             fileMgr.setRootName(getString(R.string.app_name));
         fileMgr.setDir(XFileMgr.FILE_TYPE_TMP, "tmp", true);
         fileMgr.setDir(XFileMgr.FILE_TYPE_PHOTO, "photo", true);

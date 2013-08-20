@@ -4,9 +4,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.widget.ImageSwitcher;
 import com.xengine.android.media.image.processor.XImageProcessor;
-import com.xengine.android.utils.XStringUtil;
 
 import java.lang.ref.WeakReference;
 
@@ -80,7 +80,7 @@ public abstract class XImageSwitcherLocalLoader extends XBaseImageLoader
      */
     private boolean loadErrorImage(String imageUrl, ImageSwitcher imageSwitcher) {
         String localImageFile = getLocalImage(imageUrl);
-        if (XStringUtil.isNullOrEmpty(localImageFile)) {
+        if (TextUtils.isEmpty(localImageFile)) {
             // 返回缺省图片（图片不存在）
             imageSwitcher.setImageResource(mDefaultImageResource);
             return true;
