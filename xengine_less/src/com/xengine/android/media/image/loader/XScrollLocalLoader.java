@@ -41,7 +41,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
                                 XImageProcessor.ImageSize size) {
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
-        if (bitmap != null) {
+        if (bitmap != null && !bitmap.isRecycled()) {
             imageView.setImageBitmap(bitmap);
             showViewAnimation(context, imageView);
             return;
@@ -49,6 +49,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
 
         // 如果没有，则启动异步加载（先取消之前可能对同一张图片的加载工作）
         if (cancelPotentialWork(imageUrl, imageView)) {
+            XLog.d(TAG, "XScrollLocalLoader cancelPotentialWork true. url:" + imageUrl);
             // 如果是默认不存在的图标提示（“缺省图片”，“加载中”，“加载失败”等），则不需要异步
             if (loadErrorImage(imageUrl, imageView)) // TIP 不要渐变效果
                 return;

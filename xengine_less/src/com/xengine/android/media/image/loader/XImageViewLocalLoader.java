@@ -46,7 +46,7 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
                                 ImageView imageView, XImageProcessor.ImageSize size) {
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
-        if (bitmap != null) {
+        if (bitmap != null && !bitmap.isRecycled()) {
             imageView.setImageBitmap(bitmap);
             showViewAnimation(context, imageView);
             return;
@@ -75,7 +75,7 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
 
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
-        if (bitmap != null) {
+        if (bitmap != null && !bitmap.isRecycled()) {
             imageView.setImageBitmap(bitmap);
             showViewAnimation(context, imageView);
             return;

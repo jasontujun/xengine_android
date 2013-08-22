@@ -31,7 +31,7 @@ public abstract class XImageSwitcherLocalLoader extends XBaseImageLoader
                                 ImageSwitcher imageSwitcher, XImageProcessor.ImageSize size) {
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
-        if (bitmap != null) {
+        if (bitmap != null && !bitmap.isRecycled()) {
             imageSwitcher.setImageDrawable(new BitmapDrawable(bitmap));
             imageSwitcher.setTag(null);
             return;
@@ -58,7 +58,7 @@ public abstract class XImageSwitcherLocalLoader extends XBaseImageLoader
 
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
-        if (bitmap != null) {
+        if (bitmap != null && !bitmap.isRecycled()) {
             imageSwitcher.setImageDrawable(new BitmapDrawable(bitmap));
             return;
         }

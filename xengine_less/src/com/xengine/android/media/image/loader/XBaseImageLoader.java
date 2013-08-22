@@ -6,8 +6,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
-import com.xengine.android.media.image.loader.cache.XAndroidImageCache;
 import com.xengine.android.media.image.loader.cache.XImageCache;
+import com.xengine.android.media.image.loader.cache.XImageLruCache;
+import com.xengine.android.media.image.loader.cache.XImageLruCache;
 import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.media.image.processor.XImageProcessor;
 
@@ -35,7 +36,7 @@ public abstract class XBaseImageLoader implements XImageLoader{
     protected int mErrorImageResource;
 
     public XBaseImageLoader() {
-        mImageCache = XAndroidImageCache.getInstance();
+        mImageCache = XImageLruCache.getInstance();
     }
 
     public void init(int emptyImageResource,

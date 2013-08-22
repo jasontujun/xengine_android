@@ -55,9 +55,10 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
                                 XSerialDownloadListener listener) {
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
-        if (bitmap != null) {
+        if (bitmap != null && !bitmap.isRecycled() && bitmap.getConfig() != null) {
             imageView.setImageBitmap(bitmap);
             showViewAnimation(context, imageView);
+            XLog.d(TAG, "XScrollRemoteLoader has cache bitmap. url:" + imageUrl);
             return;
         }
 
@@ -66,8 +67,12 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         if (!TextUtils.isEmpty(localImageFile) &&
                 !XImageLocalUrl.IMG_LOADING.equals(localImageFile) &&
                 !XImageLocalUrl.IMG_ERROR.equals(localImageFile)){
-            if (cancelPotentialWork(imageUrl, imageView))
+            if (cancelPotentialWork(imageUrl, imageView)) {
+                XLog.d(TAG, "XScrollRemoteLoader1 cancelPotentialWork true. url:" + imageUrl);
                 mScrollLocalLoader.asyncLoadBitmap(context, imageUrl, imageView, size);
+            } else {
+                XLog.d(TAG, "XScrollRemoteLoader1 cancelPotentialWork false. url:" + imageUrl);
+            }
             return;
         }
 
@@ -76,7 +81,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         // （先取消之前可能对同一个ImageView但不同图片的下载工作）
         if (XScrollLocalLoader.cancelPotentialWork(imageUrl, imageView) &&
                 cancelPotentialWork(imageUrl, imageView)) {
-            XLog.d(TAG, "cancelPotentialWork true. url:" + imageUrl);
+            XLog.d(TAG, "XScrollRemoteLoader2 cancelPotentialWork true. url:" + imageUrl);
             // 如果local_image标记为“加载中”，即图片正在下载，什么都不做
             if (XImageLocalUrl.IMG_LOADING.equals(localImageFile)) {
                 imageView.setImageResource(mLoadingImageResource);

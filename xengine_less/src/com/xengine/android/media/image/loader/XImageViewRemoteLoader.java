@@ -10,7 +10,6 @@ import android.text.TextUtils;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
 import com.xengine.android.media.image.download.XImageDownload;
-import com.xengine.android.media.image.loader.cache.XAndroidImageCache;
 import com.xengine.android.media.image.processor.XImageProcessor;
 import com.xengine.android.session.download.XSerialDownloadListener;
 import com.xengine.android.utils.XLog;
@@ -39,7 +38,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
     protected boolean mIsFading;// 标识是否开启渐变效果
 
     public XImageViewRemoteLoader(XImageDownload imageDownloadMgr) {
-        mImageCache = XAndroidImageCache.getInstance();
+        super();
         mIsFading = true;
         mImageDownloadMgr = imageDownloadMgr;
     }
@@ -55,7 +54,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
                                 XSerialDownloadListener listener) {
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
-        if (bitmap != null) {
+        if (bitmap != null && !bitmap.isRecycled()) {
             imageView.setImageBitmap(bitmap);
             showViewAnimation(context, imageView);
             return;
