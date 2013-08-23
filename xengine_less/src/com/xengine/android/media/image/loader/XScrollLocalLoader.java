@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.widget.ImageView;
 import com.xengine.android.media.image.processor.XImageProcessor;
@@ -42,7 +43,11 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
         if (bitmap != null && !bitmap.isRecycled()) {
-            imageView.setImageBitmap(bitmap);
+            // （取消之前可能对同一个ImageView但不同图片的下载工作）
+            cancelPotentialWork(imageUrl, imageView);
+            // 设置图片
+            cancelPotentialWork(imageUrl, imageView);
+            imageView.setImageDrawable(new BitmapDrawable(context.getResources(), bitmap));
             showViewAnimation(context, imageView);
             return;
         }
@@ -79,15 +84,18 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
                 (ScrollLocalAsyncTask) getAsyncImageTask(imageView);
         if (scrollLocalAsyncTask != null) {
             final String url = scrollLocalAsyncTask.getImageUrl();
+            // asyncTask虽然存在于imageView中但已经无效
             if (scrollLocalAsyncTask.isInvalidate()) {
                 return true;
-            } else if (url == null || !url.equals(imageUrl)) {
-                // Cancel previous task
-                scrollLocalAsyncTask.cancel(true);
-            } else {
-                // The same work is already in progress
-                return false;
             }
+            // 对同一个ImageView但不同url的加载任务
+            else if (url == null || !url.equals(imageUrl)) {
+                scrollLocalAsyncTask.setInvalidate();// 设置无效标记位
+                scrollLocalAsyncTask.cancel(true);// Cancel previous task
+            }
+            // The same work is already in progress
+            else
+                return false;
         }
         // No task associated with the ImageView, or an existing task was cancelled
         return true;
@@ -174,8 +182,14 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
             return isInvalidate;
         }
 
+        public void setInvalidate() {
+            isInvalidate = true;
+        }
+
         @Override
         protected void onPostExecute(Bitmap bitmap) {
+            if (isInvalidate)
+                bitmap = null;
             super.onPostExecute(bitmap);
             XLog.d(TAG, "notifyTaskFinished.");
             isInvalidate = true;

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.text.TextUtils;
@@ -47,7 +48,7 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
         if (bitmap != null && !bitmap.isRecycled()) {
-            imageView.setImageBitmap(bitmap);
+            imageView.setImageDrawable(new BitmapDrawable(context.getResources(), bitmap));
             showViewAnimation(context, imageView);
             return;
         }
@@ -170,46 +171,46 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
      * 异步本地加载图片的AsyncTask(用于ImageView)
      */
     public class LocalImageViewAsyncTask extends AsyncTask<Void, Void, Bitmap> {
-        private Context context;
-        private final WeakReference<ImageView> imageViewReference;
-        private String imageUrl;
-        private XImageProcessor.ImageSize size;// 加载的图片尺寸
+        private Context mContext;
+        private final WeakReference<ImageView> mImageViewReference;
+        private String mImageUrl;
+        private XImageProcessor.ImageSize mSize;// 加载的图片尺寸
 
         public LocalImageViewAsyncTask(Context context, ImageView imageView, String imageUrl,
                                        XImageProcessor.ImageSize size) {
             // Use a WeakReference to ensure the ImageView can be garbage collected
-            this.context = context;
-            this.imageViewReference = new WeakReference<ImageView>(imageView);
-            this.imageUrl = imageUrl;
-            this.size = size;
+            mContext = context;
+            mImageViewReference = new WeakReference<ImageView>(imageView);
+            mImageUrl = imageUrl;
+            mSize = size;
         }
 
         public String getImageUrl() {
-            return imageUrl;
+            return mImageUrl;
         }
 
         // Decode image in background.
         @Override
         protected Bitmap doInBackground(Void... params) {
-            XLog.d(TAG, "LocalImageViewAsyncTask doInBackground(). url:" + imageUrl);
-            return loadRealImage(context, imageUrl, size);
+            XLog.d(TAG, "LocalImageViewAsyncTask doInBackground(). url:" + mImageUrl);
+            return loadRealImage(mContext, mImageUrl, mSize);
         }
 
         // Once complete, see if ImageView is still around and set bitmap.
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            XLog.d(TAG, "LocalImageViewAsyncTask onPostExecute(). url:" + imageUrl);
+            XLog.d(TAG, "LocalImageViewAsyncTask onPostExecute(). url:" + mImageUrl);
             if (isCancelled())
                 bitmap = null;
 
-            if (imageViewReference != null && bitmap != null) {
-                final ImageView imageView = imageViewReference.get();
+            if (mImageViewReference != null && bitmap != null) {
+                final ImageView imageView = mImageViewReference.get();
                 final LocalImageViewAsyncTask localImageViewAsyncTask = getAsyncImageTask(imageView);
                 // 加载前的检测，保证asyncTask没被替代
                 if (this == localImageViewAsyncTask && imageView != null) {
-                    XLog.d(TAG, "set real image. url:" + imageUrl);
-                    imageView.setImageBitmap(bitmap);
-                    showViewAnimation(context, imageView);
+                    XLog.d(TAG, "set real image. url:" + mImageUrl);
+                    imageView.setImageDrawable(new BitmapDrawable(mContext.getResources(), bitmap));
+                    showViewAnimation(mContext, imageView);
                 }
             }
         }

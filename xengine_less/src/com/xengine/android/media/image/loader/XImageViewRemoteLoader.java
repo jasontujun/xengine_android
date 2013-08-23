@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.text.TextUtils;
@@ -55,7 +56,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
         if (bitmap != null && !bitmap.isRecycled()) {
-            imageView.setImageBitmap(bitmap);
+            imageView.setImageDrawable(new BitmapDrawable(context.getResources(), bitmap));
             showViewAnimation(context, imageView);
             return;
         }
@@ -223,7 +224,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
                 final RemoteImageAsyncTask asyncImageViewTask = getAsyncImageTask(imageView);
                 // 加载前的检测，保证asyncTask没被替代
                 if (this == asyncImageViewTask && imageView != null) {
-                    imageView.setImageBitmap(bitmap);
+                    imageView.setImageDrawable(new BitmapDrawable(mContext.getResources(), bitmap));
                     showViewAnimation(mContext, imageView);
                 }
             }

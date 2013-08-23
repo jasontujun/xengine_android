@@ -110,8 +110,9 @@ public abstract class XBaseSerialMgr implements XSerial {
             return;
 
         mNextTask = mTobeExecuted.peek();
-        if (mNextTask != null && mNextTask.getStatus() == AsyncTask.Status.PENDING)
-            mNextTask.execute(null);// 执行下一个任务
+        if (mNextTask != null)
+            if (mNextTask.getStatus() == AsyncTask.Status.PENDING)
+                mNextTask.execute(null);// 执行下一个任务
         else
             mIsWorking = false;// 没有任务，标记结束
     }

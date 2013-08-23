@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.widget.ImageView;
@@ -56,7 +57,11 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
         if (bitmap != null && !bitmap.isRecycled() && bitmap.getConfig() != null) {
-            imageView.setImageBitmap(bitmap);
+            // （取消之前可能对同一个ImageView但不同图片的下载工作）
+            XScrollLocalLoader.cancelPotentialWork(imageUrl, imageView);
+            cancelPotentialWork(imageUrl, imageView);
+            // 设置图片
+            imageView.setImageDrawable(new BitmapDrawable(context.getResources(), bitmap));
             showViewAnimation(context, imageView);
             XLog.d(TAG, "XScrollRemoteLoader has cache bitmap. url:" + imageUrl);
             return;
@@ -77,8 +82,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         }
 
         XLog.d(TAG, "asyncLoadBitmap.... url:" + imageUrl);
-        // 启动异步线程进行下载，将imageView设置为对应状态的图标
-        // （先取消之前可能对同一个ImageView但不同图片的下载工作）
+        // 取消之前可能对同一个ImageView但不同图片的下载工作
         if (XScrollLocalLoader.cancelPotentialWork(imageUrl, imageView) &&
                 cancelPotentialWork(imageUrl, imageView)) {
             XLog.d(TAG, "XScrollRemoteLoader2 cancelPotentialWork true. url:" + imageUrl);
@@ -91,6 +95,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
             Resources resources = context.getResources();
             Bitmap mTmpBitmap = null;
             ScrollRemoteAsyncTask task = null;
+            // 启动异步线程进行下载，将imageView设置为对应状态的图标
             if (TextUtils.isEmpty(localImageFile)) {
                 mTmpBitmap = BitmapFactory.decodeResource(resources, mDefaultImageResource);// 缺省图片
             } else if (XImageLocalUrl.IMG_ERROR.equals(localImageFile)) {
@@ -128,20 +133,24 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
                 (ScrollRemoteAsyncTask) getAsyncImageTask(imageView);
         if (asyncImageViewTask != null) {
             final String url = asyncImageViewTask.getImageUrl();
+            // asyncTask虽然存在于imageView中但已经无效
             if (asyncImageViewTask.isInvalidate()) {
                 return true;
-            } else if (url == null || !url.equals(imageUrl)) {
+            }
+            // 对同一个ImageView但不同url的加载任务
+            else if (url == null || !url.equals(imageUrl)) {
                 // 只有主要的imageView才能cancel此asyncTask
-                if (asyncImageViewTask.getImageView() == imageView)
-                    // Cancel previous task
-                    asyncImageViewTask.cancel(true);
-                    // 如果是次要的imageView，则将此imageView从asyncTask中删除
+                if (asyncImageViewTask.getImageView() == imageView) {
+                    asyncImageViewTask.setInvalidate();// 设置无效标记位
+                    asyncImageViewTask.cancel(true); // Cancel previous task
+                }
+                // 如果是次要的imageView，则将此imageView从asyncTask中删除
                 else
                     asyncImageViewTask.deleteSameUrlView(imageView);
-            } else {
-                // The same work is already in progress
-                return false;
             }
+            // The same work is already in progress
+            else
+                return false;
         }
         // No task associated with the ImageView, or an existing task was cancelled
         return true;
@@ -280,11 +289,16 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
             return isInvalidate;
         }
 
+        public void setInvalidate() {
+            isInvalidate = true;
+        }
+
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            super.onPostExecute(bitmap);
-            if (isCancelled())
+            if (isCancelled() || isInvalidate)
                 bitmap = null;
+
+            super.onPostExecute(bitmap);
 
             // 设置附带的imageViews的图片
             if (mSameUrlViews != null && bitmap != null) {
@@ -294,7 +308,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
                     final RemoteImageAsyncTask asyncImageViewTask = getAsyncImageTask(imageView);
                     // 加载前的检测，保证asyncTask没被替代
                     if (this == asyncImageViewTask && imageView != null) {
-                        imageView.setImageBitmap(bitmap);
+                        imageView.setImageDrawable(new BitmapDrawable(mContext.getResources(), bitmap));
                         showViewAnimation(mContext, imageView);
                     }
                 }
