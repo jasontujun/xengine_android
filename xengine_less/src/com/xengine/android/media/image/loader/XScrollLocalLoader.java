@@ -12,7 +12,7 @@ import com.xengine.android.system.series.XBaseSerialMgr;
 import com.xengine.android.utils.XLog;
 
 /**
- * 滑动延迟加载的本地图片加载器。（用于ListView或GridView）
+ * 滑动延迟加载的本地图片加载器。（适用于ListView或GridView）
  * 特点：
  * 1. 只负责本地加载，不涉及下载.
  * 2. 二级缓存（内存 + sd卡的图片缓存）。
@@ -44,17 +44,16 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
         if (bitmap != null && !bitmap.isRecycled()) {
             // （取消之前可能对同一个ImageView但不同图片的下载工作）
-            cancelPotentialWork(imageUrl, imageView);
+            cancelPotentialLazyWork(imageUrl, imageView);
             // 设置图片
-            cancelPotentialWork(imageUrl, imageView);
             imageView.setImageDrawable(new BitmapDrawable(context.getResources(), bitmap));
             showViewAnimation(context, imageView);
             return;
         }
 
         // 如果没有，则启动异步加载（先取消之前可能对同一张图片的加载工作）
-        if (cancelPotentialWork(imageUrl, imageView)) {
-            XLog.d(TAG, "XScrollLocalLoader cancelPotentialWork true. url:" + imageUrl);
+        if (cancelPotentialLazyWork(imageUrl, imageView)) {
+            XLog.d(TAG, "XScrollLocalLoader cancelPotentialLazyWork true. url:" + imageUrl);
             // 如果是默认不存在的图标提示（“缺省图片”，“加载中”，“加载失败”等），则不需要异步
             if (loadErrorImage(imageUrl, imageView)) // TIP 不要渐变效果
                 return;
@@ -79,7 +78,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
      * @param imageView
      * @return
      */
-    protected static boolean cancelPotentialWork(String imageUrl, ImageView imageView) {
+    protected boolean cancelPotentialLazyWork(String imageUrl, ImageView imageView) {
         final ScrollLocalAsyncTask scrollLocalAsyncTask =
                 (ScrollLocalAsyncTask) getAsyncImageTask(imageView);
         if (scrollLocalAsyncTask != null) {
@@ -90,6 +89,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
             }
             // 对同一个ImageView但不同url的加载任务
             else if (url == null || !url.equals(imageUrl)) {
+                mSerialMgr.removeTask(scrollLocalAsyncTask);
                 scrollLocalAsyncTask.setInvalidate();// 设置无效标记位
                 scrollLocalAsyncTask.cancel(true);// Cancel previous task
             }
@@ -163,6 +163,17 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         public void stop() {
             mIsWorking = false;
         }
+
+        /**
+         * 删除队列中的task
+         * @param task
+         * @return
+         */
+        public void removeTask(AsyncTask task) {
+            mTobeExecuted.remove(task);
+            if (mNextTask == task)
+                mNextTask = mTobeExecuted.peek();
+        }
     }
 
     /**
@@ -191,7 +202,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
             if (isInvalidate)
                 bitmap = null;
             super.onPostExecute(bitmap);
-            XLog.d(TAG, "notifyTaskFinished.");
+            XLog.d(TAG, "onPostExecute() notifyTaskFinished.");
             isInvalidate = true;
             mSerialMgr.notifyTaskFinished(this);
         }
@@ -199,7 +210,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         @Override
         protected void onCancelled() {
             super.onCancelled();
-            XLog.d(TAG, "notifyTaskFinished.");
+            XLog.d(TAG, "onCancelled() notifyTaskFinished.");
             isInvalidate = true;
             mSerialMgr.notifyTaskFinished(this);
         }

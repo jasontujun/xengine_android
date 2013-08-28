@@ -36,7 +36,6 @@ public class XAndroidHttpClient implements XHttp {
     private static final String TAG = "morln.http";
     private static final String ACCEPT_ENCODING = "Accept-Encoding";
     private static final String GZIP = "gzip";
-    public static final String USER_AGENT = "MorlnAndroidHttpClient";
 
     private ArrayList<XHttpProgressListener> progressListeners
             = new ArrayList<XHttpProgressListener>();
@@ -67,7 +66,7 @@ public class XAndroidHttpClient implements XHttp {
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
-        HttpProtocolParams.setUserAgent(params, USER_AGENT);
+//        HttpProtocolParams.setUserAgent(params, USER_AGENT);
         HttpProtocolParams.setUseExpectContinue(params, true);
         HttpConnectionParams.setConnectionTimeout(params, connectionTimeOut);
         HttpConnectionParams.setSoTimeout(params, connectionTimeOut);

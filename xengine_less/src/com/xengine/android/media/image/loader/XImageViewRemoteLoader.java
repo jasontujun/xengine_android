@@ -56,6 +56,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
         if (bitmap != null && !bitmap.isRecycled()) {
+            cancelPotentialWork(imageUrl, imageView);
             imageView.setImageDrawable(new BitmapDrawable(context.getResources(), bitmap));
             showViewAnimation(context, imageView);
             return;
@@ -67,7 +68,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
             // 如果local_image标记为“加载中”，即图片正在下载，什么都不做
             String localImageFile = getLocalImage(imageUrl);
             if (XImageLocalUrl.IMG_LOADING.equals(localImageFile)) {
-                imageView.setImageResource(mLoadingImageResource);
+//                imageView.setImageResource(mLoadingImageResource);
                 return;
             }
 
