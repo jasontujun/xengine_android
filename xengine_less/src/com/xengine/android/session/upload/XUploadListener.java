@@ -11,7 +11,7 @@ public interface XUploadListener {
 
     void onStart(String url);
 
-    void onComplete(String url, Object response);
+    void onComplete(String url, int statusCode);
 
     void onError(String url, String errorStr);
 }

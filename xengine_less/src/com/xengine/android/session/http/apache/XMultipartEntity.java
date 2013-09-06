@@ -1,4 +1,4 @@
-package com.xengine.android.session.http;
+package com.xengine.android.session.http.apache;
 
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -32,6 +32,9 @@ public class XMultipartEntity extends MultipartEntity {
         super.writeTo(new CountingOutputStream(out, listener));
     }
 
+    /**
+     * 自定义的FilterOutputStream
+     */
     public static class CountingOutputStream extends FilterOutputStream {
         private final XHttpTransferListener listener;
         private long transferred;

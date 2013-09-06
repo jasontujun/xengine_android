@@ -1,8 +1,5 @@
 package com.xengine.android.session.http;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-
 /**
  * Http通信过程监听器
  * Created by 赵之韵.
@@ -11,8 +8,8 @@ import org.apache.http.client.methods.HttpUriRequest;
  */
 public interface XHttpProgressListener {
 
-    void onSendRequest(HttpUriRequest request);
-    void onReceiveResponse(HttpResponse response);
+    void onSendRequest(XHttpRequest request);
+    void onReceiveResponse(XHttpResponse response);
     void onException(Exception e);
     void onNetworkBroken();
 

@@ -141,9 +141,9 @@ public final class XAndroidImageProcessor implements XImageProcessor {
             return null;
 
         try {
-            if (outPadding == null) {
+            if (outPadding == null)
                 outPadding = new Rect(-1, -1, -1, -1);
-            }
+
             Rect copyOutPadding = new Rect(outPadding);
             // 计算samplesize...
             if (sWidth <= 0)

@@ -6,11 +6,10 @@ import android.text.TextUtils;
 import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.media.image.processor.XImageProcessor;
 import com.xengine.android.session.download.XHttpDownloadMgr;
+import com.xengine.android.session.http.XBufferedHttpResponse;
 import com.xengine.android.session.http.XHttp;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.BufferedHttpEntity;
+import com.xengine.android.session.http.XHttpRequest;
+import com.xengine.android.session.http.XHttpResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,8 +60,8 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
         if (mListener != null)
             mListener.onStart(imgUrl);
 
-        HttpGet httpGet = new HttpGet(imgUrl);
-        HttpResponse response = mHttpClient.execute(httpGet, false);
+        XHttpRequest request = mHttpClient.newRequest(imgUrl);
+        XHttpResponse response = mHttpClient.execute(request);
         if (response == null) {
             if (mListener != null)
                 mListener.onError(imgUrl, "No Response");
@@ -73,11 +72,10 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
 //        if(imgUrl.endsWith("gif") || imgUrl.endsWith("GIF")) {
 //            return XAndroidImageMgr.getInstance().processGif2File(response);
 //        }
-        HttpEntity entity = response.getEntity();
         try {
-            BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(entity);
-            InputStream is = bufferedHttpEntity.getContent();
-            InputStream is2 = bufferedHttpEntity.getContent();
+            XBufferedHttpResponse bufferedHttpResponse = new XBufferedHttpResponse(response);
+            InputStream is = bufferedHttpResponse.getContent();
+            InputStream is2 = bufferedHttpResponse.getContent();
             // 确定图片格式
             String imgFormat = format;
             if (TextUtils.isEmpty(format)) {
@@ -101,7 +99,7 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
             boolean processResult = XAndroidImageProcessor.getInstance().
                     processImage2File(is, is2, imgName, sWidth, sHeight,
                             new Rect(-1, -1, -1, -1), cFormat, compress);
-            entity.consumeContent();
+            bufferedHttpResponse.consumeContent();
             String result = processResult ? imgName : null;
             if (mListener != null)
                 mListener.onComplete(imgUrl, result);
@@ -125,8 +123,8 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
         if (mListener != null)
             mListener.onStart(imgUrl);
 
-        HttpGet httpGet = new HttpGet(imgUrl);
-        HttpResponse response = mHttpClient.execute(httpGet, false);
+        XHttpRequest request = mHttpClient.newRequest(imgUrl);
+        XHttpResponse response = mHttpClient.execute(request);
         if (response == null) {
             if (mListener != null)
                 mListener.onError(imgUrl, "No Response");
@@ -134,14 +132,13 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
         }
 
         try {
-            HttpEntity entity = response.getEntity();
-            BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(entity);
-            InputStream is = bufferedHttpEntity.getContent();
-            InputStream is2 = bufferedHttpEntity.getContent();
+            XBufferedHttpResponse bufferedHttpResponse = new XBufferedHttpResponse(response);
+            InputStream is = bufferedHttpResponse.getContent();
+            InputStream is2 = bufferedHttpResponse.getContent();
             Bitmap result = XAndroidImageProcessor.getInstance().
                     processImage2Bmp(is, is2, sWidth, sHeight,
                             new Rect(-1, -1, -1, -1));
-            entity.consumeContent();
+            bufferedHttpResponse.consumeContent();
             if (mListener != null)
                 mListener.onComplete(imgUrl, null);
             return result;

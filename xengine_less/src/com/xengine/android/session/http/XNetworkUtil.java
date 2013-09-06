@@ -15,32 +15,37 @@ import android.provider.Settings;
  */
 public class XNetworkUtil {
 
-    private static Context context;
-
-    /**
-     * 请使用getApplicationContext()来初始化
-     */
-    public static void init(Context context) {
-        XNetworkUtil.context = context;
-    }
-
     /**
      * 当前网络是否可用
      */
-    public static boolean isNetworkAvailable() {
-        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager manager = (ConnectivityManager) context.
+                getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = manager.getActiveNetworkInfo();
-        if (info != null && info.isAvailable()) {
-            return true;
-        } else {
-            return false;
+        return info != null && info.isAvailable();
+    }
+
+    /**
+     * Wifi是否连接
+     * @return
+     */
+    public static boolean isWifiConnected(Context context) {
+        WifiManager wifiManager = (WifiManager) context.
+                getSystemService(Context.WIFI_SERVICE);
+        switch (wifiManager.getWifiState()) {
+            case WifiManager.WIFI_STATE_ENABLED:
+                return true;
+            case WifiManager.WIFI_STATE_ENABLING:
+                return true;
+            default:
+                return false;
         }
     }
 
     /**
      * 进入网络设置页面
      */
-    public static void gotoNetworkSetting() {
+    public static void gotoNetworkSetting(Context context) {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_NETWORK_OPERATOR_SETTINGS);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -53,22 +58,6 @@ public class XNetworkUtil {
                 context.startActivity(intent);
             } catch (Exception e) {
             }
-        }
-    }
-
-    /**
-     * Wifi是否连接
-     * @return
-     */
-    public static boolean isWifiConnected() {
-        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        switch (wifiManager.getWifiState()) {
-            case WifiManager.WIFI_STATE_ENABLED:
-                return true;
-            case WifiManager.WIFI_STATE_ENABLING:
-                return true;
-            default:
-                return false;
         }
     }
 }

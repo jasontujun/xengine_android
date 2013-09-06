@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Class-Path: httpmime-4.1.3.jar baidumapapi.jar locSDK2.1.jar
+Class-Path: httpmime-4.2.5.jar baidumapapi.jar locSDK2.1.jar
 

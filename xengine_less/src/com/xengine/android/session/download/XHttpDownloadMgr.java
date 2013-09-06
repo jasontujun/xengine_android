@@ -2,11 +2,11 @@ package com.xengine.android.session.download;
 
 import android.text.TextUtils;
 import com.xengine.android.session.http.XHttp;
+import com.xengine.android.session.http.XHttpRequest;
+import com.xengine.android.session.http.XHttpResponse;
 import com.xengine.android.system.file.XAndroidFileMgr;
 import com.xengine.android.system.file.XFileMgr;
 import com.xengine.android.utils.XLog;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
 
 import java.io.*;
 
@@ -37,17 +37,14 @@ public class XHttpDownloadMgr implements XDownload {
 
     @Override
     public boolean download(String url, String path, String fileName) {
-        XLog.d(TAG, "url: " + url);
-        XLog.d(TAG, "path: " + path);
-        XLog.d(TAG, "fileName: " + fileName);
         if (TextUtils.isEmpty(url) || TextUtils.isEmpty(path))
             return false;
 
         if (mListener != null)
             mListener.onStart(url);
 
-        HttpGet httpGet = new HttpGet(url);
-        HttpResponse response = mHttpClient.execute(httpGet, false);
+        XHttpRequest request = mHttpClient.newRequest(url);
+        XHttpResponse response = mHttpClient.execute(request);
 
         if (response == null) {
             if (mListener != null)
@@ -56,7 +53,7 @@ public class XHttpDownloadMgr implements XDownload {
         }
 
         try {
-            InputStream is = response.getEntity().getContent();
+            InputStream is = response.getContent();
             String localFileName;// 取得文件名，如果输入新文件名，则使用新文件名
             if (TextUtils.isEmpty(fileName))
                 localFileName = url.substring(url.lastIndexOf("/") + 1);
@@ -76,8 +73,11 @@ public class XHttpDownloadMgr implements XDownload {
                     mListener.doDownload(url, downloadPosition);
             }
             is.close();
+            response.consumeContent();
+
             if (mListener != null)
                 mListener.onComplete(url, localFileName);
+
             return true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
