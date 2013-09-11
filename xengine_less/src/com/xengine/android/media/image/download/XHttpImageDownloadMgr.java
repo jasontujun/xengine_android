@@ -96,6 +96,7 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
             Bitmap.CompressFormat cFormat = Bitmap.CompressFormat.JPEG;
             if (imgFormat.equals(FORMAT_PNG))
                 cFormat = Bitmap.CompressFormat.PNG;
+            // 处理并生产图片文件
             boolean processResult = XAndroidImageProcessor.getInstance().
                     processImage2File(is, is2, imgName, sWidth, sHeight,
                             new Rect(-1, -1, -1, -1), cFormat, compress);

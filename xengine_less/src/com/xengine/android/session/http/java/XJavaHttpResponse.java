@@ -3,6 +3,7 @@ package com.xengine.android.session.http.java;
 import com.xengine.android.session.http.XBaseHttpResponse;
 
 import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,12 +12,17 @@ import java.net.HttpURLConnection;
  * Time: 下午7:47
  * To change this template use File | Settings | File Templates.
  */
-public class XJavaHttpResponse extends XBaseHttpResponse {
+class XJavaHttpResponse extends XBaseHttpResponse {
 
     private HttpURLConnection mConnection;
+    private Charset mCharset;
 
     protected void setConnection(HttpURLConnection connection) {
         mConnection = connection;
+    }
+
+    protected void setContentType(Charset charset) {
+        mCharset = charset;
     }
 
     @Override
@@ -24,5 +30,10 @@ public class XJavaHttpResponse extends XBaseHttpResponse {
         super.consumeContent();
         if (mConnection != null)
             mConnection.disconnect();
+    }
+
+    @Override
+    public Charset getContentType() {
+        return mCharset;
     }
 }

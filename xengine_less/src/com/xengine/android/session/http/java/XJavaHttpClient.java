@@ -3,17 +3,20 @@ package com.xengine.android.session.http.java;
 import android.content.Context;
 import com.xengine.android.session.http.*;
 import com.xengine.android.utils.XLog;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.mime.MIME;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
+import java.nio.charset.Charset;
 import java.util.List;
 
 /**
  * XJavaHttpClient是实现XHttp接口的实现类。
  * 本质是基于HttpURLConnection的包装类，
- * 添加了Cookie的管理，通信过程监听。
+ * 添加了Cookie的管理。（目前只支持Set-Cookie，不支持Set-Cookie2）
+ * 添加了对通信过程的监听。
  * @see java.net.HttpURLConnection
  * Created with IntelliJ IDEA.
  * User: tujun
@@ -21,23 +24,14 @@ import java.util.List;
  * Time: 下午2:38
  * To change this template use File | Settings | File Templates.
  */
-public class XJavaHttpClient implements XHttp {
+public class XJavaHttpClient extends XBaseHttp {
 
     private static final String TAG = XJavaHttpClient.class.getSimpleName();
 
-    private Context mContext;
     private HttpURLConnection mCurrentRequest;
-    private List<XHttpProgressListener> mProgressListeners;
-    private boolean mIsDisposed;// 标识是否通信线程池状态，是否已经关闭
-    private int mConnectionTimeOut;// 尝试建立连接的等待时间，默认为10秒。
-    private int mResponseTimeOut;// 等待数据返回时间，默认为10秒。
 
-    public XJavaHttpClient(Context context) {
-        mContext = context;
-        mIsDisposed = false;
-        mConnectionTimeOut = 10 * 1000;// 默认为10秒
-        mResponseTimeOut = 10 * 1000; // 默认为10秒
-        mProgressListeners = new ArrayList<XHttpProgressListener>();
+    public XJavaHttpClient(Context context, String userAgent) {
+        super(context, userAgent);
     }
 
     @Override
@@ -64,6 +58,8 @@ public class XJavaHttpClient implements XHttp {
         // 构造HttpRequest
         XJavaHttpRequest javaRequest = (XJavaHttpRequest) req;
         javaRequest.setTimeOut(mConnectionTimeOut, mResponseTimeOut);
+        javaRequest.setUserAgent(mUserAgent);
+        javaRequest.setCookies(mCookieStore.getCookies());// 设置request的cookie
         HttpURLConnection request = javaRequest.toJavaHttpRequest();
         mCurrentRequest = request;
 
@@ -75,19 +71,35 @@ public class XJavaHttpClient implements XHttp {
             XLog.d(TAG, "Execute request to " + request.getURL());
             InputStream inputStream = request.getInputStream();
             if (inputStream != null) {
+                // 获取Response中的Cookie，并存入CookieStore
+                List<String> cookies = request.getHeaderFields().get("Set-Cookie");
+                if (cookies != null) {
+                    for (int i = 0; i < cookies.size(); i++) {
+                        Cookie cookie = XJavaHttpUtil.createCookie(cookies.get(i));
+                        if (cookie != null)
+                            mCookieStore.addCookie(cookie);
+                    }
+                }
+                // 设置Response的Charset
+                Charset charset = null;
+                List<String> contentTypeStrs = request.getHeaderFields().get(MIME.CONTENT_TYPE);
+                if (contentTypeStrs != null && contentTypeStrs.size() > 0)
+                    charset = XJavaHttpUtil.getResponseCharset(contentTypeStrs.get(0));
+
                 // 构造HttpResponse
                 XJavaHttpResponse javaResponse = new XJavaHttpResponse();
                 javaResponse.setConnection(request);
                 javaResponse.setStatusCode(request.getResponseCode());
                 javaResponse.setContent(inputStream);
                 javaResponse.setContentLength(request.getContentLength());
+                javaResponse.setContentType(charset);
                 javaResponse.setAllHeaders(request.getHeaderFields());
                 for (XHttpProgressListener listener: mProgressListeners)
                     listener.onReceiveResponse(javaResponse);
 
                 XLog.d(TAG, "return response, statusCode:"
                         + javaResponse.getStatusCode()
-                         + ",contentLength:" + javaResponse.getContentLength());
+                        + ",contentLength:" + javaResponse.getContentLength());
                 return javaResponse;
             }
         } catch (IOException e) {
@@ -96,7 +108,7 @@ public class XJavaHttpClient implements XHttp {
             for (XHttpProgressListener listener: mProgressListeners)
                 listener.onException(e);
         } finally {
-//            mCurrentRequest.disconnect();// 不能在此disconnect，会关闭InputStream
+//            mCurrentRequest.disconnect();// TIP 不能在此disconnect，会关闭InputStream
             mCurrentRequest = null;
         }
         return null;
@@ -111,58 +123,12 @@ public class XJavaHttpClient implements XHttp {
     }
 
     @Override
-    public boolean isDisposed() {
-        return mIsDisposed;
-    }
-
-    @Override
     public void dispose() {
         if (!mIsDisposed) {
             abort();
             mContext = null;
             mIsDisposed = true;
+            clearCookie();
         }
-    }
-
-    @Override
-    public void setCookie(String name, String value) {
-        // TODO 实现Cookie的保存
-    }
-
-    @Override
-    public void clearCookie() {
-        // TODO 实现Cookie的清除
-    }
-
-    @Override
-    public int getConnectionTimeOut() {
-        return mConnectionTimeOut;
-    }
-
-    @Override
-    public void setConnectionTimeOut(int connectionTimeOut) {
-        mConnectionTimeOut = connectionTimeOut;
-    }
-
-    @Override
-    public int getResponseTimeOut() {
-        return mResponseTimeOut;
-    }
-
-    @Override
-    public void setResponseTimeOut(int responseTimeOut) {
-        mResponseTimeOut = responseTimeOut;
-    }
-
-    @Override
-    public void registerProgressListener(XHttpProgressListener listener) {
-        if (listener != null)
-            mProgressListeners.add(listener);
-    }
-
-    @Override
-    public void unregisterProgressListener(XHttpProgressListener listener) {
-        if (listener != null)
-            mProgressListeners.remove(listener);
     }
 }

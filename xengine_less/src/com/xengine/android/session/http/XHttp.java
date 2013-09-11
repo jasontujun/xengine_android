@@ -1,6 +1,13 @@
 package com.xengine.android.session.http;
 
+import org.apache.http.cookie.Cookie;
+
+import java.nio.charset.Charset;
+
 public interface XHttp {
+
+    public static final Charset DEF_CONTENT_CHARSET = Charset.forName("ISO-8859-1");
+    public static final Charset DEF_PROTOCOL_CHARSET = Charset.forName("US-ASCII");
 
     /**
      * 创建一个Http请求对象。默认为GET请求
@@ -34,10 +41,16 @@ public interface XHttp {
 
     /**
      * 添加Cookie
-     * @param name
-     * @param value
+     * @param cookie
      */
-    void setCookie(String name, String value);
+    void addCookie(Cookie cookie);
+
+    /**
+     * 设置Cookie。
+     * 如果cookie的name出现重复，则覆盖之前的cookie。
+     * @param cookie
+     */
+    void setCookie(Cookie cookie);
 
     /**
      * 清空Cookie

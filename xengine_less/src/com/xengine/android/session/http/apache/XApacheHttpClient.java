@@ -7,7 +7,6 @@ import com.xengine.android.utils.XLog;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
@@ -15,11 +14,8 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -45,31 +41,20 @@ import java.util.Map;
  * Time: 下午3:38
  * To change this template use File | Settings | File Templates.
  */
-public class XApacheHttpClient implements XHttp {
+public class XApacheHttpClient extends XBaseHttp {
 
     private static final String TAG = XApacheHttpClient.class.getSimpleName();
     private static final String ACCEPT_ENCODING = "Accept-Encoding";
     private static final String GZIP = "gzip";
 
-    private Context mContext;
     private HttpContext mHttpContext;
-    private CookieStore mCookieStore;
     private DefaultHttpClient mHttpClient;
     private HttpUriRequest mCurrentRequest;
-    private List<XHttpProgressListener> mProgressListeners;
     private XHttpTransferListener mTransferListener;
-    private boolean mIsDisposed;// 标识是否通信线程池状态，是否已经关闭
-    private int mConnectionTimeOut;// 尝试建立连接的等待时间，默认为10秒。
-    private int mResponseTimeOut;// 等待数据返回时间，默认为10秒。
 
     public XApacheHttpClient(Context context, String userAgent) {
-        mContext = context;
-        mIsDisposed = false;
-        mConnectionTimeOut = 10 * 1000;// 默认为10秒
-        mResponseTimeOut = 10 * 1000; // 默认为10秒
-        mProgressListeners = new ArrayList<XHttpProgressListener>();
+        super(context, userAgent);
 
-        mCookieStore = new BasicCookieStore();
         mHttpContext = new BasicHttpContext();
         mHttpContext.setAttribute(ClientContext.COOKIE_STORE, mCookieStore);
         HttpParams params = new BasicHttpParams();
@@ -183,44 +168,18 @@ public class XApacheHttpClient implements XHttp {
         return null;
     }
 
-    @Override
-    public void setCookie(String name, String value) {
-        List<Cookie> cookies = mCookieStore.getCookies();
-        for (int i = 0; i < cookies.size(); i ++ ) {
-            if (cookies.get(i).equals(name)) {
-                cookies.remove(i);
-                break;
-            }
-        }
-        mCookieStore.addCookie(new BasicClientCookie(name, value));
-    }
-
-    @Override
-    public void clearCookie() {
-        mCookieStore.clear();
-    }
-
-    @Override
-    public int getConnectionTimeOut() {
-        return mConnectionTimeOut;
-    }
 
     @Override
     public void setConnectionTimeOut(int connectionTimeOut) {
-        this.mConnectionTimeOut = connectionTimeOut;
+        super.setConnectionTimeOut(connectionTimeOut);
         HttpParams params = mHttpClient.getParams();
         HttpConnectionParams.setConnectionTimeout(params, connectionTimeOut);
         mHttpClient.setParams(params);
     }
 
     @Override
-    public int getResponseTimeOut() {
-        return mResponseTimeOut;
-    }
-
-    @Override
     public void setResponseTimeOut(int responseTimeOut) {
-        this.mResponseTimeOut = responseTimeOut;
+        super.setResponseTimeOut(responseTimeOut);
         HttpParams params = mHttpClient.getParams();
         HttpConnectionParams.setSoTimeout(params, responseTimeOut);
         mHttpClient.setParams(params);
@@ -233,28 +192,12 @@ public class XApacheHttpClient implements XHttp {
     }
 
     @Override
-    public boolean isDisposed() {
-        return mIsDisposed;
-    }
-
-    @Override
     public void dispose() {
         if (!mIsDisposed) {
             mContext = null;
             mHttpClient.getConnectionManager().shutdown();
             mIsDisposed = true;
+            clearCookie();
         }
-    }
-
-    @Override
-    public void registerProgressListener(XHttpProgressListener listener) {
-        if (listener != null)
-            mProgressListeners.add(listener);
-    }
-
-    @Override
-    public void unregisterProgressListener(XHttpProgressListener listener) {
-        if (listener != null)
-            mProgressListeners.remove(listener);
     }
 }

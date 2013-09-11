@@ -1,6 +1,7 @@
 package com.xengine.android.session.http;
 
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +49,12 @@ public interface XHttpResponse {
      * @return
      */
     long getContentLength();
+
+    /**
+     * 获取响应的字符编码
+     * @return
+     */
+    Charset getContentType();
 
     /**
      * 响应的内容（InputStream）是否可获取多个
