@@ -49,7 +49,7 @@ public class XJavaHttpClient extends XBaseHttp {
 
         if (!XNetworkUtil.isNetworkAvailable(mContext)) {
             XLog.d(TAG, "network not available.");
-            for(XHttpProgressListener listener: mProgressListeners) {
+            for (XHttpProgressListener listener: mProgressListeners) {
                 listener.onNetworkBroken();
             }
             return null;

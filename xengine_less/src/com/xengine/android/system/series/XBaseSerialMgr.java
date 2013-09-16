@@ -1,7 +1,6 @@
 package com.xengine.android.system.series;
 
 import android.os.AsyncTask;
-import com.xengine.android.utils.XLog;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -86,7 +85,6 @@ public abstract class XBaseSerialMgr implements XSerial {
         stop();
         Iterator<AsyncTask> it = mTobeExecuted.iterator();
         while (it.hasNext()) {
-            XLog.d(TAG, "stopAndReset. cancel task");
             it.next().cancel(true);
         }
         mTobeExecuted.clear();

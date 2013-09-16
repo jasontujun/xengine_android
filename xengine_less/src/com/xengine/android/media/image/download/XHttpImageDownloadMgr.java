@@ -23,14 +23,9 @@ import java.io.InputStream;
 public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
         implements XImageDownload {
 
-    private int mScreenWidth, mScreenHeight;
-
-    public XHttpImageDownloadMgr(XHttp httpClient, int screenWidth, int screenHeight) {
+    public XHttpImageDownloadMgr(XHttp httpClient) {
         super(httpClient);
-        mScreenWidth = screenWidth;
-        mScreenHeight = screenHeight;
     }
-
 
     @Override
     public String downloadImg2File(String imgUrl, String format) {
@@ -38,8 +33,8 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
                 imgUrl,
                 format,
                 XImageProcessor.DEFAULT_COMPRESS,
-                mScreenWidth,
-                mScreenHeight);
+                0,
+                0);
     }
 
 
@@ -49,8 +44,8 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
                 imgUrl,
                 format,
                 compress,
-                mScreenWidth,
-                mScreenHeight);
+                0,
+                0);
     }
 
 
@@ -116,7 +111,7 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
 
     @Override
     public Bitmap downloadImg2Bmp(String imgUrl, String format) {
-        return downloadImg2Bmp(imgUrl, format, mScreenWidth, mScreenHeight);
+        return downloadImg2Bmp(imgUrl, format, 0, 0);
     }
 
     @Override
@@ -137,8 +132,7 @@ public final class XHttpImageDownloadMgr extends XHttpDownloadMgr
             InputStream is = bufferedHttpResponse.getContent();
             InputStream is2 = bufferedHttpResponse.getContent();
             Bitmap result = XAndroidImageProcessor.getInstance().
-                    processImage2Bmp(is, is2, sWidth, sHeight,
-                            new Rect(-1, -1, -1, -1));
+                    processImage2Bmp(is, is2, sWidth, sHeight, new Rect(-1, -1, -1, -1));
             bufferedHttpResponse.consumeContent();
             if (mListener != null)
                 mListener.onComplete(imgUrl, null);

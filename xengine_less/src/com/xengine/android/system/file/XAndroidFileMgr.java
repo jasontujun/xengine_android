@@ -2,9 +2,9 @@ package com.xengine.android.system.file;
 
 import android.os.Environment;
 import android.text.TextUtils;
-import com.xengine.android.utils.XLog;
+import com.xengine.android.utils.XFileUtil;
 
-import java.io.*;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,13 +82,6 @@ public class XAndroidFileMgr implements XFileMgr {
     @Override
     public void clearDir(int type) {
         File subDir = getDir(type);
-        if (subDir == null || !subDir.exists())
-            return;
-
-        File[] files = subDir.listFiles();
-        for (int i = 0; i <files.length; i++)
-            files[i].delete();
-
-        XLog.d(TAG, "删除文件夹" + subDir.getName() + "下的文件成功.共计" + files.length + "个文件.");
+        XFileUtil.clearDirectory(subDir, false);
     }
 }

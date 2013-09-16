@@ -42,9 +42,10 @@ public interface XImageDownload extends XDownload {
      * @param imgUrl 图片url地址
      * @param format 格式
      * @param compress 压缩率
-     * @param sWidth
-     * @param sHeight
+     * @param sWidth 显示宽度；如果小于等于0，则使用ScreenWidth
+     * @param sHeight 显示高度；如果小于等于0，则使用ScreenHeight
      * @return 存到本地的文件名
+     * @see com.xengine.android.media.image.processor.XImageProcessor
      */
     String downloadImg2File(String imgUrl, String format,
                             int compress, int sWidth, int sHeight);
@@ -62,9 +63,10 @@ public interface XImageDownload extends XDownload {
      * 把图片下载，在内存中处理(根据调用者指定的宽度和高度来压缩)，并返回bitmap。
      * @param imgUrl 图片url地址
      * @param format 格式
-     * @param sWidth 显示宽度
-     * @param sHeight 显示高度
+     * @param sWidth 显示宽度；如果小于等于0，则使用ScreenWidth
+     * @param sHeight 显示高度；如果小于等于0，则使用ScreenHeight
      * @return Bitmap对象
+     * @see com.xengine.android.media.image.processor.XImageProcessor
      */
     Bitmap downloadImg2Bmp(String imgUrl, String format, int sWidth, int sHeight);
 }

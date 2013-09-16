@@ -1,4 +1,4 @@
-package com.xengine.android.system.file;
+package com.xengine.android.utils;
 
 import java.io.*;
 
@@ -100,5 +100,23 @@ public class XFileUtil {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 清空文件夹。
+     * @param dir 文件夹
+     * @param removeSelf 是否删除自身
+     */
+    public static void clearDirectory(File dir, boolean removeSelf) {
+        if (dir == null || !dir.exists())
+            return;
+
+        File[] files = dir.listFiles();
+        if (files != null) // 如果dir不是文件夹，files会为null
+            for (int i = 0; i <files.length; i++)
+                files[i].delete();
+
+        if (removeSelf)
+            dir.delete();
     }
 }

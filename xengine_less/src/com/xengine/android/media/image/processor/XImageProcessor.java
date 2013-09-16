@@ -43,10 +43,10 @@ public interface XImageProcessor {
 
     /**
      * 通过本地文件名，获取文件
-     * @param imgName
+     * @param imageName
      * @return
      */
-    File getImgFile(String imgName);
+    File getImageFile(String imageName);
 
     /**
      * 通过本地文件名，根据不同的尺寸类型，获取bitmap
@@ -71,8 +71,8 @@ public interface XImageProcessor {
     /**
      * 处理图片(samplesize)，传入byte数组，返回Bitmap
      * @param data 图片字节数组
-     * @param sWidth 显示宽度
-     * @param sHeight 显示高度
+     * @param sWidth 显示宽度；如果小于等于0，则使用ScreenWidth
+     * @param sHeight 显示高度；如果小于等于0，则使用ScreenHeight
      * @return
      */
     Bitmap processImage2Bmp(byte[] data, int sWidth, int sHeight);
@@ -81,8 +81,8 @@ public interface XImageProcessor {
      * 处理图片(samplesize)，传入两图片输入流，返回Bitmap
      * @param is1 图片输入流（用于计算sampleSize）
      * @param is2 图片输入流（用于保存）
-     * @param sWidth 显示宽度
-     * @param sHeight 显示高度
+     * @param sWidth 显示宽度；如果小于等于0，则使用ScreenWidth
+     * @param sHeight 显示高度；如果小于等于0，则使用ScreenHeight
      * @param outPadding 需要加载的区域
      * @return 加载后的bitmap。若失败返回null。
      */
@@ -95,8 +95,8 @@ public interface XImageProcessor {
      * @param data 图片字节数组
      * @param fileName 保存的图片名
      * @param compress 压缩率
-     * @param sWidth 显示宽度
-     * @param sHeight 显示高度
+     * @param sWidth 显示宽度；如果小于等于0，则使用ScreenWidth
+     * @param sHeight 显示高度；如果小于等于0，则使用ScreenHeight
      * @return
      */
     boolean processImage2File(byte[] data, String fileName, int sWidth, int sHeight,
@@ -109,8 +109,8 @@ public interface XImageProcessor {
      * @param is2 图片输入流（用于保存）
      * @param fileName 保存的图片名
      * @param compress 压缩率
-     * @param sWidth 显示宽度
-     * @param sHeight 显示高度
+     * @param sWidth 显示宽度；如果小于等于0，则使用ScreenWidth
+     * @param sHeight 显示高度；如果小于等于0，则使用ScreenHeight
      * @param outPadding 需要加载的区域
      * @return 保存的文件名
      */

@@ -6,8 +6,7 @@ import android.graphics.Rect;
 import android.os.Environment;
 import android.os.StatFs;
 import android.text.TextUtils;
-import com.xengine.android.system.file.XAndroidFileMgr;
-import com.xengine.android.system.file.XFileMgr;
+import com.xengine.android.utils.XFileUtil;
 import com.xengine.android.utils.XLog;
 
 import java.io.*;
@@ -31,35 +30,36 @@ public final class XAndroidImageProcessor implements XImageProcessor {
         return instance;
     }
 
-    private XAndroidImageProcessor(){
-        mImgDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
+    private XAndroidImageProcessor() {
+        // 解耦，让image模块和file模块不产生依赖
+//        mImageDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
     }
 
-
-    private int mScreenWidth, mScreenHeight;// 屏幕的宽和高
-    private File mImgDir;// 临时图片缓存文件夹
+    private File mImageDir;// 临时图片缓存文件夹
+    private int mScreenWidth;// 屏幕宽度（单位：pixel）
+    private int mScreenHeight;// 屏幕高度（单位：pixel）
 
     /**
      * 初始化函数
      * @param sWidth 屏幕宽度（单位：pixel）
      * @param sHeight 屏幕高度（单位：pixel）
+     * @param imageDir 图片所保存的根目录，不能为null，否则会抛IllegalArgumentException
      */
-    public void init(int sWidth, int sHeight) {
+    public void init(int sWidth, int sHeight, File imageDir) {
+        if (imageDir == null)
+            throw new IllegalArgumentException("imageDir should not be null");
+
         mScreenWidth = sWidth;
         mScreenHeight = sHeight;
-    }
-
-    public int getScreenWidth() {
-        return mScreenWidth;
-    }
-
-    public int getScreenHeight() {
-        return mScreenHeight;
+        mImageDir = imageDir;
     }
 
     @Override
-    public File getImgFile(String imgName) {
-        return new File(mImgDir, imgName);
+    public File getImageFile(String imageName) {
+        if (!mImageDir.exists())
+            mImageDir.mkdirs();
+
+        return new File(mImageDir, imageName);
     }
 
 
@@ -67,7 +67,7 @@ public final class XAndroidImageProcessor implements XImageProcessor {
     public Bitmap getLocalImage(String imgName, ImageSize size) throws IOException {
         switch (size) {
             case ORIGIN: {
-                File imgFile = getImgFile(imgName);
+                File imgFile = getImageFile(imgName);
                 if (imgFile.exists()) {
                     InputStream is = new FileInputStream(imgFile);
                     Bitmap bmp = BitmapFactory.decodeStream(is);
@@ -91,14 +91,14 @@ public final class XAndroidImageProcessor implements XImageProcessor {
 
     @Override
     public Bitmap getLocalImage(String imgName, int sampleWidth, int sampleHeight) throws IOException {
-        File imgFile = getImgFile(imgName);
+        File imgFile = getImageFile(imgName);
         if (imgFile.exists()) {
             InputStream is = new FileInputStream(imgFile);
             // 计算samplesize...
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
             BitmapFactory.decodeStream(is, new Rect(-1, -1, -1, -1), opts);
-            opts.inSampleSize = computeSampleSize(opts, -1, sampleWidth*sampleHeight);
+            opts.inSampleSize = computeSampleSize(opts, -1, sampleWidth * sampleHeight);
             opts.inJustDecodeBounds = false;
             is.close();
             // 转成bitmap
@@ -122,7 +122,7 @@ public final class XAndroidImageProcessor implements XImageProcessor {
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
             BitmapFactory.decodeByteArray(data, 0, data.length, opts);
-            opts.inSampleSize = computeSampleSize(opts, -1, sWidth*sHeight);
+            opts.inSampleSize = computeSampleSize(opts, -1, sWidth * sHeight);
             opts.inJustDecodeBounds = false;
             // 转成bitmap
             return BitmapFactory.decodeByteArray(data, 0, data.length, opts);
@@ -153,7 +153,7 @@ public final class XAndroidImageProcessor implements XImageProcessor {
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
             BitmapFactory.decodeStream(is1, copyOutPadding, opts);
-            opts.inSampleSize = computeSampleSize(opts, -1, sWidth*sHeight);
+            opts.inSampleSize = computeSampleSize(opts, -1, sWidth * sHeight);
             opts.inJustDecodeBounds = false;
             // 转成bitmap
             return BitmapFactory.decodeStream(is2, outPadding, opts);
@@ -170,8 +170,6 @@ public final class XAndroidImageProcessor implements XImageProcessor {
         }
         return null;
     }
-
-
 
     @Override
     public boolean processImage2File(byte[] data, String fileName, int sWidth, int sHeight,
@@ -190,14 +188,14 @@ public final class XAndroidImageProcessor implements XImageProcessor {
     public boolean processImage2File(InputStream is1, InputStream is2, String fileName,
                                      int sWidth, int sHeight, Rect outPadding,
                                      Bitmap.CompressFormat format, int compress) {
-            Bitmap bmp = processImage2Bmp(is1, is2, sWidth, sHeight, outPadding);
-            // 计算压缩率
-            if (compress < 0 || compress > 100) {
-                compress = DEFAULT_COMPRESS;
-            }
+        Bitmap bmp = processImage2Bmp(is1, is2, sWidth, sHeight, outPadding);
+        // 计算压缩率
+        if (compress < 0 || compress > 100) {
+            compress = DEFAULT_COMPRESS;
+        }
 
-            // 将图片保存到本地
-            return saveImageToSd(fileName, bmp, format, compress);
+        // 将图片保存到本地
+        return saveImageToSd(fileName, bmp, format, compress);
     }
 
 
@@ -281,11 +279,9 @@ public final class XAndroidImageProcessor implements XImageProcessor {
 //            return false;
 //        }
         try {
-            File imgFile = getImgFile(imgName);
-            if (!mImgDir.exists()) {
-                mImgDir.mkdirs();
-            }
-            imgFile.createNewFile();
+            File imgFile = getImageFile(imgName);
+            if (!imgFile.exists())
+                imgFile.createNewFile();
             FileOutputStream fos = new FileOutputStream(imgFile);
             bm.compress(format, compress, fos);
             fos.flush();
@@ -309,11 +305,9 @@ public final class XAndroidImageProcessor implements XImageProcessor {
 
         try {
             // 创建文件夹
-            File imgFile = getImgFile(imgName);
-            if (!mImgDir.exists()) {
-                mImgDir.mkdirs();
-            }
-            imgFile.createNewFile();
+            File imgFile = getImageFile(imgName);
+            if (!imgFile.exists())
+                imgFile.createNewFile();
             // 读取数据
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(); // 往内存写数据
             byte[] buffer = new byte[1024]; // 缓冲区
@@ -338,6 +332,6 @@ public final class XAndroidImageProcessor implements XImageProcessor {
 
     @Override
     public void clearTmpDir() {
-        XAndroidFileMgr.getInstance().clearDir(XFileMgr.FILE_TYPE_TMP);
+        XFileUtil.clearDirectory(mImageDir, false);
     }
 }

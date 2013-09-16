@@ -4,8 +4,6 @@ import android.text.TextUtils;
 import com.xengine.android.session.http.XHttp;
 import com.xengine.android.session.http.XHttpRequest;
 import com.xengine.android.session.http.XHttpResponse;
-import com.xengine.android.system.file.XAndroidFileMgr;
-import com.xengine.android.system.file.XFileMgr;
 import com.xengine.android.utils.XLog;
 
 import java.io.*;
@@ -25,13 +23,14 @@ public class XHttpDownloadMgr implements XDownload {
     protected XDownloadListener mListener;
 
     public XHttpDownloadMgr(XHttp httpClient) {
-        this.mHttpClient = httpClient;
+        mHttpClient = httpClient;
     }
 
     @Override
     public boolean download(String url, File localFile) {
         if (localFile == null)
-            localFile = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
+            return false;
+
         return download(url, localFile.getParent(), localFile.getName());
     }
 

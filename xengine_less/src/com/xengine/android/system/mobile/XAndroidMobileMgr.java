@@ -43,13 +43,8 @@ public class XAndroidMobileMgr implements XMobileMgr {
 
     private TelephonyManager telephonyManager;
 
-    private int screenWidth, screenHeight;
-
-
-    public XAndroidMobileMgr(Activity activity, int screenWidth, int screenHeight) {
+    public XAndroidMobileMgr(Activity activity) {
         this.activity = activity;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
         this.telephonyManager = (TelephonyManager) activity.
                 getSystemService(Context.TELEPHONY_SERVICE);
         photoDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_PHOTO);
@@ -156,11 +151,11 @@ public class XAndroidMobileMgr implements XMobileMgr {
                     InputStream is2 = cr.openInputStream(originalUri);
                     String imgName = createImgName();
                     boolean result = XAndroidImageProcessor.getInstance().processImage2File(
-                            is, is2, imgName, screenWidth, screenHeight,
+                            is, is2, imgName, 0, 0,
                             new Rect(-1, -1, -1, -1), Bitmap.CompressFormat.PNG, 75);
 
                     if(result) {
-                        mCurrentPhotoFile = XAndroidImageProcessor.getInstance().getImgFile(imgName);
+                        mCurrentPhotoFile = XAndroidImageProcessor.getInstance().getImageFile(imgName);
                         photoListener.onSuccess(mCurrentPhotoFile);
                     } else {
                         photoListener.onFail();
