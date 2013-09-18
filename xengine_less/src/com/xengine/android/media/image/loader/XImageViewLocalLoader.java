@@ -48,12 +48,15 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
         if (bitmap != null && !bitmap.isRecycled()) {
+            // 取消之前可能对同一个ImageView但不同图片的下载工作
+            cancelPotentialWork(imageUrl, imageView);
+            // 设置图片
             imageView.setImageDrawable(new BitmapDrawable(context.getResources(), bitmap));
             showViewAnimation(context, imageView);
             return;
         }
 
-        // 如果没有，则启动异步加载（先取消之前可能对同一个ImageView但不同图片的加载工作）
+        // 取消之前可能对同一个ImageView但不同图片的下载工作
         if (cancelPotentialWork(imageUrl, imageView)) {
             // 如果是默认不存在的图标提示（“缺省图片”，“加载中”，“加载失败”等），则不需要异步
             if (loadErrorImage(imageUrl, imageView)) // TIP 不要渐变效果
@@ -88,8 +91,10 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
 
         // 如果是真正图片，则需要异步加载
         bitmap = loadRealImage(context, imageUrl, size);
-        imageView.setImageBitmap(bitmap);
-        showViewAnimation(context, imageView);
+        if (bitmap != null && !bitmap.isRecycled()) {
+            imageView.setImageBitmap(bitmap);
+            showViewAnimation(context, imageView);
+        }
     }
 
     /**
@@ -203,7 +208,7 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
             if (isCancelled())
                 bitmap = null;
 
-            if (mImageViewReference != null && bitmap != null) {
+            if (mImageViewReference != null && bitmap != null && !bitmap.isRecycled()) {
                 final ImageView imageView = mImageViewReference.get();
                 final LocalImageViewAsyncTask localImageViewAsyncTask = getAsyncImageTask(imageView);
                 // 加载前的检测，保证asyncTask没被替代

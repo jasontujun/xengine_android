@@ -39,7 +39,8 @@ public class XMultipartEntity extends MultipartEntity {
         private final XHttpTransferListener listener;
         private long transferred;
 
-        public CountingOutputStream(final OutputStream out, final XHttpTransferListener listener) {
+        public CountingOutputStream(final OutputStream out,
+                                    final XHttpTransferListener listener) {
             super(out);
             this.listener = listener;
             this.transferred = 0;
@@ -48,15 +49,17 @@ public class XMultipartEntity extends MultipartEntity {
         @Override
         public void write(byte[] b, int off, int len) throws IOException {
             out.write(b, off, len);
-            this.transferred += len;
-            this.listener.transferred(this.transferred);
+            transferred += len;
+            if (listener != null)
+                listener.transferred(transferred);
         }
 
         @Override
         public void write(int b) throws IOException {
             out.write(b);
-            this.transferred++;
-            this.listener.transferred(this.transferred);
+            transferred++;
+            if (listener != null)
+                listener.transferred(transferred);
         }
     }
 }

@@ -34,4 +34,21 @@ public interface XImageCache {
      * 清空所有图片缓存池
      */
     void clearImageCache();
+
+    /**
+     * 对于同一tag下的bitmap, 保持当前传入bitmap在内存中不被销毁，
+     * 而之前保持的bitmap将根据情况被销毁。
+     * 主要用于ImageSwitcher之类的控件加载图片的需要。
+     * WARNING：谨慎使用该方法，有可能因为保持过多的bitmap而导致抛出OutOfMemoryException!
+     * @see com.xengine.android.media.image.loader.XImageSwitcherLocalLoader
+     * @param tag 标识不同的Bitmap
+     * @param bmp
+     * @param size
+     */
+    void addKeepingBitmap(String tag, Bitmap bmp, XImageProcessor.ImageSize size);
+
+    /**
+     * 清空所有额外保持的bitmap。
+     */
+    void clearKeepingBitmap();
 }

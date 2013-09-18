@@ -11,8 +11,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * 图片缓存池.
- * 统一管理所有在内存中的图片缓存,所以用单例模式。
+ * 通过HashMap简单实现的图片缓存池.
+ * 用单例模式，统一管理所有在内存中的图片缓存。
+ * @deprecated 有2个致命缺点：1.没有对bitmap进行recycle()回收；
+ * 2.Android虚拟机对SoftReference、WeakReference采取更加积极回收的策略，所以缓存效率很低
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-8-7
@@ -35,12 +37,20 @@ public final class XSimpleImageCache implements XImageCache {
         mScreenImageCache = new HashMap<String, BitmapRef>();
         mOriginalImageCache = new HashMap<String, BitmapRef>();
         mReferenceQueue = new ReferenceQueue<Bitmap>();
+
+        mSmallKeepBitmaps = new HashMap<String, Bitmap>();
+        mScreenKeepBitmaps = new HashMap<String, Bitmap>();
+        mOriginalKeepBitmaps = new HashMap<String, Bitmap>();
     }
 
     private Map<String, BitmapRef> mSmallImageCache;// 小图缓存
     private Map<String, BitmapRef> mScreenImageCache;// 屏幕图缓存
     private Map<String, BitmapRef> mOriginalImageCache;// 原始图缓存
     private ReferenceQueue<Bitmap> mReferenceQueue;// 垃圾reference队列
+
+    private Map<String, Bitmap> mSmallKeepBitmaps;
+    private Map<String, Bitmap> mScreenKeepBitmaps;
+    private Map<String, Bitmap> mOriginalKeepBitmaps;
 
     /**
      * 继承SoftReference，使得每一个实例都具有可识别的标识。
@@ -127,12 +137,34 @@ public final class XSimpleImageCache implements XImageCache {
         clearImageCache(mOriginalImageCache);
     }
 
+    @Override
+    public void addKeepingBitmap(String tag, Bitmap bmp, XImageProcessor.ImageSize size) {
+        switch (size) {
+            case SMALL:
+                mSmallKeepBitmaps.put(tag, bmp);
+                break;
+            case SCREEN:
+                mScreenKeepBitmaps.put(tag, bmp);
+                break;
+            case ORIGIN:
+                mOriginalKeepBitmaps.put(tag, bmp);
+                break;
+        }
+    }
+
+    @Override
+    public void clearKeepingBitmap() {
+        mSmallKeepBitmaps.clear();
+        mScreenKeepBitmaps.clear();
+        mOriginalKeepBitmaps.clear();
+    }
+
     private void clearImageCache(Map<String, BitmapRef> cache) {
         Iterator<BitmapRef> iterator = cache.values().iterator();
         while (iterator.hasNext()) {
             BitmapRef softReference = iterator.next();
             Bitmap bitmap = softReference.get();
-            if (bitmap != null) {
+            if (bitmap != null && !bitmap.isRecycled()) {
                 bitmap.recycle();
             }
         }

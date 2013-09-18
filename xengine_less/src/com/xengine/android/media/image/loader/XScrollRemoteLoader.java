@@ -57,7 +57,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         // 检测是否在缓存中已经存在此图片
         Bitmap bitmap = mImageCache.getCacheBitmap(imageUrl, size);
         if (bitmap != null && !bitmap.isRecycled()) {
-            // （取消之前可能对同一个ImageView但不同图片的下载工作）
+            // 取消之前可能对同一个ImageView但不同图片的下载工作
             mScrollLocalLoader.cancelPotentialLazyWork(imageUrl, imageView);
             cancelPotentialLazyWork(imageUrl, imageView);
             // 设置图片
@@ -311,7 +311,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
             super.onPostExecute(bitmap);
 
             // 设置附带的imageViews的图片
-            if (mSameUrlViews != null && bitmap != null) {
+            if (mSameUrlViews != null && bitmap != null && !bitmap.isRecycled()) {
                 ListIterator<WeakReference<ImageView>> it = mSameUrlViews.listIterator();
                 while (it.hasNext()){
                     final ImageView imageView = it.next().get();

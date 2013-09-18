@@ -220,7 +220,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
                 mListener.afterDownload(mImageUrl);
 
             // 设置真正的图片
-            if (mImageViewReference != null && bitmap != null) {
+            if (mImageViewReference != null && bitmap != null && !bitmap.isRecycled()) {
                 final ImageView imageView = mImageViewReference.get();
                 final RemoteImageAsyncTask asyncImageViewTask = getAsyncImageTask(imageView);
                 // 加载前的检测，保证asyncTask没被替代

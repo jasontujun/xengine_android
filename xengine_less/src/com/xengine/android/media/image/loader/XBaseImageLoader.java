@@ -7,8 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import com.xengine.android.media.image.loader.cache.XImageCache;
-import com.xengine.android.media.image.loader.cache.XImageLruCache;
-import com.xengine.android.media.image.loader.cache.XImageLruCache;
+import com.xengine.android.media.image.loader.cache.XLruImageCache;
 import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.media.image.processor.XImageProcessor;
 
@@ -36,7 +35,7 @@ public abstract class XBaseImageLoader implements XImageLoader{
     protected int mErrorImageResource;
 
     public XBaseImageLoader() {
-        mImageCache = XImageLruCache.getInstance();
+        mImageCache = XLruImageCache.getInstance();
     }
 
     public void init(int emptyImageResource,
@@ -65,7 +64,7 @@ public abstract class XBaseImageLoader implements XImageLoader{
             String localImageFile = getLocalImage(imageUrl);
             Bitmap bmp = XAndroidImageProcessor.getInstance()
                     .getLocalImage(localImageFile, size);// 加载对应尺寸的图片
-            if(bmp != null) {
+            if (bmp != null) {
                 mImageCache.saveCacheBitmap(imageUrl, bmp, size);// 缓存图片
                 return bmp;
             }

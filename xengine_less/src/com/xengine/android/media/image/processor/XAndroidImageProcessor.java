@@ -52,6 +52,8 @@ public final class XAndroidImageProcessor implements XImageProcessor {
         mScreenWidth = sWidth;
         mScreenHeight = sHeight;
         mImageDir = imageDir;
+        XLog.d(TAG, "init() mScreenWidth:" + mScreenWidth +
+                ",mScreenHeight:" + mScreenHeight);
     }
 
     @Override
