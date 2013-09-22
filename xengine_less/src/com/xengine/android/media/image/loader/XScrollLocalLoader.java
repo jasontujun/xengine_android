@@ -198,9 +198,17 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         }
 
         @Override
+        protected Bitmap doInBackground(Void... params) {
+            if (isInvalidate)
+                return null;
+            return super.doInBackground(params);
+        }
+
+        @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (isInvalidate)
                 bitmap = null;
+
             super.onPostExecute(bitmap);
             XLog.d(TAG, "onPostExecute() notifyTaskFinished.");
             isInvalidate = true;

@@ -150,7 +150,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
         protected final WeakReference<ImageView> mImageViewReference;
         protected String mImageUrl;
         protected XImageProcessor.ImageSize mSize;// 加载的图片尺寸
-        private boolean mDownload;
+        protected boolean mDownload;
         protected XSerialDownloadListener mListener;// 下载监听
 
         public String getImageUrl() {
@@ -215,9 +215,17 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
             if (isCancelled())
                 bitmap = null;
 
-            mImageDownloadMgr.setDownloadListener(null);// 取消监听
-            if (mDownload && mListener != null) // 通知监听者
-                mListener.afterDownload(mImageUrl);
+
+            if (mDownload) {
+                // cancel时，如果local_image设置为“加载中”,则设置为空
+                if (bitmap == null || bitmap.isRecycled())
+                    resetImageNull();
+
+                mImageDownloadMgr.setDownloadListener(null);// 取消监听
+
+                if (mListener != null)
+                    mListener.afterDownload(mImageUrl);// 通知监听者
+            }
 
             // 设置真正的图片
             if (mImageViewReference != null && bitmap != null && !bitmap.isRecycled()) {
@@ -236,14 +244,24 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
             XLog.d(TAG, "RemoteImageAsyncTask onCancelled. url:" + mImageUrl);
             super.onCancelled();
 
-            // cancel时，如果local_image设置为“加载中”,则设置为空
+            if (mDownload) {
+                // cancel时，如果local_image设置为“加载中”,则设置为空
+                resetImageNull();
+
+                mImageDownloadMgr.setDownloadListener(null);// 取消监听
+
+                if (mListener != null)
+                    mListener.afterDownload(mImageUrl);// 通知监听者
+            }
+        }
+
+        /**
+         * cancel时，如果local_image设置为“加载中”,则设置为空
+         */
+        private void resetImageNull() {
             String localImageFile = getLocalImage(mImageUrl);
             if (XImageLocalUrl.IMG_LOADING.equals(localImageFile))
                 setLocalImage(mImageUrl, null);// local_image设置为空，待下次重新下载
-
-            mImageDownloadMgr.setDownloadListener(null);// 取消监听
-            if (mDownload && mListener != null) // 通知监听者
-                mListener.afterDownload(mImageUrl);
         }
     }
 }

@@ -14,11 +14,6 @@ import com.xengine.android.session.download.XSerialDownloadListener;
 import com.xengine.android.system.series.XBaseSerialMgr;
 import com.xengine.android.utils.XLog;
 
-import java.lang.ref.WeakReference;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.ListIterator;
-
 /**
  * 滑动延迟加载的远程图片加载器。（适用于ListView或GridView）
  * 特点：
@@ -27,7 +22,7 @@ import java.util.ListIterator;
  * 3. 异步方式加载。
  * 4. 延迟加载特性：只有停止时才加载，滑动时候不加载。
  * 5. 双队列执行（两个线程）：下载队列负责异步下载任务，加载队列负责异步加载图片。
- * 6. 支持对多个不同imageView同时加载相同url的图片
+ * 6. 支持对多个不同imageView同时加载相同url的图片（图片:imageView = 1:N）
  * @see XScrollLocalLoader
  * Created with IntelliJ IDEA.
  * User: tujun
@@ -71,7 +66,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         String localImageFile = getLocalImage(imageUrl);
         if (!TextUtils.isEmpty(localImageFile) &&
                 !XImageLocalUrl.IMG_LOADING.equals(localImageFile) &&
-                !XImageLocalUrl.IMG_ERROR.equals(localImageFile)){
+                !XImageLocalUrl.IMG_ERROR.equals(localImageFile)) {
             XLog.d(TAG, "XScrollRemoteLoader1 cancelPotentialLazyWork true. url:" + imageUrl);
             cancelPotentialLazyWork(imageUrl, imageView);
             mScrollLocalLoader.asyncLoadBitmap(context, imageUrl, imageView, size);
@@ -99,17 +94,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
                 AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mTmpBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
                 // 添加进队列中，等待执行
-                if (!mSerialDownloadMgr.addNewTask(task)) {
-                    XLog.d(TAG, "asyncLoadBitmap. addNewTask(). url:" + imageUrl);
-                    // 如果添加失败，说明有同样url的下载任务，则把此ImageView附加到该任务中
-                    ScrollRemoteAsyncTask sameUrlTask = mSerialDownloadMgr.getTaskById(imageUrl);
-                    if (sameUrlTask.getImageView() != imageView &&
-                            sameUrlTask.getStatus() == AsyncTask.Status.PENDING) {
-                        sameUrlTask.addSameUrlView(imageView);
-                        asyncDrawable = new AsyncDrawable(resources, mTmpBitmap, sameUrlTask);
-                        imageView.setImageDrawable(asyncDrawable);
-                    }
-                }
+                mSerialDownloadMgr.addNewTask(task);
                 XLog.d(TAG, "asyncLoadBitmap. tryStart(). url:" + imageUrl);
                 mSerialDownloadMgr.tryStart();// 尝试启动
             }
@@ -135,15 +120,9 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
             // 对同一个ImageView但不同url的加载任务
             else if (url == null || !url.equals(imageUrl)) {
                 XLog.d(TAG, "cancelPotentialLazyWork() - cancel asynctask. old url:" + url + ",new url:" + imageUrl);
-                // 只有主要的imageView才能cancel此asyncTask
-                if (scrollRemoteAsyncTask.getImageView() == imageView) {
-                    mSerialDownloadMgr.removeTask(scrollRemoteAsyncTask);// 从队列中移除
-                    scrollRemoteAsyncTask.setInvalidate();// 设置无效标记位
-                    scrollRemoteAsyncTask.cancel(true); // Cancel previous task
-                }
-                // 如果是次要的imageView，则将此imageView从asyncTask中删除
-                else
-                    scrollRemoteAsyncTask.deleteSameUrlView(imageView);
+                mSerialDownloadMgr.removeTask(scrollRemoteAsyncTask);// 从队列中移除
+                scrollRemoteAsyncTask.setInvalidate();// 设置无效标记位
+                scrollRemoteAsyncTask.cancel(true); // Cancel previous task
             }
             // The same work is already in progress
             else {
@@ -188,23 +167,13 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
     private class SerialDownloadMgr extends XBaseSerialMgr {
         @Override
         protected String getTaskId(AsyncTask task) {
-            return ((ScrollRemoteAsyncTask) task).getImageUrl();
+            // 以url为独立的id，同一个url是同一个task
+            return null;
         }
 
         @Override
         public void notifyTaskFinished(AsyncTask task) {
             super.notifyTaskFinished(task);
-        }
-
-        public ScrollRemoteAsyncTask getTaskById(String id) {
-            Iterator<AsyncTask> it = mTobeExecuted.iterator();
-            while (it.hasNext()) {
-                AsyncTask task = it.next();
-                String taskId = getTaskId(task);
-                if (taskId != null && taskId.equals(id))
-                    return (ScrollRemoteAsyncTask)task;
-            }
-            return null;
         }
 
         /**
@@ -258,8 +227,6 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
      */
     private class ScrollRemoteAsyncTask extends RemoteImageAsyncTask {
 
-        private LinkedList<WeakReference<ImageView>> mSameUrlViews;
-        // 标识该task是否还在队列中(针对task不再队列里但在imageView里的情况)
         private boolean isInvalidate;
 
         public ScrollRemoteAsyncTask(Context context, ImageView imageView, String imageUrl,
@@ -267,32 +234,6 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
                                      XSerialDownloadListener listener) {
             super(context, imageView, imageUrl, size, true, listener);
             isInvalidate = false;
-        }
-
-        public ImageView getImageView() {
-            return mImageViewReference.get();
-        }
-
-        public void addSameUrlView(ImageView imageView) {
-            if (imageView == mImageViewReference.get())
-                return;
-
-            if (mSameUrlViews == null)
-                mSameUrlViews = new LinkedList<WeakReference<ImageView>>();
-
-            ListIterator<WeakReference<ImageView>> it = mSameUrlViews.listIterator();
-            while (it.hasNext()){
-                if (imageView == it.next().get())
-                    return;
-            }
-            mSameUrlViews.offer(new WeakReference<ImageView>(imageView));
-        }
-
-        public void deleteSameUrlView(ImageView imageView) {
-            if (mSameUrlViews == null)
-                return;
-
-            mSameUrlViews.remove(imageView);
         }
 
         public boolean isInvalidate() {
@@ -304,26 +245,37 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         }
 
         @Override
+        protected void onPreExecute() {
+            // 如果本地已经有此图片的文件，则不执行下载
+            String localImageFile = getLocalImage(mImageUrl);
+            if (!TextUtils.isEmpty(localImageFile) &&
+                    !XImageLocalUrl.IMG_LOADING.equals(localImageFile) &&
+                    !XImageLocalUrl.IMG_ERROR.equals(localImageFile)) {
+                mDownload = false;
+            }
+
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Bitmap doInBackground(Void... params) {
+            if (isInvalidate)
+                return null;
+
+            // 检测是否在缓存中已经存在此图片(有可能存在对同一url的多个task)
+            Bitmap bitmap = mImageCache.getCacheBitmap(mImageUrl, mSize);
+            if (bitmap != null && !bitmap.isRecycled())
+                return bitmap;
+
+            return super.doInBackground(params);
+        }
+
+        @Override
         protected void onPostExecute(Bitmap bitmap) {
-            if (isCancelled() || isInvalidate)
+            if (isInvalidate)
                 bitmap = null;
 
             super.onPostExecute(bitmap);
-
-            // 设置附带的imageViews的图片
-            if (mSameUrlViews != null && bitmap != null && !bitmap.isRecycled()) {
-                ListIterator<WeakReference<ImageView>> it = mSameUrlViews.listIterator();
-                while (it.hasNext()){
-                    final ImageView imageView = it.next().get();
-                    final RemoteImageAsyncTask asyncImageViewTask = getAsyncImageTask(imageView);
-                    // 加载前的检测，保证asyncTask没被替代
-                    if (this == asyncImageViewTask && imageView != null) {
-                        imageView.setImageDrawable(new BitmapDrawable(mContext.getResources(), bitmap));
-                        showViewAnimation(mContext, imageView);
-                    }
-                }
-            }
-
             XLog.d(TAG, "onPostExecute() notifyTaskFinished.");
             isInvalidate = true;
             mSerialDownloadMgr.notifyTaskFinished(this);
