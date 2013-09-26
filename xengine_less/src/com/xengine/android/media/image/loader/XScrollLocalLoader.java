@@ -163,17 +163,6 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
         public void stop() {
             mIsWorking = false;
         }
-
-        /**
-         * 删除队列中的task
-         * @param task
-         * @return
-         */
-        public void removeTask(AsyncTask task) {
-            mTobeExecuted.remove(task);
-            if (mNextTask == task)
-                mNextTask = mTobeExecuted.peek();
-        }
     }
 
     /**

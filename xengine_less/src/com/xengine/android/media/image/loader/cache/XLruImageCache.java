@@ -68,7 +68,7 @@ public final class XLruImageCache implements XImageCache {
     }
 
     @Override
-    public boolean saveCacheBitmap(String imageUrl, Bitmap bmp, XImageProcessor.ImageSize size) {
+    public synchronized boolean saveCacheBitmap(String imageUrl, Bitmap bmp, XImageProcessor.ImageSize size) {
         if (bmp == null || TextUtils.isEmpty(imageUrl))
             return false;
 

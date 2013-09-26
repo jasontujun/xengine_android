@@ -167,7 +167,6 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
     private class SerialDownloadMgr extends XBaseSerialMgr {
         @Override
         protected String getTaskId(AsyncTask task) {
-            // 以url为独立的id，同一个url是同一个task
             return null;
         }
 
@@ -208,17 +207,6 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
         public void stop() {
             XLog.d(TAG, "stop().");
             mIsWorking = false;
-        }
-
-        /**
-         * 删除队列中的task
-         * @param task
-         * @return
-         */
-        public void removeTask(AsyncTask task) {
-            mTobeExecuted.remove(task);
-            if (mNextTask == task)
-                mNextTask = mTobeExecuted.peek();
         }
     }
 

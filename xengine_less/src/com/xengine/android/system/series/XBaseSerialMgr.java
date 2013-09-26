@@ -1,12 +1,13 @@
 package com.xengine.android.system.series;
 
 import android.os.AsyncTask;
+import com.xengine.android.utils.XLog;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
- * 线性执行类的基础实现类。
+ * 线性执行类的基础实现类（针对AsyncTask）。
  * 封装了线性下载任务，以及相关操作。
  * @see XWrapperSerialMgr 扩展了几个包装接口的线性执行类
  * Created with IntelliJ IDEA.
@@ -15,7 +16,7 @@ import java.util.LinkedList;
  * Time: 下午3:35
  * To change this template use File | Settings | File Templates.
  */
-public abstract class XBaseSerialMgr implements XSerial {
+public abstract class XBaseSerialMgr implements XSerial<AsyncTask> {
     private static final String TAG = XBaseSerialMgr.class.getSimpleName();
 
     protected AsyncTask mNextTask;
@@ -46,27 +47,29 @@ public abstract class XBaseSerialMgr implements XSerial {
         return false;
     }
 
-    /**
-     * 添加新的下载任务
-     * @param task
-     */
     @Override
     public synchronized boolean addNewTask(AsyncTask task) {
-        if (!containsTask(getTaskId(task))) {// 判断是否重复
-            mTobeExecuted.offer(task);
-            return true;
-        }
-        return false;
+        if (containsTask(getTaskId(task)))// 判断是否重复
+            return false;
+
+        mTobeExecuted.offer(task);
+        return true;
     }
 
-    /**
-     * 启动下载进程
-     */
+    @Override
+    public void removeTask(AsyncTask task) {
+        mTobeExecuted.remove(task);
+        if (mNextTask == task) {
+            mNextTask = findNextTask();
+            task.cancel(true);
+        }
+    }
+
     @Override
     public void start() {
         mIsWorking = true;
 
-        mNextTask = mTobeExecuted.peek();
+        mNextTask = findNextTask();
         if (mNextTask != null &&
                 mNextTask.getStatus() == AsyncTask.Status.PENDING)
             mNextTask.execute(null);
@@ -90,10 +93,15 @@ public abstract class XBaseSerialMgr implements XSerial {
         mTobeExecuted.clear();
     }
 
+    @Override
+    public AsyncTask findNextTask() {
+        return mTobeExecuted.peek();
+    }
+
     /**
-     * 回调函数。图片下载任务完成后，通知下载管理器执行下一个或停止。
+     * 回调函数。任务完成后，执行下一个或停止。
      * task在结束时回调此函数(onPostExecuted()或onCancel()里)
-     * @param task
+     * @param task 已结束的task
      */
     protected synchronized void notifyTaskFinished(AsyncTask task) {
         // 只要结束就从队列里删除（无论是cancel的还是正常结束的）
@@ -103,16 +111,20 @@ public abstract class XBaseSerialMgr implements XSerial {
         if (!mIsWorking)
             return;
 
-        // 如果task不是头部执行的mNextTask,则什么都不做
-        if (task != mNextTask)
-            return;
+        // 如果task是当前执行的mNextTask,则寻找下一个任务
+        if (task == mNextTask) {
+            XLog.d(TAG, "notifyTaskFinished task == mNextTask, " + task);
+            mNextTask = findNextTask();
+        }
 
-        mNextTask = mTobeExecuted.peek();
-        if (mNextTask != null)
+        if (mNextTask != null) {
+            XLog.d(TAG, "notifyTaskFinished mNextTask!=null," + mNextTask);
             if (mNextTask.getStatus() == AsyncTask.Status.PENDING)
                 mNextTask.execute(null);// 执行下一个任务
-        else
+        } else {
+            XLog.d(TAG, "notifyTaskFinished mNextTask==null");
             mIsWorking = false;// 没有任务，标记结束
+        }
     }
 
     /**
