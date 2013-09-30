@@ -9,19 +9,35 @@ package com.xengine.android.system.series;
 public interface XSerial<T> {
 
     /**
+     * 获取task的唯一Id。
+     * @param task 任务
+     * @return 如果返回的id为null，则认为此task唯一。
+     */
+    String getTaskId(T task);
+
+    /**
      * 添加任务(不重复)。
-     * @param task
+     * @see #getTaskId(Object)
+     * @param task 任务
      * @return 如果任务已存在，则返回false，添加失败；否则返回true。
      */
     boolean addNewTask(T task);
 
     /**
-     * 删除任务。
+     * 删除任务（传入任务的对象）。
      * 如果任务是当前正在执行的任务，则终止并执行下一个任务
      * @see #findNextTask()
-     * @param task
+     * @param task 要删除的任务
      */
     void removeTask(T task);
+
+    /**
+     * 删除任务（传入任务的id）。
+     * 如果任务是当前正在执行的任务，则终止并执行下一个任务
+     * @see #findNextTask()
+     * @param taskId
+     */
+    void removeTask(String taskId);
 
     /**
      * 开始任务队列的执行。

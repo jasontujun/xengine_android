@@ -166,7 +166,7 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
      */
     private class SerialDownloadMgr extends XBaseSerialMgr {
         @Override
-        protected String getTaskId(AsyncTask task) {
+        public String getTaskId(AsyncTask task) {
             return null;
         }
 

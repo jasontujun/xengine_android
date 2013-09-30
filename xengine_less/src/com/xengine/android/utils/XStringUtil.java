@@ -282,7 +282,7 @@ public class XStringUtil {
             unit = "G";
         }
         BigDecimal bg = new BigDecimal(result);
-        float f1 = bg.setScale(2, BigDecimal.ROUND_HALF_UP).floatValue();
+        float f1 = bg.setScale(scale, BigDecimal.ROUND_HALF_UP).floatValue();
         return f1 + unit;
     }
 

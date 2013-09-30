@@ -127,7 +127,7 @@ public abstract class XScrollLocalLoader extends XImageViewLocalLoader
 
     private class SerialTaskMgr extends XBaseSerialMgr {
         @Override
-        protected String getTaskId(AsyncTask task) {
+        public String getTaskId(AsyncTask task) {
             return null;// TIP 不是以url为id，每个加载task都是独立的
         }
 

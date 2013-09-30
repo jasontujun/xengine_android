@@ -30,7 +30,7 @@ public final class XSerialUploadMgr extends
     }
 
     @Override
-    protected String getTaskId(AsyncTask task) {
+    public String getTaskId(AsyncTask task) {
         return ((SerialUploadTask)task).getId();
     }
 

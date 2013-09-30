@@ -28,7 +28,7 @@ public final class XImageSerialDownloadMgr
     }
 
     @Override
-    protected String getTaskId(AsyncTask task) {
+    public String getTaskId(AsyncTask task) {
         return ((SerialDownloadTask)task).getId();
     }
 

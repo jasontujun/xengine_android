@@ -57,6 +57,21 @@ public abstract class XBaseSerialMgr implements XSerial<AsyncTask> {
     }
 
     @Override
+    public void removeTask(String taskId) {
+        if (taskId == null)
+            return;
+
+        Iterator<AsyncTask> it = mTobeExecuted.iterator();
+        while (it.hasNext()) {
+            AsyncTask task = it.next();
+            if (taskId.equals(getTaskId(task))) {
+                removeTask(task);
+                return;
+            }
+        }
+    }
+
+    @Override
     public void removeTask(AsyncTask task) {
         mTobeExecuted.remove(task);
         if (mNextTask == task) {
@@ -126,11 +141,4 @@ public abstract class XBaseSerialMgr implements XSerial<AsyncTask> {
             mIsWorking = false;// 没有任务，标记结束
         }
     }
-
-    /**
-     * 获取task的id。如果返回的id为null，则认为此task唯一
-     * @param task
-     * @return 返回该task的id。
-     */
-    protected abstract String getTaskId(AsyncTask task);
 }
