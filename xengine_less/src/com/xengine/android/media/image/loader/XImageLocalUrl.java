@@ -11,4 +11,8 @@ public class XImageLocalUrl {
     public static final String IMG_LOADING = "loading";// 图片正在下载
 
     public static final String IMG_ERROR = "error";// 图片加载错误
+
+    public static final String IMG_DEFAULT = "error";// 默认图片
+
+    public static final String IMG_EMPTY = "error";// 占位图片
 }

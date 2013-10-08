@@ -35,10 +35,12 @@ public abstract class XBaseImageLoader implements XImageLoader{
     protected int mErrorImageResource;
 
     public XBaseImageLoader() {
-        mImageCache = XLruImageCache.getInstance();
+        mImageCache = XLruImageCache.getInstance();// 使用LruCache
     }
 
-    public void init(int emptyImageResource,
+    @Override
+    public void init(Context context,
+                     int emptyImageResource,
                      int defaultImageResource,
                      int loadingImageResource,
                      int errorImageResource) {
@@ -46,6 +48,20 @@ public abstract class XBaseImageLoader implements XImageLoader{
         mDefaultImageResource = defaultImageResource;
         mLoadingImageResource = loadingImageResource;
         mErrorImageResource = errorImageResource;
+        // 保存默认的资源图片进缓存中
+        Resources resources = context.getResources();
+        mImageCache.saveCacheBitmap(XImageLocalUrl.IMG_EMPTY,
+                BitmapFactory.decodeResource(resources, mEmptyImageResource),
+                XImageProcessor.ImageSize.ORIGIN);// 占位图片
+        mImageCache.saveCacheBitmap(XImageLocalUrl.IMG_DEFAULT,
+                BitmapFactory.decodeResource(resources, mDefaultImageResource),
+                XImageProcessor.ImageSize.ORIGIN);// 缺省图片
+        mImageCache.saveCacheBitmap(XImageLocalUrl.IMG_LOADING,
+                BitmapFactory.decodeResource(resources, mLoadingImageResource),
+                XImageProcessor.ImageSize.ORIGIN);// 加载中图片
+        mImageCache.saveCacheBitmap(XImageLocalUrl.IMG_ERROR,
+                BitmapFactory.decodeResource(resources, mErrorImageResource),
+                XImageProcessor.ImageSize.ORIGIN);// 错误图片
     }
 
     @Override
@@ -53,12 +69,7 @@ public abstract class XBaseImageLoader implements XImageLoader{
         mImageCache.clearImageCache();
     }
 
-    /**
-     * 加载真正的图片(并缓存到内存中)
-     * @param imageUrl
-     * @param size
-     * @return
-     */
+    @Override
     public Bitmap loadRealImage(Context context, String imageUrl, XImageProcessor.ImageSize size) {
         try {
             String localImageFile = getLocalImage(imageUrl);
@@ -75,8 +86,34 @@ public abstract class XBaseImageLoader implements XImageLoader{
         }
 
         // 返回错误图片（图片不存在）
-        Resources resources = context.getResources();
-        return BitmapFactory.decodeResource(resources, mErrorImageResource);
+        return getImageResource(context, XImageLocalUrl.IMG_ERROR);
+    }
+
+    /**
+     * 获取默认的资源图片（缺省、占位、加载中、加载错误）
+     * @param context
+     * @return
+     */
+    protected Bitmap getImageResource(Context context, String localUrl) {
+        Bitmap bitmap = mImageCache.getCacheBitmap(localUrl,
+                XImageProcessor.ImageSize.ORIGIN);
+        if (bitmap != null && !bitmap.isRecycled())
+            return bitmap;
+
+        if (XImageLocalUrl.IMG_DEFAULT.equals(localUrl))
+            bitmap = BitmapFactory.decodeResource(context.getResources(), mDefaultImageResource);
+        else if (XImageLocalUrl.IMG_EMPTY.equals(localUrl))
+            bitmap = BitmapFactory.decodeResource(context.getResources(), mEmptyImageResource);
+        else if (XImageLocalUrl.IMG_LOADING.equals(localUrl))
+            bitmap = BitmapFactory.decodeResource(context.getResources(), mLoadingImageResource);
+        else if (XImageLocalUrl.IMG_ERROR.equals(localUrl))
+            bitmap = BitmapFactory.decodeResource(context.getResources(), mErrorImageResource);
+        else
+            return null;
+        mImageCache.saveCacheBitmap(localUrl,
+                bitmap,
+                XImageProcessor.ImageSize.ORIGIN);// 占位图片
+        return bitmap;
     }
 
     /**

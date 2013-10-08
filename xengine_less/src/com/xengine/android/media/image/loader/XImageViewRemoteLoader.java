@@ -3,7 +3,6 @@ package com.xengine.android.media.image.loader;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -67,22 +66,20 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
         if (cancelPotentialWork(imageUrl, imageView)) {
             // 如果local_image标记为“加载中”，即图片正在下载，什么都不做
             String localImageFile = getLocalImage(imageUrl);
-            if (XImageLocalUrl.IMG_LOADING.equals(localImageFile)) {
-//                imageView.setImageResource(mLoadingImageResource);
+            if (XImageLocalUrl.IMG_LOADING.equals(localImageFile))
                 return;
-            }
 
             Resources resources = context.getResources();
             Bitmap mTmpBitmap;
             final RemoteImageAsyncTask task;
             if (TextUtils.isEmpty(localImageFile)) {
-                mTmpBitmap = BitmapFactory.decodeResource(resources, mDefaultImageResource);// 缺省图片
+                mTmpBitmap = getImageResource(context, XImageLocalUrl.IMG_DEFAULT);// 缺省图片
                 task = new RemoteImageAsyncTask(context, imageView, imageUrl, size, true, listener);
             } else if (localImageFile.equals(XImageLocalUrl.IMG_ERROR)) {
-                mTmpBitmap = BitmapFactory.decodeResource(resources, mErrorImageResource);// 错误图片
+                mTmpBitmap = getImageResource(context, XImageLocalUrl.IMG_ERROR);// 错误图片
                 task = new RemoteImageAsyncTask(context, imageView, imageUrl, size, true, listener);
             } else {
-                mTmpBitmap = BitmapFactory.decodeResource(resources, mEmptyImageResource);// 占位图片
+                mTmpBitmap = getImageResource(context, XImageLocalUrl.IMG_EMPTY);// 占位图片
                 task = new RemoteImageAsyncTask(context, imageView, imageUrl, size, false, listener);
             }
             final AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mTmpBitmap, task);
@@ -183,8 +180,7 @@ public abstract class XImageViewRemoteLoader extends XBaseImageLoader
                     ImageView imageView = mImageViewReference.get();
                     if (imageView != null) {
                         Resources resources = mContext.getResources();
-                        Bitmap loadingBitmap = BitmapFactory.decodeResource(resources,
-                                mLoadingImageResource);
+                        Bitmap loadingBitmap = getImageResource(mContext, XImageLocalUrl.IMG_LOADING);
                         final AsyncDrawable asyncDrawable = new AsyncDrawable(resources,
                                 loadingBitmap, this);
                         imageView.setImageDrawable(asyncDrawable);

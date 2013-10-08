@@ -3,7 +3,6 @@ package com.xengine.android.media.image.loader;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -64,8 +63,7 @@ public abstract class XImageViewLocalLoader extends XBaseImageLoader
 
             // 如果是真正图片，则需要异步加载
             Resources resources = context.getResources();
-            Bitmap mPlaceHolderBitmap = BitmapFactory.
-                    decodeResource(resources, mEmptyImageResource);// 占位图片
+            Bitmap mPlaceHolderBitmap = getImageResource(context, XImageLocalUrl.IMG_EMPTY);// 占位图片
             final LocalImageViewAsyncTask task = new LocalImageViewAsyncTask(context, imageView, imageUrl, size);
             final AsyncDrawable asyncDrawable = new AsyncDrawable(resources, mPlaceHolderBitmap, task);
             imageView.setImageDrawable(asyncDrawable);

@@ -16,13 +16,15 @@ import com.xengine.android.media.image.processor.XImageProcessor;
 public interface XImageLoader {
 
     /**
-     * 初始化函数。初始化一些默认的图片资源。
+     * 初始化函数,初始化一些默认的图片资源。
+     * 第一次创建图片加载器时必须调用此方法
      * @param emptyImageResource
      * @param defaultImageResource
      * @param loadingImageResource
      * @param errorImageResource
      */
-    void init(int emptyImageResource,
+    void init(Context context,
+              int emptyImageResource,
               int defaultImageResource,
               int loadingImageResource,
               int errorImageResource);
@@ -33,7 +35,8 @@ public interface XImageLoader {
     void clearImageCache();
 
     /**
-     * 加载真正的图片(并缓存到内存中)
+     * 加载真正的图片(并缓存到内存中) 。
+     * 一般在异步线程中执行
      * @param context
      * @param imageUrl
      * @param size

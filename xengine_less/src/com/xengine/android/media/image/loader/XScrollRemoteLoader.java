@@ -3,7 +3,6 @@ package com.xengine.android.media.image.loader;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.text.TextUtils;
@@ -83,11 +82,11 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
             ScrollRemoteAsyncTask task = null;
             // 启动异步线程进行下载，将imageView设置为对应状态的图标
             if (TextUtils.isEmpty(localImageFile)) {
-                mTmpBitmap = BitmapFactory.decodeResource(resources, mDefaultImageResource);// 缺省图片
+                mTmpBitmap = getImageResource(context, XImageLocalUrl.IMG_DEFAULT);// 缺省图片
             } else if (XImageLocalUrl.IMG_LOADING.equals(localImageFile)) {
-                mTmpBitmap = BitmapFactory.decodeResource(resources, mLoadingImageResource);// Loading图片
+                mTmpBitmap = getImageResource(context, XImageLocalUrl.IMG_LOADING);// Loading图片
             } else if (XImageLocalUrl.IMG_ERROR.equals(localImageFile)) {
-                mTmpBitmap = BitmapFactory.decodeResource(resources, mErrorImageResource);// 错误图片
+                mTmpBitmap = getImageResource(context, XImageLocalUrl.IMG_ERROR);// 错误图片
             }
             if (mTmpBitmap != null) {
                 task = new ScrollRemoteAsyncTask(context, imageView, imageUrl, size, listener);
@@ -119,7 +118,8 @@ public abstract class XScrollRemoteLoader extends XImageViewRemoteLoader
             }
             // 对同一个ImageView但不同url的加载任务
             else if (url == null || !url.equals(imageUrl)) {
-                XLog.d(TAG, "cancelPotentialLazyWork() - cancel asynctask. old url:" + url + ",new url:" + imageUrl);
+                XLog.d(TAG, "cancelPotentialLazyWork() - cancel asynctask. old url:"
+                        + url + ",new url:" + imageUrl);
                 mSerialDownloadMgr.removeTask(scrollRemoteAsyncTask);// 从队列中移除
                 scrollRemoteAsyncTask.setInvalidate();// 设置无效标记位
                 scrollRemoteAsyncTask.cancel(true); // Cancel previous task
