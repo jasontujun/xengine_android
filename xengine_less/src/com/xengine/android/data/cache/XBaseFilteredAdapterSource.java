@@ -44,7 +44,8 @@ public abstract class XBaseFilteredAdapterSource<T>
     public void sort(Comparator<T> comparator) {
         mComparator = comparator;
         Collections.sort(mCache, comparator);
-        notifyDataChanged();
+        if (isAutoNotify)
+            notifyDataChanged();
     }
 
     @Override
@@ -52,7 +53,7 @@ public abstract class XBaseFilteredAdapterSource<T>
         mComparator = comparator;
         Collections.sort(mItemList, comparator);
         if (isAutoNotify)
-            for (XDataChangeListener listener: mOriginListeners) {
+            for (XDataChangeListener<T> listener: mOriginListeners) {
                 listener.onChange();
             }
     }
@@ -81,7 +82,8 @@ public abstract class XBaseFilteredAdapterSource<T>
             Collections.sort(mItemList, mComparator);
         }
 
-        notifyDataChanged();
+        if (isAutoNotify)
+            notifyDataChanged();
     }
 
     @Override
@@ -109,7 +111,7 @@ public abstract class XBaseFilteredAdapterSource<T>
         if (!mItemList.contains(item)) {
             mItemList.add(item);
             if (isAutoNotify)
-                for (XDataChangeListener listener: mOriginListeners) {
+                for (XDataChangeListener<T> listener: mOriginListeners) {
                     listener.onAdd(item);
                 }
 
@@ -117,7 +119,7 @@ public abstract class XBaseFilteredAdapterSource<T>
             if (result != null) {
                 mCache.add(result);
                 if (isAutoNotify)
-                    for (XDataChangeListener listener: mListeners) {
+                    for (XDataChangeListener<T> listener: mListeners) {
                         listener.onAdd(item);
                     }
             }
@@ -143,10 +145,10 @@ public abstract class XBaseFilteredAdapterSource<T>
             }
         }
         if (isAutoNotify) {
-            for (XDataChangeListener listener: mOriginListeners) {
+            for (XDataChangeListener<T> listener: mOriginListeners) {
                 listener.onAddAll(addedToOrigin);
             }
-            for (XDataChangeListener listener: mListeners) {
+            for (XDataChangeListener<T> listener: mListeners) {
                 listener.onAddAll(addedToCache);
             }
         }
@@ -167,10 +169,10 @@ public abstract class XBaseFilteredAdapterSource<T>
             mCache.remove(item);
             mItemList.remove(item);
             if (isAutoNotify) {
-                for(XDataChangeListener listener: mOriginListeners) {
+                for(XDataChangeListener<T> listener: mOriginListeners) {
                     listener.onDelete(item);
                 }
-                for(XDataChangeListener listener: mListeners) {
+                for(XDataChangeListener<T> listener: mListeners) {
                     listener.onDelete(item);
                 }
             }
@@ -183,10 +185,10 @@ public abstract class XBaseFilteredAdapterSource<T>
             mCache.remove(item);
             mItemList.remove(item);
             if (isAutoNotify) {
-                for (XDataChangeListener listener: mOriginListeners) {
+                for (XDataChangeListener<T> listener: mOriginListeners) {
                     listener.onDelete(item);
                 }
-                for (XDataChangeListener listener: mListeners) {
+                for (XDataChangeListener<T> listener: mListeners) {
                     listener.onDelete(item);
                 }
             }
@@ -204,10 +206,10 @@ public abstract class XBaseFilteredAdapterSource<T>
             }
         }
         if (isAutoNotify) {
-            for (XDataChangeListener listener: mOriginListeners) {
+            for (XDataChangeListener<T> listener: mOriginListeners) {
                 listener.onDeleteAll(deleted);
             }
-            for (XDataChangeListener listener: mListeners) {
+            for (XDataChangeListener<T> listener: mListeners) {
                 listener.onDeleteAll(deleted);
             }
         }
@@ -215,10 +217,9 @@ public abstract class XBaseFilteredAdapterSource<T>
 
     @Override
     public void notifyDataChanged() {
-        if (isAutoNotify)
-            for (XDataChangeListener listener: mListeners) {
-                listener.onChange();
-            }
+        for (XDataChangeListener<T> listener: mListeners) {
+            listener.onChange();
+        }
     }
 
     @Override

@@ -61,12 +61,12 @@ public class XHttpDownloadMgr implements XDownload {
 
             String localPath = path + File.separator + localFileName;
             XLog.d(TAG, "localPath: " + localPath);
-            FileOutputStream FOS = new FileOutputStream(localPath);
+            FileOutputStream fos = new FileOutputStream(localPath);
             byte buf[] = new byte[1024];
             long downloadPosition = 0;
             int numRead;
             while ((numRead = is.read(buf)) != -1) {
-                FOS.write(buf, 0, numRead);
+                fos.write(buf, 0, numRead);
                 downloadPosition += numRead;
                 if (mListener != null)
                     mListener.doDownload(url, downloadPosition);

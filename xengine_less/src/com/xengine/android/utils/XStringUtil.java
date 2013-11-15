@@ -164,13 +164,9 @@ public class XStringUtil {
      * @return
      */
     public static boolean isNumber(String numStr) {
-        Pattern pattern=Pattern.compile("[0-9]*");
-        Matcher match=pattern.matcher(numStr);
-        if (match.matches()==false) {
-            return false;
-        } else {
-            return true;
-        }
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher match = pattern.matcher(numStr);
+        return match.matches();
     }
 
     public static String date2str(long time) {

@@ -38,8 +38,8 @@ public interface XWithId<T> {
 
     /**
      * 替换某一项（用于重复添加的情况）
-     * @param index
-     * @param newItem
+     * @param index 原始列表中的位置
+     * @param newItem 新的条目
      */
     void replace(int index, T newItem);
 
