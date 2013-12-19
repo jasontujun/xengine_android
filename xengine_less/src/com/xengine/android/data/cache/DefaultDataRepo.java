@@ -28,7 +28,8 @@ public class DefaultDataRepo implements XDataRepository {
 
     @Override
     public void registerDataSource(XDataSource source) {
-        map.put(source.getSourceName(), source);
+        if (!map.containsKey(source.getSourceName()))
+            map.put(source.getSourceName(), source);
     }
 
     @Override
@@ -39,5 +40,9 @@ public class DefaultDataRepo implements XDataRepository {
     @Override
     public XDataSource getSource(String sourceName) {
         return map.get(sourceName);
+    }
+
+    public boolean isEmpty() {
+        return map.isEmpty();
     }
 }

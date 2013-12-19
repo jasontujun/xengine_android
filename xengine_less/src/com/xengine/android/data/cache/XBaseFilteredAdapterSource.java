@@ -45,7 +45,8 @@ public abstract class XBaseFilteredAdapterSource<T>
         mComparator = comparator;
         Collections.sort(mCache, comparator);
         if (isAutoNotify)
-            notifyDataChanged();
+            for (XDataChangeListener<T> listener: mListeners)
+                listener.onChange();
     }
 
     @Override
@@ -83,7 +84,8 @@ public abstract class XBaseFilteredAdapterSource<T>
         }
 
         if (isAutoNotify)
-            notifyDataChanged();
+            for (XDataChangeListener<T> listener: mListeners)
+                listener.onChange();
     }
 
     @Override
@@ -185,12 +187,10 @@ public abstract class XBaseFilteredAdapterSource<T>
             mCache.remove(item);
             mItemList.remove(item);
             if (isAutoNotify) {
-                for (XDataChangeListener<T> listener: mOriginListeners) {
+                for (XDataChangeListener<T> listener: mOriginListeners)
                     listener.onDelete(item);
-                }
-                for (XDataChangeListener<T> listener: mListeners) {
+                for (XDataChangeListener<T> listener: mListeners)
                     listener.onDelete(item);
-                }
             }
         }
     }
@@ -217,9 +217,10 @@ public abstract class XBaseFilteredAdapterSource<T>
 
     @Override
     public void notifyDataChanged() {
-        for (XDataChangeListener<T> listener: mListeners) {
+        for (XDataChangeListener<T> listener: mOriginListeners)
             listener.onChange();
-        }
+        for (XDataChangeListener<T> listener: mListeners)
+            listener.onChange();
     }
 
     @Override
@@ -229,6 +230,10 @@ public abstract class XBaseFilteredAdapterSource<T>
 
     @Override
     public void clear() {
+        for (XDataChangeListener<T> listener: mOriginListeners)
+            listener.onDeleteAll(mItemList);
+        for (XDataChangeListener<T> listener: mListeners)
+            listener.onDeleteAll(mCache);
         mCache.clear();
         mItemList.clear();
     }

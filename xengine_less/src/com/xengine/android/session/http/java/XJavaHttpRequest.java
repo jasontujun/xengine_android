@@ -11,7 +11,9 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.mime.MIME;
 import org.apache.http.message.BasicNameValuePair;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -90,7 +92,7 @@ class XJavaHttpRequest extends XBaseHttpRequest {
             request.setConnectTimeout(mConnectionTimeOut);
             request.setReadTimeout(mResponseTimeOut);
             // 设置userAgent
-            if (TextUtils.isEmpty(mUserAgent))
+            if (!TextUtils.isEmpty(mUserAgent))
                 request.addRequestProperty("User-Agent", mUserAgent);
             // 设置cookie
             initCookie(request, getUrl());
@@ -124,7 +126,7 @@ class XJavaHttpRequest extends XBaseHttpRequest {
             request.setConnectTimeout(mConnectionTimeOut);
             request.setReadTimeout(mResponseTimeOut);
             // 设置userAgent
-            if (TextUtils.isEmpty(mUserAgent))
+            if (!TextUtils.isEmpty(mUserAgent))
                 request.addRequestProperty("User-Agent", mUserAgent);
             // 设置cookie
             initCookie(request, getUrl());

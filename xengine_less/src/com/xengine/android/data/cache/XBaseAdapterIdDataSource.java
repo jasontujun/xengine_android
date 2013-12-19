@@ -198,7 +198,7 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public void notifyDataChanged() {
-        for(XDataChangeListener<T> listener: listeners) {
+        for (XDataChangeListener<T> listener: listeners) {
             listener.onChange();
         }
     }

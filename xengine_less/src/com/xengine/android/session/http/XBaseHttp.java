@@ -16,7 +16,7 @@ import java.util.List;
  * Time: 下午7:15
  * To change this template use File | Settings | File Templates.
  */
-public abstract class XBaseHttp implements XHttp{
+public abstract class XBaseHttp implements XHttp {
 
     protected Context mContext;
     protected String mUserAgent;// 客户端名称

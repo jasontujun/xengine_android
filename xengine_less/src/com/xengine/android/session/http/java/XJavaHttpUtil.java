@@ -214,7 +214,7 @@ public class XJavaHttpUtil {
      * @return
      */
     public static boolean verifyCookie(Cookie cookie, String url)  {
-        if (cookie == null ||TextUtils.isEmpty(url))
+        if (cookie == null || TextUtils.isEmpty(url))
             return false;
 
         XLog.d(TAG, "$$$:" + cookie);

@@ -22,7 +22,8 @@ public class XMultipartEntity extends MultipartEntity {
         this.listener = listener;
     }
 
-    public XMultipartEntity(HttpMultipartMode mode, String boundary, Charset charset, XHttpTransferListener listener) {
+    public XMultipartEntity(HttpMultipartMode mode, String boundary,
+                            Charset charset, XHttpTransferListener listener) {
         super(mode, boundary, charset);
         this.listener = listener;
     }

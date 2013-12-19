@@ -1,7 +1,6 @@
 package com.xengine.android.session.http;
 
 import android.text.TextUtils;
-import org.apache.http.ParseException;
 import org.apache.http.util.CharArrayBuffer;
 
 import java.io.IOException;
@@ -74,9 +73,9 @@ public class XHttpUtil {
      * failing that, "ISO-8859-1" is used.
      * @param response
      * @return String containing the content.
-     * @throws ParseException if header elements cannot be parsed
+     * @throws org.apache.http.ParseException if header elements cannot be parsed
      * @throws IllegalArgumentException if entity is null or if content length > Integer.MAX_VALUE
-     * @throws IOException if an error occurs reading the input stream
+     * @throws java.io.IOException if an errorUndone occurs reading the input stream
      */
     public static String toString(final XHttpResponse response) throws IOException {
         return toString(response, null);

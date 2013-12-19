@@ -2,6 +2,7 @@ package com.xengine.android.session.http.apache;
 
 import android.text.TextUtils;
 import com.xengine.android.session.http.XBaseHttpRequest;
+import org.apache.http.HttpRequest;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
@@ -38,7 +39,7 @@ class XApacheHttpRequest extends XBaseHttpRequest {
         return this;
     }
 
-    public HttpUriRequest toApacheHttpRequest() {
+    public HttpRequest toApacheHttpRequest() {
         HttpUriRequest request = null;
         switch (getMethod()) {
             case GET:

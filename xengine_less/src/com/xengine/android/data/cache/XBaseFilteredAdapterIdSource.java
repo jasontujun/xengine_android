@@ -45,7 +45,8 @@ public abstract class XBaseFilteredAdapterIdSource<T>
         mComparator = comparator;
         Collections.sort(mCache, comparator);
         if (isAutoNotify)
-            notifyDataChanged();
+            for (XDataChangeListener<T> listener: mListeners)
+                listener.onChange();
     }
 
     @Override
@@ -53,9 +54,8 @@ public abstract class XBaseFilteredAdapterIdSource<T>
         mComparator = comparator;
         Collections.sort(mItemList, comparator);
         if (isAutoNotify)
-            for (XDataChangeListener listener: mOriginListeners) {
+            for (XDataChangeListener<T> listener: mOriginListeners)
                 listener.onChange();
-            }
     }
 
     @Override
@@ -72,18 +72,18 @@ public abstract class XBaseFilteredAdapterIdSource<T>
     @Override
     public void doFilter() {
         mCache.clear();
-        if (mFilter == null) {
+        if (mFilter == null)
             mCache.addAll(mItemList);
-        } else {
+        else
             mCache.addAll(mFilter.doFilter(mItemList));
-        }
         if (mComparator != null) {
             Collections.sort(mCache, mComparator);
             Collections.sort(mItemList, mComparator);
         }
 
         if (isAutoNotify)
-            notifyDataChanged();
+            for (XDataChangeListener<T> listener: mListeners)
+                listener.onChange();
     }
 
     @Override
@@ -98,10 +98,10 @@ public abstract class XBaseFilteredAdapterIdSource<T>
     @Override
     public T getById(String id) {
         int originIndex = getOriginIndexOf(id);
-        if (originIndex != -1) {
+        if (originIndex != -1)
             return mItemList.get(originIndex);
-        }
-        return null;
+        else
+            return null;
     }
 
     @Override
@@ -124,35 +124,28 @@ public abstract class XBaseFilteredAdapterIdSource<T>
         if (originIndex == -1) {
             mItemList.add(item);
             if (isAutoNotify)
-                for (XDataChangeListener<T> listener: mOriginListeners) {
+                for (XDataChangeListener<T> listener: mOriginListeners)
                     listener.onAdd(item);
-                }
 
             T result = mFilter.doFilter(item);
             if (result != null) {
                 mCache.add(result);
                 if (isAutoNotify)
-                    for (XDataChangeListener<T> listener: mListeners) {
+                    for (XDataChangeListener<T> listener: mListeners)
                         listener.onAdd(item);
-                    }
             }
         } else {
             replace(originIndex, item);
             if (isAutoNotify)
-                for (XDataChangeListener<T> listener: mOriginListeners) {
+                for (XDataChangeListener<T> listener: mOriginListeners)
                     listener.onChange();
-                }
 
             T result = mFilter.doFilter(item);
-            if (result != null) {
-                int index = getIndexById(getId(item));
-                if (index == -1) {
-                    mCache.add(result);
-                    if (isAutoNotify)
-                        for (XDataChangeListener<T> listener: mListeners) {
-                            listener.onAdd(item);
-                        }
-                }
+            if (result != null && getIndexById(getId(item)) == -1) {
+                mCache.add(result);
+                if (isAutoNotify)
+                    for (XDataChangeListener<T> listener: mListeners)
+                        listener.onAdd(item);
             }
         }
     }
@@ -190,12 +183,10 @@ public abstract class XBaseFilteredAdapterIdSource<T>
             }
         }
         if (isAutoNotify) {
-            for (XDataChangeListener<T> listener: mOriginListeners) {
+            for (XDataChangeListener<T> listener: mOriginListeners)
                 listener.onAddAll(addedToOrigin);
-            }
-            for (XDataChangeListener<T> listener: mListeners) {
+            for (XDataChangeListener<T> listener: mListeners)
                 listener.onAddAll(addedToCache);
-            }
         }
     }
 
@@ -210,17 +201,15 @@ public abstract class XBaseFilteredAdapterIdSource<T>
         if (originIndex != -1) {
             T item = mItemList.remove(originIndex);
             if (isAutoNotify)
-                for (XDataChangeListener<T> listener: mOriginListeners) {
+                for (XDataChangeListener<T> listener: mOriginListeners)
                     listener.onDelete(item);
-                }
 
             int index = getIndexById(id);
             if (index != -1) {
                 mCache.remove(index);
                 if (isAutoNotify)
-                    for (XDataChangeListener<T> listener: mListeners) {
+                    for (XDataChangeListener<T> listener: mListeners)
                         listener.onDelete(item);
-                    }
             }
         }
     }
@@ -240,12 +229,10 @@ public abstract class XBaseFilteredAdapterIdSource<T>
             mCache.remove(item);
             mItemList.remove(item);
             if (isAutoNotify) {
-                for (XDataChangeListener<T> listener: mOriginListeners) {
+                for (XDataChangeListener<T> listener: mOriginListeners)
                     listener.onDelete(item);
-                }
-                for (XDataChangeListener<T> listener: mListeners) {
+                for (XDataChangeListener<T> listener: mListeners)
                     listener.onDelete(item);
-                }
             }
         }
     }
@@ -266,12 +253,10 @@ public abstract class XBaseFilteredAdapterIdSource<T>
             }
         }
         if (isAutoNotify) {
-            for (XDataChangeListener<T> listener: mOriginListeners) {
+            for (XDataChangeListener<T> listener: mOriginListeners)
                 listener.onDeleteAll(deleted);
-            }
-            for (XDataChangeListener<T> listener: mListeners) {
+            for (XDataChangeListener<T> listener: mListeners)
                 listener.onDeleteAll(deleted);
-            }
         }
     }
 
@@ -289,9 +274,10 @@ public abstract class XBaseFilteredAdapterIdSource<T>
 
     @Override
     public void notifyDataChanged() {
-        for (XDataChangeListener listener: mListeners) {
+        for (XDataChangeListener<T> listener: mOriginListeners)
             listener.onChange();
-        }
+        for (XDataChangeListener<T> listener: mListeners)
+            listener.onChange();
     }
 
     @Override
@@ -301,6 +287,10 @@ public abstract class XBaseFilteredAdapterIdSource<T>
 
     @Override
     public void clear() {
+        for (XDataChangeListener<T> listener: mOriginListeners)
+            listener.onDeleteAll(mItemList);
+        for (XDataChangeListener<T> listener: mListeners)
+            listener.onDeleteAll(mCache);
         mCache.clear();
         mItemList.clear();
     }
@@ -317,9 +307,8 @@ public abstract class XBaseFilteredAdapterIdSource<T>
 
     @Override
     public void registerDataChangeListener(XDataChangeListener<T> listener) {
-        if (!mListeners.contains(listener)) {
+        if (!mListeners.contains(listener))
             mListeners.add(listener);
-        }
     }
 
     @Override
@@ -330,9 +319,8 @@ public abstract class XBaseFilteredAdapterIdSource<T>
 
     @Override
     public void registerDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
-        if (!mOriginListeners.contains(listener)) {
+        if (!mOriginListeners.contains(listener))
             mOriginListeners.add(listener);
-        }
     }
 
     @Override
@@ -340,6 +328,12 @@ public abstract class XBaseFilteredAdapterIdSource<T>
         mOriginListeners.remove(listener);
     }
 
+    /**
+     * 替换某一项（用于重复添加的情况）
+     * TIP 子类可覆盖此方法
+     * @param index  原始列表中的位置
+     * @param newItem
+     */
     @Override
     public void replace(int index, T newItem) {
         mItemList.set(index, newItem);

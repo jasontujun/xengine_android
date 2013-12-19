@@ -3,11 +3,11 @@ package com.xengine.android.utils;
 import java.io.*;
 
 /**
+ * 文件工具方法
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-9-6
  * Time: 下午5:45
- * To change this template use File | Settings | File Templates.
  */
 public class XFileUtil {
 
@@ -19,13 +19,13 @@ public class XFileUtil {
      */
     public static boolean copyFile(File oldFile, File newFile) {
         try {
-            int byteread = 0;
+            int read = 0;
             if (oldFile.exists()) { // 文件存在时
                 InputStream is = new FileInputStream(oldFile); // 读入原文件
                 FileOutputStream fs = new FileOutputStream(newFile);
-                byte[] buffer = new byte[1444];
-                while ((byteread = is.read(buffer)) != -1) {
-                    fs.write(buffer, 0, byteread);
+                byte[] buffer = new byte[1024];
+                while ((read = is.read(buffer)) != -1) {
+                    fs.write(buffer, 0, read);
                 }
                 is.close();
                 return true;
@@ -42,7 +42,7 @@ public class XFileUtil {
      * 将File转换为byte[]
      * @param file
      * @return
-     * @throws IOException
+     * @throws java.io.IOException
      */
     public static byte[] file2byte(File file) throws IOException {
         if (file == null)
@@ -99,6 +99,34 @@ public class XFileUtil {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * String转换为File
+     * @param res
+     * @param file
+     */
+    public static void string2File(String res, File file) {
+        if (file == null)
+            return;
+        BufferedReader bufferedReader = null;
+        BufferedWriter bufferedWriter = null;
+        try {
+            bufferedReader = new BufferedReader(new StringReader(res));
+            bufferedWriter = new BufferedWriter(new FileWriter(file));
+            char buf[] = new char[2 * 1024]; // 字符缓冲区
+            int len;
+            while ((len = bufferedReader.read(buf)) != -1) {
+                bufferedWriter.write(buf, 0, len);
+            }
+            bufferedWriter.flush();
+            bufferedReader.close();
+            bufferedWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            if (file.exists())
+                file.delete();
         }
     }
 

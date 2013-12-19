@@ -4,18 +4,24 @@ import android.text.TextUtils;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by Beryl.
+ * 字符串工具方法
+ * Created with IntelliJ IDEA.
+ * User: tujun
  * Date: 12-3-3
  * Time: 下午7:35
  */
 public class XStringUtil {
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4',
+            '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
     public static boolean equals(String str1, String str2) {
         return str1 != null && str2 != null && str1.equals(str2);
@@ -25,12 +31,36 @@ public class XStringUtil {
         return str1 != null && str2 != null && str1.equalsIgnoreCase(str2);
     }
 
-    public static boolean isContains(String str1, String str2) {
-        return str1.contains(str2);
+    public static boolean equals(String str1, String str2, boolean ignoreCase) {
+        if (str1 != null && str2 != null) {
+            if (ignoreCase) {
+                return str1.equalsIgnoreCase(str2);
+            } else {
+                return str1.equals(str2);
+            }
+        } else {
+            return str1 == null && str2 == null;
+        }
     }
 
     public static String getString(String str) {
         return str == null ? "" : str;
+    }
+
+    /**
+     * 返回字符串的字节个数（中文当2个字节计算）
+     * @param s
+     * @return
+     */
+    public static int stringSize(String s) {
+        try {
+            String anotherString = new String(s.getBytes("GBK"), "ISO8859_1");
+            return anotherString.length();
+        }
+        catch (UnsupportedEncodingException ex) {
+            ex.printStackTrace();
+            return 0;
+        }
     }
 
     public static String unquote(String s, String quote) {
@@ -42,18 +72,6 @@ public class XStringUtil {
         return s;
     }
 
-    public static boolean equals(String contentType1, String contentType2, boolean ignoreCase) {
-        if (contentType1 != null && contentType2 != null) {
-            if (ignoreCase) {
-                return contentType1.equalsIgnoreCase(contentType2);
-            } else {
-                return contentType1.equals(contentType2);
-            }
-        } else {
-            return ((contentType1 == null && contentType2 == null) ? true : false);
-        }
-    }
-
     public static String convertStreamToString(InputStream is) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
@@ -61,7 +79,7 @@ public class XStringUtil {
         String line = null;
         try {
             while ((line = reader.readLine()) != null) {
-                sb.append(line + LINE_SEPARATOR);
+                sb.append(line).append(LINE_SEPARATOR);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -120,41 +138,18 @@ public class XStringUtil {
     }
 
     /**
-     * 将字符串数组转化为用逗号连接的字符串
-     *
-     * @param values
-     * @return
-     */
-    public static String arrayToString(String[] values) {
-        String result = "";
-        if (values != null) {
-            if (values.length > 0) {
-                for (String value : values) {
-                    result += value + ",";
-                }
-                result = result.substring(0, result.length() - 1);
-            }
-        }
-        return result;
-    }
-
-    /**
      * 验证字符串是否符合email格式
-     *
      * @param email 验证的字符串
-     * @return 如果字符串为空或者为Null返回true
-     *         如果不为空或Null则验证其是否符合email格式，符合则返回true,不符合则返回false
+     * @return 如果字符串为空或者为Null返回false
+     *         如果不为空或Null则验证其是否符合email格式，
+     *         符合则返回true,不符合则返回false
      */
     public static boolean isEmail(String email) {
-        boolean flag = true;
-        if (!TextUtils.isEmpty(email)) {
-            //通过正则表达式验证Emial是否合法
-            flag = email.matches("^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@" +
-                    "([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$");
-
-            return flag;
-        }
-        return flag;
+        if (TextUtils.isEmpty(email))
+            return false;
+        //通过正则表达式验证Emial是否合法
+        return email.matches("^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@" +
+                "([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$");
     }
 
     /**
@@ -172,25 +167,25 @@ public class XStringUtil {
     public static String date2str(long time) {
         return date2str(new Date(time));
     }
-    
+
     public static String date2str(Date date) {
-        if (date == null) {
+        if (date == null)
             return null;
-        }
+
         return date2str(date.getYear() + 1900, date.getMonth() + 1,
                 date.getDate(), date.getHours(), date.getMinutes());
     }
 
     public static String date2str(int year, int month, int day, int hour, int minute) {
-        String hourStr = ""+hour;
-        String minStr = ""+minute;
+        String hourStr = "" + hour;
+        String minStr = "" + minute;
         if (hour < 10) {
             hourStr = "0" + hourStr;
         }
         if (minute < 10) {
             minStr = "0" +minStr;
         }
-        return year+"-"+month+"-"+day+" "+hourStr+":"+minStr;
+        return year + "-" + month + "-" + day + " " + hourStr + ":" + minStr;
     }
 
 
@@ -208,9 +203,9 @@ public class XStringUtil {
         int year = c.get(Calendar.YEAR);
         int month = c.get(Calendar.MONTH) + 1;
         int day = c.get(Calendar.DAY_OF_MONTH);
-        return year+"-"+month+"-"+day;
+        return year + "-" + month + "-" + day;
     }
-    
+
     public static Calendar str2calendar(String str) {
         if (TextUtils.isEmpty(str)) {
             return null;
@@ -220,26 +215,59 @@ public class XStringUtil {
         int month = Integer.parseInt(strList[1]);
         int day = Integer.parseInt(strList[2]);
         Calendar result = Calendar.getInstance();
-        result.set(year, month-1, day);
+        result.set(year, month - 1, day);
         return result;
     }
 
     /**
-     * 返回字符串的字节个数（中文当2个字节计算）
-     * @param s
+     * 将字符串数组转化为用逗号连接的字符串
+     * @param values
      * @return
      */
-    public static int stringSize(String s) {
-        try {
-            String anotherString = new String(s.getBytes("GBK"), "ISO8859_1");
-            return anotherString.length();
+    public static String array2String(String[] values) {
+        String result = "";
+        if (values != null) {
+            if (values.length > 0) {
+                for (String value : values) {
+                    result += value + ",";
+                }
+                result = result.substring(0, result.length() - 1);
+            }
         }
-        catch (UnsupportedEncodingException ex) {
-            ex.printStackTrace();
-            return 0;
-        }
+        return result;
     }
 
+    /**
+     * 百分比转字符串
+     * @param percent
+     * @return
+     */
+    public static String percent2str(double percent) {
+        int percentInt = (int) (percent * 100);
+        return percentInt + "%";
+    }
+
+    /**
+     * 字符串转为md5编码
+     * @param str 源字符串
+     * @return md5编码后的字符串
+     */
+    public static String str2md5(String str) {
+        try {
+            MessageDigest algorithm = MessageDigest.getInstance("MD5");
+            algorithm.reset();
+            algorithm.update(str.getBytes());
+            byte[] bytes = algorithm.digest();
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : bytes) {
+                hexString.append(HEX_DIGITS[b >> 4 & 0xf]);
+                hexString.append(HEX_DIGITS[b & 0xf]);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
     /**
      * 将文件大小转换（保留两位小数）
      * @param size 文件大小，单位:byte
@@ -269,22 +297,17 @@ public class XStringUtil {
             unit = "B";
         } else if (size < MB) {
             result = size/KB;
-            unit = "K";
+            unit = "KB";
         } else if (size < GB) {
             result = size/MB;
-            unit = "M";
+            unit = "MB";
         } else {
             result = size/GB;
-            unit = "G";
+            unit = "GB";
         }
         BigDecimal bg = new BigDecimal(result);
         float f1 = bg.setScale(scale, BigDecimal.ROUND_HALF_UP).floatValue();
         return f1 + unit;
-    }
-
-    public static String percent2str(double percent) {
-        int percentInt = (int) (percent * 100);
-        return percentInt + "%";
     }
 
     /**
@@ -299,9 +322,9 @@ public class XStringUtil {
         long seconds = (mss % (1000 * 60)) / 1000;
 
         if (days != 0) {
-            if(hours > 12) {
+            if (hours > 12) {
                 return days+"天+";
-            }else {
+            } else {
                 return days+"天";
             }
         } else if(hours !=0) {
@@ -321,7 +344,8 @@ public class XStringUtil {
      * 将两日期的间隔转换为 "*日*小时*分钟*秒"
      * @param begin 时间段的开始
      * @param end   时间段的结束
-     * @return  输入的两个Date类型数据之间的时间间格用* days * hours * minutes * seconds的格式展示
+     * @return  输入的两个Date类型数据之间的时间间格用
+     * * days * hours * minutes * seconds的格式展示
      */
     public static String formatDuring(Date begin, Date end) {
         return formatDuring(end.getTime() - begin.getTime());
@@ -334,9 +358,9 @@ public class XStringUtil {
      */
     public static String removeFileNameSuffix(String srcName) {
         int dotIndex = srcName.lastIndexOf(".");
-        if (dotIndex == -1) {
+        if (dotIndex == -1)
             return srcName;
-        }
-        return srcName.substring(0, dotIndex);
+        else
+            return srcName.substring(0, dotIndex);
     }
 }
