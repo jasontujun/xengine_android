@@ -98,8 +98,8 @@ public class XApacheHttpClient extends XBaseHttp {
         if (mIsDisposed)
             return null;
 
-        if (!XNetworkUtil.isNetworkAvailable(mContext)) {
-            XLog.d(TAG, "network not available.");
+        if (!XNetworkUtil.isNetworkConnected(mContext)) {
+            XLog.d(TAG, "network not connected.");
             for (XHttpProgressListener listener: mProgressListeners)
                 listener.onNetworkBroken();
             return null;

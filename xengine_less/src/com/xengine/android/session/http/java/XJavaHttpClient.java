@@ -47,11 +47,10 @@ public class XJavaHttpClient extends XBaseHttp {
         if (mIsDisposed)
             throw new IllegalStateException("HttpClient has been disposed!");
 
-        if (!XNetworkUtil.isNetworkAvailable(mContext)) {
+        if (!XNetworkUtil.isNetworkConnected(mContext)) {
             XLog.d(TAG, "network not available.");
-            for (XHttpProgressListener listener: mProgressListeners) {
+            for (XHttpProgressListener listener: mProgressListeners)
                 listener.onNetworkBroken();
-            }
             return null;
         }
 
