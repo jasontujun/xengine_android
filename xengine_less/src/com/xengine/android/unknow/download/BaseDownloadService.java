@@ -4,12 +4,12 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.*;
 import android.text.TextUtils;
-import tv.pps.module.download.core.serial.SerialMgrListener;
-import tv.pps.module.download.core.serial.SerialTask;
-import tv.pps.module.download.core.serial.TaskScheduler;
-import tv.pps.module.download.core.serial.impl.SerialMgrImpl;
-import tv.pps.module.download.core.serial.impl.SerialSpeedMonitor;
-import tv.pps.module.download.core.task.TaskBean;
+import com.xengine.android.unknow.serial.SerialMgrListener;
+import com.xengine.android.unknow.serial.SerialTask;
+import com.xengine.android.unknow.serial.TaskScheduler;
+import com.xengine.android.unknow.serial.impl.SerialMgrImpl;
+import com.xengine.android.unknow.serial.impl.SerialSpeedMonitor;
+import com.xengine.android.unknow.task.TaskBean;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public abstract class BaseDownloadService extends Service {
     public static final String LISTENER_KEY_ERROR_STR = "errorStr";
     public static final String LISTENER_KEY_SPEED = "speed";
 
-    private SerialMgrImpl mDownloadSerialMgr;// 线性下载器
+    protected SerialMgrImpl mDownloadSerialMgr;// 线性下载器
 
     @Override
     public void onCreate() {
@@ -98,6 +98,8 @@ public abstract class BaseDownloadService extends Service {
         // 初始化下载器
         mDownloadSerialMgr = new SerialMgrImpl();
         mDownloadSerialMgr.setSpeedMonitor(new SerialSpeedMonitor(mDownloadSerialMgr));
+        // 注册Service对线性下载器的监听
+        mDownloadSerialMgr.registerListener(new InnerListener());
     }
 
     @Override
@@ -143,6 +145,7 @@ public abstract class BaseDownloadService extends Service {
             TaskBean bean = (TaskBean) bundle.getSerializable(EXTRA_KEY_TASK_BEAN);
             if (bean == null)
                 return;
+            preTaskAdd(bean);// 对子类的回调
             SerialTask task = createTask(bean);// 生成对应的task
             if (task != null)
                 mDownloadSerialMgr.addTask(task);
@@ -156,12 +159,15 @@ public abstract class BaseDownloadService extends Service {
                     bundle.getSerializable(EXTRA_KEY_TASK_BEANS);
             if (beans == null)
                 return;
+            List<TaskBean> taskBeans = new ArrayList<TaskBean>();
             List<SerialTask> tasks = new ArrayList<SerialTask>();
             for (TaskBean bean : beans) {
+                taskBeans.add(bean);
                 SerialTask task = createTask(bean);// 生成对应的task
                 if (task != null)
                     tasks.add(task);
             }
+            preTaskAddAll(taskBeans);// 对子类的回调
             mDownloadSerialMgr.addTasks(tasks);
         }
         // 删除下载任务
@@ -170,6 +176,7 @@ public abstract class BaseDownloadService extends Service {
             if (bundle == null)
                 return;
             String id = bundle.getString(EXTRA_KEY_TASK_ID);
+            preTaskRemove(id);// 对子类的回调
             mDownloadSerialMgr.removeTaskById(id);
         }
         // 批量删除下载任务
@@ -179,6 +186,7 @@ public abstract class BaseDownloadService extends Service {
                 return;
             List<String> ids = (List<String>)
                     bundle.getSerializable(EXTRA_KEY_TASK_IDS);
+            preTaskRemoveAll(ids);// 对子类的回调
             mDownloadSerialMgr.removeTasksById(ids);
         }
         // 启动下载
@@ -186,8 +194,10 @@ public abstract class BaseDownloadService extends Service {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 String id = bundle.getString(EXTRA_KEY_TASK_ID);
+                preTaskStart(id);// 对子类的回调
                 mDownloadSerialMgr.start(id);
             } else {
+                preTaskStart(null);// 对子类的回调
                 mDownloadSerialMgr.start();
             }
         }
@@ -196,8 +206,10 @@ public abstract class BaseDownloadService extends Service {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 String id = bundle.getString(EXTRA_KEY_TASK_ID);
+                preTaskResume(id);// 对子类的回调
                 mDownloadSerialMgr.resume(id);
             } else {
+                preTaskResume(null);// 对子类的回调
                 mDownloadSerialMgr.resume();
             }
         }
@@ -206,8 +218,10 @@ public abstract class BaseDownloadService extends Service {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 String id = bundle.getString(EXTRA_KEY_TASK_ID);
+                preTaskPause(id);// 对子类的回调
                 mDownloadSerialMgr.pause(id);
             } else {
+                preTaskPause(null);// 对子类的回调
                 mDownloadSerialMgr.pause();
             }
         }
@@ -217,6 +231,7 @@ public abstract class BaseDownloadService extends Service {
             if (bundle == null)
                 return;
             int type = bundle.getInt(EXTRA_KEY_TASK_TYPE);
+            preTaskPauseByType(type);// 对子类的回调
             mDownloadSerialMgr.pauseByType(type);
         }
         // 停止下载
@@ -224,8 +239,10 @@ public abstract class BaseDownloadService extends Service {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 String id = bundle.getString(EXTRA_KEY_TASK_ID);
+                preTaskStop(id);// 对子类的回调
                 mDownloadSerialMgr.stop(id);
             } else {
+                preTaskStop(null);// 对子类的回调
                 mDownloadSerialMgr.stop();
             }
         }
@@ -235,10 +252,12 @@ public abstract class BaseDownloadService extends Service {
             if (bundle == null)
                 return;
             int type = bundle.getInt(EXTRA_KEY_TASK_TYPE);
+            preTaskStopByType(type);// 对子类的回调
             mDownloadSerialMgr.stopByType(type);
         }
         // 暂停并清空下载
         else if (ACTION_STOP_RESET.equals(action)) {
+            preTaskStopAndReset();// 对子类的回调
             mDownloadSerialMgr.stopAndReset();
         }
         // 注册外部监听
@@ -274,6 +293,7 @@ public abstract class BaseDownloadService extends Service {
             if (bundle == null)
                 return;
             String id = bundle.getString(EXTRA_KEY_TASK_ID);
+            preSetRunningTask(id);// 对子类的回调
             mDownloadSerialMgr.setRunningTask(id);
         }
         // 其他自定义Action，由子类来处理
@@ -303,19 +323,105 @@ public abstract class BaseDownloadService extends Service {
      */
     protected abstract void onHandleIntent(Intent intent);
 
-    // ========= 通知外部监听之前的下载相关的回调函数 ========= //
-    protected abstract void onTaskAdd(TaskBean task);
-    protected abstract void onTaskAddAll(List<TaskBean> tasks);
-    protected abstract void onTaskRemove(TaskBean task);
-    protected abstract void onTaskRemoveAll(List<TaskBean> tasks);
-    protected abstract void onTaskStopAndReset();
-    protected abstract void onTaskStart(TaskBean task);
-    protected abstract void onTaskStop(TaskBean task);
-    protected abstract void onTaskAbort(TaskBean task);
-    protected abstract void onTaskDownloading(TaskBean task, long position);
-    protected abstract void onTaskComplete(TaskBean task, String localFilePath);
-    protected abstract void onTaskError(TaskBean task, String errorStr);
-    protected abstract void onTaskSpeedUpdate(TaskBean task, long speed);
+    // ========= 执行之前的回调函数，增加可扩展性 ========= //
+    protected void preTaskAdd(TaskBean task) {}
+    protected void preTaskAddAll(List<TaskBean> tasks) {}
+    protected void preTaskRemove(String taskId) {}
+    protected void preTaskRemoveAll(List<String> taskIds) {}
+    protected void preTaskStart(String taskId) {}
+    protected void preTaskResume(String taskId) {}
+    protected void preTaskPause(String taskId) {}
+    protected void preTaskPauseByType(int taskType) {}
+    protected void preTaskStop(String taskId) {}
+    protected void preTaskStopByType(int taskType) {}
+    protected void preTaskStopAndReset() {}
+    protected void preSetRunningTask(String taskId) {}
+    // ========= 执行之后(通知外部监听之前)的回调函数，增加可扩展性 ========= //
+    protected abstract void postTaskAdd(TaskBean task);
+    protected abstract void postTaskAddAll(List<TaskBean> tasks);
+    protected abstract void postTaskRemove(TaskBean task);
+    protected abstract void postTaskRemoveAll(List<TaskBean> tasks);
+    protected abstract void postTaskStopAndReset();
+    protected abstract void postTaskStart(TaskBean task);
+    protected abstract void postTaskStop(TaskBean task);
+    protected abstract void postTaskAbort(TaskBean task);
+    protected abstract void postTaskDownloading(TaskBean task, long position);
+    protected abstract void postTaskComplete(TaskBean task, String localFilePath);
+    protected abstract void postTaskError(TaskBean task, String errorStr);
+    protected abstract void postTaskSpeedUpdate(TaskBean task, long speed);
+
+
+
+    /**
+     * DownloadService对下载器的监听，增加子类的可扩展性
+     */
+    private class InnerListener implements SerialMgrListener<TaskBean> {
+
+        @Override
+        public String getId() {
+            return "tv.pps.module.download.core.download.InnerListener";
+        }
+
+        @Override
+        public void onAdd(TaskBean task) {
+            postTaskAdd(task);
+        }
+
+        @Override
+        public void onAddAll(List<TaskBean> tasks) {
+            postTaskAddAll(tasks);
+        }
+
+        @Override
+        public void onRemove(TaskBean task) {
+            postTaskRemove(task);
+        }
+
+        @Override
+        public void onRemoveAll(List<TaskBean> tasks) {
+            postTaskRemoveAll(tasks);
+        }
+
+        @Override
+        public void onStopAndReset() {
+            postTaskStopAndReset();
+        }
+
+        @Override
+        public void onStart(TaskBean task) {
+            postTaskStart(task);
+        }
+
+        @Override
+        public void onStop(TaskBean task) {
+            postTaskStop(task);
+        }
+
+        @Override
+        public void onAbort(TaskBean task) {
+            postTaskAbort(task);
+        }
+
+        @Override
+        public void onDownloading(TaskBean task, long completeSize) {
+            postTaskDownloading(task, completeSize);
+        }
+
+        @Override
+        public void onComplete(TaskBean task, String localFilePath) {
+            postTaskComplete(task, localFilePath);
+        }
+
+        @Override
+        public void onError(TaskBean task, String errorStr) {
+            postTaskError(task, errorStr);
+        }
+
+        @Override
+        public void onSpeedUpdate(TaskBean task, long speed) {
+            postTaskSpeedUpdate(task, speed);
+        }
+    }
 
     /**
      * 下载器监听的包装类，根据当前下载器状态通知外部监听者（Messenger类型）
@@ -337,7 +443,6 @@ public abstract class BaseDownloadService extends Service {
 
         @Override
         public void onAdd(TaskBean task) {
-            onTaskAdd(task);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_ADD;
@@ -345,14 +450,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putSerializable(LISTENER_KEY_BEAN, task);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onAddAll(List<TaskBean> tasks) {
-            onTaskAddAll(tasks);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_ADD_ALL;
@@ -360,14 +464,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putSerializable(LISTENER_KEY_BEANS, (Serializable) tasks);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onRemove(TaskBean task) {
-            onTaskRemove(task);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_REMOVE;
@@ -375,14 +478,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putSerializable(LISTENER_KEY_BEAN, task);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onRemoveAll(List<TaskBean> tasks) {
-            onTaskRemoveAll(tasks);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_REMOVE_ALL;
@@ -390,7 +492,7 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putSerializable(LISTENER_KEY_BEANS, (Serializable) tasks);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
 
@@ -398,19 +500,17 @@ public abstract class BaseDownloadService extends Service {
 
         @Override
         public void onStopAndReset() {
-            onTaskStopAndReset();
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_STOP_AND_RESET;
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onStart(TaskBean task) {
-            onTaskStart(task);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_START;
@@ -418,14 +518,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putSerializable(LISTENER_KEY_BEAN, task);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onStop(TaskBean task) {
-            onTaskStop(task);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_STOP;
@@ -433,14 +532,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putSerializable(LISTENER_KEY_BEAN, task);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onAbort(TaskBean task) {
-            onTaskAbort(task);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_ABORT;
@@ -448,14 +546,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putSerializable(LISTENER_KEY_BEAN, task);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onDownloading(TaskBean task, long completeSize) {
-            onTaskDownloading(task, completeSize);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_DOWNLOADING;
@@ -464,14 +561,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putLong(LISTENER_KEY_POSITION, completeSize);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onComplete(TaskBean task, String localFilePath) {
-            onTaskComplete(task, localFilePath);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_COMPLETE;
@@ -480,14 +576,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putString(LISTENER_KEY_LOCAL_PATH, localFilePath);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onError(TaskBean task, String errorStr) {
-            onTaskError(task, errorStr);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_ERROR;
@@ -496,14 +591,13 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putString(LISTENER_KEY_ERROR_STR, errorStr);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
         public void onSpeedUpdate(TaskBean task, long speed) {
-            onTaskSpeedUpdate(task, speed);
             try {
                 Message msg = Message.obtain();
                 msg.arg1 = LISTENER_ON_SPEED_UPDATE;
@@ -512,7 +606,7 @@ public abstract class BaseDownloadService extends Service {
                 bundle.putLong(LISTENER_KEY_SPEED, speed);
                 msg.setData(bundle);
                 messenger.send(msg);
-            } catch (RemoteException e) {
+            } catch (android.os.RemoteException e) {
                 e.printStackTrace();
             }
         }

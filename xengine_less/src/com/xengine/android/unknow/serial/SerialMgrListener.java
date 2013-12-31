@@ -1,7 +1,7 @@
 package com.xengine.android.unknow.serial;
 
-import tv.pps.module.download.core.task.TaskBean;
-import tv.pps.module.download.core.task.TaskListener;
+import com.xengine.android.unknow.task.TaskBean;
+import com.xengine.android.unknow.task.TaskListener;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package com.xengine.android.unknow.speed;
 
-import tv.pps.module.download.core.speed.calc.SpeedCalculator;
+import com.xengine.android.unknow.speed.calc.SpeedCalculator;
 
 import java.util.List;
 import java.util.Timer;

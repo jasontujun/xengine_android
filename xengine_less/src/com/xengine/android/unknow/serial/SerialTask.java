@@ -1,8 +1,9 @@
 package com.xengine.android.unknow.serial;
 
-import tv.pps.module.download.core.speed.calc.SpeedCalculator;
-import tv.pps.module.download.core.task.TaskBean;
-import tv.pps.module.download.core.task.TaskExecutor;
+
+import com.xengine.android.unknow.speed.calc.SpeedCalculator;
+import com.xengine.android.unknow.task.TaskBean;
+import com.xengine.android.unknow.task.TaskExecutor;
 
 /**
  * <pre>

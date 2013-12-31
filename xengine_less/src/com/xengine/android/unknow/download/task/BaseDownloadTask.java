@@ -1,10 +1,10 @@
 package com.xengine.android.unknow.download.task;
 
-import tv.pps.module.download.core.serial.SerialMgr;
-import tv.pps.module.download.core.serial.SerialMgrListener;
-import tv.pps.module.download.core.serial.SerialTask;
-import tv.pps.module.download.core.speed.calc.SpeedCalculator;
-import tv.pps.module.download.core.task.TaskBean;
+import com.xengine.android.unknow.serial.SerialMgr;
+import com.xengine.android.unknow.serial.SerialMgrListener;
+import com.xengine.android.unknow.serial.SerialTask;
+import com.xengine.android.unknow.speed.calc.SpeedCalculator;
+import com.xengine.android.unknow.task.TaskBean;
 
 import java.util.List;
 

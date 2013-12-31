@@ -12,9 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 字符串工具方法
- * Created with IntelliJ IDEA.
- * User: tujun
+ * Created by jasontujun.
  * Date: 12-3-3
  * Time: 下午7:35
  */
@@ -207,10 +205,14 @@ public class XStringUtil {
     }
 
     public static Calendar str2calendar(String str) {
-        if (TextUtils.isEmpty(str)) {
+        if (TextUtils.isEmpty(str))
             return null;
-        }
+
         String[] strList = str.split("-");
+        if (strList.length != 3 || !isNumber(strList[0]) ||
+                !isNumber(strList[1]) || !isNumber(strList[2]))
+            return null;
+
         int year = Integer.parseInt(strList[0]);
         int month = Integer.parseInt(strList[1]);
         int day = Integer.parseInt(strList[2]);

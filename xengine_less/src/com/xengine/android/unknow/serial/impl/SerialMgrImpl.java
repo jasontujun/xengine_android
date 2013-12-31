@@ -1,13 +1,13 @@
 package com.xengine.android.unknow.serial.impl;
 
 import android.text.TextUtils;
-import tv.pps.module.download.core.serial.SerialMgr;
-import tv.pps.module.download.core.serial.SerialMgrListener;
-import tv.pps.module.download.core.serial.SerialTask;
-import tv.pps.module.download.core.serial.TaskScheduler;
-import tv.pps.module.download.core.speed.BaseSpeedMonitor;
-import tv.pps.module.download.core.speed.calc.DefaultSpeedCalculator;
-import tv.pps.module.download.core.task.TaskBean;
+import com.xengine.android.unknow.serial.SerialMgr;
+import com.xengine.android.unknow.serial.SerialMgrListener;
+import com.xengine.android.unknow.serial.SerialTask;
+import com.xengine.android.unknow.serial.TaskScheduler;
+import com.xengine.android.unknow.speed.BaseSpeedMonitor;
+import com.xengine.android.unknow.speed.calc.DefaultSpeedCalculator;
+import com.xengine.android.unknow.task.TaskBean;
 
 import java.util.*;
 
@@ -21,7 +21,6 @@ import java.util.*;
  *   会将该任务丢弃，并停止下载；
  * 4.如果任务从DOING到TODO，回调SerialMgr时，
  *   会将该任务重新添加进等待队列，并停止下载；
- * @see tv.pps.module.download.core.task.TaskExecutor
  * User: tujun
  * Date: 13-8-1
  * Time: 下午3:35
