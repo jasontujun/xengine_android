@@ -3,11 +3,11 @@ package com.xengine.android.utils;
 import java.io.*;
 
 /**
- * 文件工具方法
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-9-6
  * Time: 下午5:45
+ * To change this template use File | Settings | File Templates.
  */
 public class XFileUtil {
 
@@ -103,30 +103,66 @@ public class XFileUtil {
     }
 
     /**
-     * String转换为File
-     * @param res
-     * @param file
+     * String转换为File。
+     * 如果创建失败，会删除文件。
+     * @param res 字符内容
+     * @param file 文件
+     * @return 如果创建成功，返回true；否则返回false
      */
-    public static void string2File(String res, File file) {
-        if (file == null)
-            return;
-        BufferedReader bufferedReader = null;
+    public static boolean string2File(String res, File file) {
+        if (file == null || res == null)
+            return false;
         BufferedWriter bufferedWriter = null;
         try {
-            bufferedReader = new BufferedReader(new StringReader(res));
             bufferedWriter = new BufferedWriter(new FileWriter(file));
-            char buf[] = new char[2 * 1024]; // 字符缓冲区
-            int len;
-            while ((len = bufferedReader.read(buf)) != -1) {
-                bufferedWriter.write(buf, 0, len);
-            }
+            bufferedWriter.write(res);
             bufferedWriter.flush();
-            bufferedReader.close();
-            bufferedWriter.close();
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
             if (file.exists())
                 file.delete();
+            return false;
+        } finally {
+            try {
+                if (bufferedWriter != null)
+                    bufferedWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * File转换为String。
+     * @param file 文件
+     * @return 如果读取失败，返回null；否则返回字符串形式。
+     */
+    public static String file2String(File file) {
+        if (file == null)
+            return null;
+        long length = file.length();
+        if (length > Integer.MAX_VALUE)
+            return null;// too large
+        int intLength = (int) length;
+        char[] chars = new char[intLength];
+        FileReader reader = null;
+        try {
+            reader = new FileReader(file);
+            reader.read(chars);
+            return String.valueOf(chars);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
