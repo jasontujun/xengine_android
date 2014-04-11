@@ -14,7 +14,7 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
         extends XBaseAdapterIdDataSource<T> implements XWithUsername<T> {
 
     public int getIndexByUsernameId(String username, String id) {
-        for (int i = 0; i<size(); i++) {
+        for (int i = 0; i < size(); i++) {
             T tmp = get(i);
             if (getUsername(tmp).equals(username) &&
                     getId(tmp).equals(id)) {
@@ -33,15 +33,11 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
         if (index == -1) {
             itemList.add(item);
             if (isAutoNotify)
-                for (XDataChangeListener<T> listener: listeners) {
-                    listener.onAdd(item);
-                }
+                notifyAddItem(item);
         } else {
             replace(index, item);
             if (isAutoNotify)
-                for (XDataChangeListener<T> listener: listeners) {
-                    listener.onChange();
-                }
+                notifyDataChanged();
         }
     }
 
@@ -60,9 +56,7 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
             }
         }
         if (isAutoNotify)
-            for (XDataChangeListener<T> listener: listeners) {
-                listener.onAddAll(items);
-            }
+            notifyAddItems(items);
     }
 
 
@@ -125,6 +119,8 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
      * @param ids
      */
     public synchronized void deleteAllByUsernameId(String username, List<String> ids) {
+        if (ids == null || ids.size() == 0)
+            return;
         List<T> result = new ArrayList<T>();
         for (int i = 0; i < ids.size(); i++) {
             T item = getByUsernameId(username, ids.get(i));

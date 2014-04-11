@@ -48,9 +48,7 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
         if (!itemList.contains(item)) {
             itemList.add(item);
             if (isAutoNotify)
-                for (XDataChangeListener<T> listener: listeners) {
-                    listener.onAdd(item);
-                }
+                notifyAddItem(item);
         }
     }
 
@@ -64,9 +62,7 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
                 itemList.add(item);
         }
         if (isAutoNotify)
-            for(XDataChangeListener<T> listener: listeners) {
-                listener.onAddAll(items);
-            }
+            notifyAddItems(items);
     }
 
     @Override
@@ -76,20 +72,19 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
 
     @Override
     public synchronized void delete(int index) {
+        if (index < 0 || index >= itemList.size())
+            return;
+
         T item = itemList.remove(index);
         if (isAutoNotify)
-            for (XDataChangeListener<T> listener: listeners) {
-                listener.onDelete(item);
-            }
+            notifyDeleteItem(item);
     }
 
     @Override
     public synchronized void delete(T item) {
         if (itemList.remove(item)) {
             if (isAutoNotify)
-                for (XDataChangeListener<T> listener: listeners) {
-                    listener.onDelete(item);
-                }
+                notifyDeleteItem(item);
         }
     }
 
@@ -97,9 +92,7 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
     public synchronized void deleteAll(List<T> items) {
         if (itemList.removeAll(items)) {
             if (isAutoNotify)
-                for (XDataChangeListener<T> listener: listeners) {
-                    listener.onDeleteAll(items);
-                }
+                notifyDeleteItems(items);
         }
     }
 
@@ -123,11 +116,10 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
 
     @Override
     public synchronized void clear() {
-        if (isAutoNotify)
-            for (XDataChangeListener<T> listener: listeners) {
-                listener.onDeleteAll(itemList);
-            }
+        List<T> copyItems = new ArrayList<T>(itemList);
         itemList.clear();
+        if (isAutoNotify)
+            notifyDeleteItems(copyItems);
     }
 
     @Override
@@ -147,6 +139,26 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
         for (XDataChangeListener<T> listener: listeners) {
             listener.onChange();
         }
+    }
+
+    protected void notifyAddItem(T item) {
+        for (XDataChangeListener<T> listener: listeners)
+            listener.onAdd(item);
+    }
+
+    protected void notifyAddItems(List<T> items) {
+        for (XDataChangeListener<T> listener: listeners)
+            listener.onAddAll(items);
+    }
+
+    protected void notifyDeleteItem(T item) {
+        for (XDataChangeListener<T> listener: listeners)
+            listener.onDelete(item);
+    }
+
+    protected void notifyDeleteItems(List<T> items) {
+        for (XDataChangeListener<T> listener: listeners)
+            listener.onDeleteAll(items);
     }
 
     @Override
