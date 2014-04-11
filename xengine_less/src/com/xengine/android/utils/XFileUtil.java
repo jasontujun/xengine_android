@@ -18,22 +18,33 @@ public class XFileUtil {
      * @return
      */
     public static boolean copyFile(File oldFile, File newFile) {
+        if (!oldFile.exists())  // 文件存在时
+            return false;
+        InputStream is = null;
+        FileOutputStream fs = null;
         try {
-            int read = 0;
-            if (oldFile.exists()) { // 文件存在时
-                InputStream is = new FileInputStream(oldFile); // 读入原文件
-                FileOutputStream fs = new FileOutputStream(newFile);
-                byte[] buffer = new byte[1024];
-                while ((read = is.read(buffer)) != -1) {
-                    fs.write(buffer, 0, read);
-                }
-                is.close();
-                return true;
+            is = new FileInputStream(oldFile); // 读入原文件
+            fs = new FileOutputStream(newFile);
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                fs.write(buffer, 0, read);
             }
+            return true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (is != null)
+                    is.close();
+                if (fs != null)
+                    fs.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
         return false;
     }
@@ -139,18 +150,17 @@ public class XFileUtil {
      * @return 如果读取失败，返回null；否则返回字符串形式。
      */
     public static String file2String(File file) {
-        if (file == null)
-            return null;
-        long length = file.length();
-        if (length > Integer.MAX_VALUE)
-            return null;// too large
-        int intLength = (int) length;
-        char[] chars = new char[intLength];
-        FileReader reader = null;
+        FileInputStream fis = null;
+        ByteArrayOutputStream baos = null;
         try {
-            reader = new FileReader(file);
-            reader.read(chars);
-            return String.valueOf(chars);
+            fis = new FileInputStream(file);
+            baos = new ByteArrayOutputStream();
+            int i;
+            while ((i = fis.read()) != -1) {
+                baos.write(i);
+            }
+            String str = baos.toString();
+            return str;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;
@@ -159,7 +169,10 @@ public class XFileUtil {
             return null;
         } finally {
             try {
-                reader.close();
+                if (fis != null)
+                    fis.close();
+                if (baos != null)
+                    baos.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
