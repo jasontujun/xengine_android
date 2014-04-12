@@ -21,7 +21,7 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
     /**
      * 数据变化监听器
      */
-    protected ArrayList<XDataChangeListener<T>> listeners = new ArrayList<XDataChangeListener<T>>();
+    protected List<XDataChangeListener<T>> listeners = new ArrayList<XDataChangeListener<T>>();
 
     /**
      * 自动通知监听者
@@ -123,41 +123,56 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
     }
 
     @Override
-    public void registerDataChangeListener(XDataChangeListener<T> listener) {
+    public synchronized void registerDataChangeListener(XDataChangeListener<T> listener) {
         if (listener != null) {
-            listeners.add(listener);
+            // cow
+            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(listeners);
+            if (!copyListeners.contains(listener)) {
+                copyListeners.add(listener);
+                listeners = copyListeners;
+            }
         }
     }
 
     @Override
-    public void unregisterDataChangeListener(XDataChangeListener<T> listener) {
-        listeners.remove(listener);
+    public synchronized void unregisterDataChangeListener(XDataChangeListener<T> listener) {
+        if (listener != null) {
+            // cow
+            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(listeners);
+            if (copyListeners.remove(listener))
+                listeners = copyListeners;
+        }
     }
 
     @Override
     public void notifyDataChanged() {
-        for (XDataChangeListener<T> listener: listeners) {
+        final List<XDataChangeListener<T>> finalListeners = listeners;
+        for (XDataChangeListener<T> listener: finalListeners) {
             listener.onChange();
         }
     }
 
     protected void notifyAddItem(T item) {
-        for (XDataChangeListener<T> listener: listeners)
+        final List<XDataChangeListener<T>> finalListeners = listeners;
+        for (XDataChangeListener<T> listener: finalListeners)
             listener.onAdd(item);
     }
 
     protected void notifyAddItems(List<T> items) {
-        for (XDataChangeListener<T> listener: listeners)
+        final List<XDataChangeListener<T>> finalListeners = listeners;
+        for (XDataChangeListener<T> listener: finalListeners)
             listener.onAddAll(items);
     }
 
     protected void notifyDeleteItem(T item) {
-        for (XDataChangeListener<T> listener: listeners)
+        final List<XDataChangeListener<T>> finalListeners = listeners;
+        for (XDataChangeListener<T> listener: finalListeners)
             listener.onDelete(item);
     }
 
     protected void notifyDeleteItems(List<T> items) {
-        for (XDataChangeListener<T> listener: listeners)
+        final List<XDataChangeListener<T>> finalListeners = listeners;
+        for (XDataChangeListener<T> listener: finalListeners)
             listener.onDeleteAll(items);
     }
 
