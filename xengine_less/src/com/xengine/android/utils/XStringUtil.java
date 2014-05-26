@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +21,8 @@ public class XStringUtil {
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4',
             '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+    private static final String RANDOM_CHARS =
+            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     public static boolean equals(String str1, String str2) {
         return str1 != null && str2 != null && str1.equals(str2);
@@ -364,5 +367,25 @@ public class XStringUtil {
             return srcName;
         else
             return srcName.substring(0, dotIndex);
+    }
+
+    // 获取随即数
+
+    /**
+     * 获取随机字符串
+     * @param length 字符串长度
+     * @return 返回随机字符串
+     */
+    public static String getRandomString(int length) {
+        if (length <= 0)
+            return null;
+
+        StringBuffer sb = new StringBuffer();
+        Random r = new Random();
+        int range = RANDOM_CHARS.length();
+        for (int i = 0; i < length; i++) {
+            sb.append(RANDOM_CHARS.charAt(r.nextInt(range)));
+        }
+        return sb.toString();
     }
 }

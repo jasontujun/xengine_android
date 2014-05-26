@@ -3,8 +3,10 @@ package com.xengine.android.session.http;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.provider.Settings;
 
@@ -93,6 +95,55 @@ public class XNetworkUtil {
         NetworkInfo.State state = info.getState();
         return state == NetworkInfo.State.CONNECTED ||
                 state == NetworkInfo.State.CONNECTING;
+    }
+
+    /**
+     * 返回GPS定位是否开启
+     * @param context
+     * @return
+     */
+    public static boolean isGPSLocation(Context context) {
+        LocationManager locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+        return locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
+    /**
+     * 返回Wifi定位是否开启
+     * @param context
+     * @return
+     */
+    public static boolean isNetworkLocation(Context context) {
+        LocationManager locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+        return locationManager != null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
+    /**
+     * 获取手机的Mac地址
+     * @param context
+     * @return 返回手机的Mac地址；如果无法获取，返回null;
+     */
+    public static String getMacAddress(Context context) {
+        WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        if (wm == null)
+            return null;
+
+        WifiInfo info = wm.getConnectionInfo();
+        return info == null ? null : info.getMacAddress();
+    }
+
+    public static int getIpAddressInt(Context context) {
+        WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager == null)
+            return 0;
+        WifiInfo info = wifiManager.getConnectionInfo();
+        return info == null ? 0 : info.getIpAddress();
+    }
+
+    public static String getIpAddress(Context context) {
+        int ipAddress = getIpAddressInt(context);
+        return String.format("%d.%d.%d.%d", (ipAddress & 0xff),
+                (ipAddress >> 8 & 0xff), (ipAddress >> 16 & 0xff),
+                (ipAddress >> 24 & 0xff));
     }
 
     /**
