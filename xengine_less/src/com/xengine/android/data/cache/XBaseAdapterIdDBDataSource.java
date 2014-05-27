@@ -63,7 +63,8 @@ public abstract class XBaseAdapterIdDBDataSource<T> extends XBaseAdapterIdDataSo
         if (cur.moveToFirst()) {
             while (!cur.isAfterLast()) {
                 T item = table.getFilledInstance(cur);
-                add(item);
+//                add(item);// 太低效
+                itemList.add(item);
                 cur.moveToNext();
             }
         }
