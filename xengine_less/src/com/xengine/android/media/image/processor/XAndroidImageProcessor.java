@@ -21,23 +21,22 @@ import java.io.*;
 public final class XAndroidImageProcessor implements XImageProcessor {
     private static final String TAG = "IMG";
 
-    private static XAndroidImageProcessor instance;
-
-    public static synchronized XAndroidImageProcessor getInstance() {
-        if (instance == null) {
-            instance = new XAndroidImageProcessor();
-        }
-        return instance;
+    private static class SingletonHolder {
+        final static XAndroidImageProcessor INSTANCE = new XAndroidImageProcessor();
     }
 
-    private XAndroidImageProcessor() {
-        // 解耦，让image模块和file模块不产生依赖
-//        mImageDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
+    public static XAndroidImageProcessor getInstance() {
+        return SingletonHolder.INSTANCE;
     }
 
     private File mImageDir;// 临时图片缓存文件夹
     private int mScreenWidth;// 屏幕宽度（单位：pixel）
     private int mScreenHeight;// 屏幕高度（单位：pixel）
+
+    private XAndroidImageProcessor() {
+        // 解耦，让image模块和file模块不产生依赖
+//        mImageDir = XAndroidFileMgr.getInstance().getDir(XFileMgr.FILE_TYPE_TMP);
+    }
 
     /**
      * 初始化函数

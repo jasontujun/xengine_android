@@ -1,13 +1,15 @@
 package com.xengine.android.data.cache;
 
+import com.xengine.android.base.listener.XCowListenerMgr;
+import com.xengine.android.base.listener.XListenerMgr;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * 内存中的数据源。
- * 基于Id区分的数据存储。
+ * 基于Id唯一标识每个数据的数据源抽象类。
  * Created by jasontujun.
  * Date: 11-12-17
  * Time: 上午1:01
@@ -17,26 +19,32 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
     /**
      * 实际的对象列表。
      */
-    protected ArrayList<T> itemList = new ArrayList<T>();
+    protected ArrayList<T> mItemList;
 
     /**
      * 数据变化监听器
      */
-    protected List<XDataChangeListener<T>> listeners = new ArrayList<XDataChangeListener<T>>();
+    protected XListenerMgr<XDataChangeListener<T>> mListeners;
 
     /**
      * 自动通知监听者
      */
-    protected boolean isAutoNotify = true;
+    protected boolean mIsAutoNotify;
+
+    protected XBaseAdapterIdDataSource() {
+        mItemList = new ArrayList<T>();
+        mListeners = new XCowListenerMgr<XDataChangeListener<T>>();
+        mIsAutoNotify = true;
+    }
 
     @Override
     public void sort(Comparator<T> comparator) {
-        Collections.sort(itemList, comparator);
+        Collections.sort(mItemList, comparator);
     }
 
     @Override
     public T get(int index) {
-        return itemList.get(index);
+        return mItemList.get(index);
     }
 
     @Override
@@ -50,7 +58,7 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public int size() {
-        return itemList.size();
+        return mItemList.size();
     }
 
     @Override
@@ -60,12 +68,12 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
         int index = getIndexById(getId(item));
         if (index == -1) {
-            itemList.add(item);
-            if (isAutoNotify)
+            mItemList.add(item);
+            if (mIsAutoNotify)
                 notifyAddItem(item);
         } else {
             replace(index, item);
-            if (isAutoNotify)
+            if (mIsAutoNotify)
                 notifyDataChanged();
         }
     }
@@ -79,18 +87,18 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
             T item = items.get(i);
             int index = getIndexById(getId(item));
             if (index == -1) {
-                itemList.add(item);
+                mItemList.add(item);
             } else {
                 replace(index, item);
             }
         }
-        if (isAutoNotify)
+        if (mIsAutoNotify)
             notifyAddItems(items);
     }
 
     @Override
     public boolean isEmpty() {
-        return itemList.isEmpty();
+        return mItemList.isEmpty();
     }
 
     @Override
@@ -102,26 +110,26 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public synchronized void delete(int index) {
-        if (index < 0 || index >= itemList.size())
+        if (index < 0 || index >= mItemList.size())
             return;
 
-        T item = itemList.remove(index);
-        if (isAutoNotify)
+        T item = mItemList.remove(index);
+        if (mIsAutoNotify)
             notifyDeleteItem(item);
     }
 
     @Override
     public synchronized void delete(T item) {
-        if (itemList.remove(item)) {
-            if (isAutoNotify)
+        if (mItemList.remove(item)) {
+            if (mIsAutoNotify)
                 notifyDeleteItem(item);
         }
     }
 
     @Override
     public synchronized void deleteAll(List<T> items) {
-        if (itemList.removeAll(items)) {
-            if (isAutoNotify)
+        if (mItemList.removeAll(items)) {
+            if (mIsAutoNotify)
                 notifyDeleteItems(items);
         }
     }
@@ -142,7 +150,7 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public int indexOf(T item) {
-        return itemList.indexOf(item);
+        return mItemList.indexOf(item);
     }
 
     @Override
@@ -165,67 +173,55 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
      */
     @Override
     public List<T> copyAll() {
-        return new ArrayList<T>(itemList);
+        return new ArrayList<T>(mItemList);
     }
 
     @Override
     public synchronized void clear() {
-        List<T> copyItems = new ArrayList<T>(itemList);
-        itemList.clear();
-        if (isAutoNotify)
+        List<T> copyItems = new ArrayList<T>(mItemList);
+        mItemList.clear();
+        if (mIsAutoNotify)
             notifyDeleteItems(copyItems);
     }
 
     @Override
-    public synchronized void registerDataChangeListener(XDataChangeListener<T> listener) {
-        if (listener != null) {
-            // cow
-            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(listeners);
-            if (!copyListeners.contains(listener)) {
-                copyListeners.add(listener);
-                listeners = copyListeners;
-            }
-        }
+    public void registerDataChangeListener(XDataChangeListener<T> listener) {
+        mListeners.registerListener(listener);
     }
 
     @Override
     public synchronized void unregisterDataChangeListener(XDataChangeListener<T> listener) {
-        if (listener != null) {
-            // cow
-            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(listeners);
-            if (copyListeners.remove(listener))
-                listeners = copyListeners;
-        }
+        mListeners.unregisterListener(listener);
     }
 
     @Override
     public void notifyDataChanged() {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners) {
             listener.onChange();
         }
     }
 
     protected void notifyAddItem(T item) {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onAdd(item);
     }
 
     protected void notifyAddItems(List<T> items) {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onAddAll(items);
     }
 
     protected void notifyDeleteItem(T item) {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onDelete(item);
     }
 
     protected void notifyDeleteItems(List<T> items) {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onDeleteAll(items);
     }
@@ -238,7 +234,7 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
      */
     @Override
     public void replace(int index, T newItem) {
-        itemList.set(index, newItem);
+        mItemList.set(index, newItem);
     }
 
     @Override
@@ -254,6 +250,6 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
 
     @Override
     public void setAutoNotifyListeners(boolean isAuto) {
-        this.isAutoNotify = isAuto;
+        this.mIsAutoNotify = isAuto;
     }
 }

@@ -27,14 +27,12 @@ public class XAndroidSSM implements XSystemStateManager {
 
     private static final String TAG = "SSM";
 
-    private static XAndroidSSM instance;
+    private static class SingletonHolder {
+        final static XAndroidSSM INSTANCE = new XAndroidSSM();
+    }
 
-
-    public synchronized static XAndroidSSM getInstance() {
-        if(instance == null) {
-            instance = new XAndroidSSM();
-        }
-        return instance;
+    public static XAndroidSSM getInstance() {
+        return SingletonHolder.INSTANCE;
     }
 
     /**

@@ -3,7 +3,8 @@ package com.xengine.android.data.cache;
 import java.util.List;
 
 /**
- * 数据变化监听器接口，监听数据源中的数据变化。
+ * 数据变化的监听器接口。
+ * 用于监听数据源中的数据变化。
  */
 public interface XDataChangeListener<T> {
 

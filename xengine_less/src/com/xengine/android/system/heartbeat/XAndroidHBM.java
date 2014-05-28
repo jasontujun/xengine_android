@@ -17,17 +17,12 @@ import java.util.TimerTask;
 public class XAndroidHBM implements XHeartBeatManager, XSystemStateListener {
     private static final String TAG = XAndroidHBM.class.getCanonicalName();
 
-    private static XAndroidHBM instance;
-
-    public synchronized static XAndroidHBM getInstance() {
-        if(instance == null) {
-            instance = new XAndroidHBM();
-        }
-        return instance;
+    private static class SingletonHolder {
+        final static XAndroidHBM INSTANCE = new XAndroidHBM();
     }
 
-    private XAndroidHBM() {
-        timer = new Timer();
+    public static XAndroidHBM getInstance() {
+        return SingletonHolder.INSTANCE;
     }
 
     /**
@@ -49,6 +44,10 @@ public class XAndroidHBM implements XHeartBeatManager, XSystemStateListener {
      * 心跳用到的timertask
      */
     private BeatTask beat;
+
+    private XAndroidHBM() {
+        timer = new Timer();
+    }
 
     /**
      * 每一次心跳执行的任务

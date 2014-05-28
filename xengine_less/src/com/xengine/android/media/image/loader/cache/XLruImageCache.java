@@ -23,14 +23,17 @@ import java.util.Map;
 public final class XLruImageCache implements XImageCache {
     private static final String TAG = XLruImageCache.class.getSimpleName();
 
-    private static XLruImageCache instance;
-
-    public static synchronized XLruImageCache getInstance() {
-        if (instance == null) {
-            instance = new XLruImageCache();
-        }
-        return instance;
+    private static class SingletonHolder {
+        final static XLruImageCache INSTANCE = new XLruImageCache();
     }
+
+    public static XLruImageCache getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+
+    private XLruCache mSmallImageCache;// 小图缓存
+    private XLruCache mScreenImageCache;// 屏幕图缓存
+    private XLruCache mOriginalImageCache;// 原始图缓存
 
     private XLruImageCache(){
         // Get max available VM memory, exceeding this amount will throw an
@@ -45,10 +48,6 @@ public final class XLruImageCache implements XImageCache {
         mScreenImageCache = new XLruCache((int) (1.5 * cacheSize), "ScreenCache");
         mOriginalImageCache = new XLruCache(cacheSize, "OriginalCache");
     }
-
-    private XLruCache mSmallImageCache;// 小图缓存
-    private XLruCache mScreenImageCache;// 屏幕图缓存
-    private XLruCache mOriginalImageCache;// 原始图缓存
 
     @Override
     public Bitmap getCacheBitmap(String imageUrl, XImageProcessor.ImageSize size) {

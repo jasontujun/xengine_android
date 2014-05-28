@@ -18,13 +18,12 @@ public class XAndroidFileMgr implements XFileMgr {
 
     private static final String TAG = "FILE";
 
-    private static XAndroidFileMgr instance;
+    private static class SingletonHolder {
+        final static XAndroidFileMgr INSTANCE = new XAndroidFileMgr();
+    }
 
-    public static synchronized XAndroidFileMgr getInstance() {
-        if (instance == null) {
-            instance = new XAndroidFileMgr();
-        }
-        return instance;
+    public static XAndroidFileMgr getInstance() {
+        return SingletonHolder.INSTANCE;
     }
 
     private XAndroidFileMgr(){

@@ -4,11 +4,12 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * 该接口表明数据源可以被绑定到界面的Adapter上。
- * 其实就是实现了List的一部分子接口。
+ * 用于Adapter的数据源接口。
+ * 继承自XDataSource。
  * Created by 赵之韵.
  * Date: 11-12-17
  * Time: 上午12:18
+ * @see com.xengine.android.data.cache.XDataSource
  */
 public interface XAdapterDataSource<T> extends XDataSource {
 

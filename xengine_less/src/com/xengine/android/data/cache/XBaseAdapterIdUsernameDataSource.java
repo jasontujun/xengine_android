@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 内存中的数据源。
- * 基于账号分类，基于id区分的数据存储。
+ * 基于UserName分类、基于Id唯一标识每个数据的数据源抽象类。
  * Created by jasontujun.
  * Date: 11-12-17
  * Time: 上午1:01
@@ -31,12 +30,12 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
 
         int index = getIndexByUsernameId(getUsername(item), getId(item));
         if (index == -1) {
-            itemList.add(item);
-            if (isAutoNotify)
+            mItemList.add(item);
+            if (mIsAutoNotify)
                 notifyAddItem(item);
         } else {
             replace(index, item);
-            if (isAutoNotify)
+            if (mIsAutoNotify)
                 notifyDataChanged();
         }
     }
@@ -46,16 +45,15 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
         if (items == null || items.size() == 0)
             return;
 
-        for (int i = 0; i<items.size(); i++) {
-            T item = items.get(i);
+        for (T item : items) {
             int index = getIndexByUsernameId(getUsername(item), getId(item));
             if (index == -1) {
-                itemList.add(item);
+                mItemList.add(item);
             } else {
                 replace(index, item);
             }
         }
-        if (isAutoNotify)
+        if (mIsAutoNotify)
             notifyAddItems(items);
     }
 
@@ -122,8 +120,8 @@ public abstract class XBaseAdapterIdUsernameDataSource<T>
         if (ids == null || ids.size() == 0)
             return;
         List<T> result = new ArrayList<T>();
-        for (int i = 0; i < ids.size(); i++) {
-            T item = getByUsernameId(username, ids.get(i));
+        for (String id : ids) {
+            T item = getByUsernameId(username, id);
             if (item != null) {
                 result.add(item);
             }

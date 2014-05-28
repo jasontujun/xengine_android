@@ -23,14 +23,22 @@ import java.util.Map;
  */
 public final class XSimpleImageCache implements XImageCache {
 
-    private static XSimpleImageCache instance;
-
-    public static synchronized XSimpleImageCache getInstance() {
-        if (instance == null) {
-            instance = new XSimpleImageCache();
-        }
-        return instance;
+    private static class SingletonHolder {
+        final static XSimpleImageCache INSTANCE = new XSimpleImageCache();
     }
+
+    public static XSimpleImageCache getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+
+    private Map<String, BitmapRef> mSmallImageCache;// 小图缓存
+    private Map<String, BitmapRef> mScreenImageCache;// 屏幕图缓存
+    private Map<String, BitmapRef> mOriginalImageCache;// 原始图缓存
+    private ReferenceQueue<Bitmap> mReferenceQueue;// 垃圾reference队列
+
+    private Map<String, Bitmap> mSmallKeepBitmaps;
+    private Map<String, Bitmap> mScreenKeepBitmaps;
+    private Map<String, Bitmap> mOriginalKeepBitmaps;
 
     private XSimpleImageCache(){
         mSmallImageCache = new HashMap<String, BitmapRef>();
@@ -42,15 +50,6 @@ public final class XSimpleImageCache implements XImageCache {
         mScreenKeepBitmaps = new HashMap<String, Bitmap>();
         mOriginalKeepBitmaps = new HashMap<String, Bitmap>();
     }
-
-    private Map<String, BitmapRef> mSmallImageCache;// 小图缓存
-    private Map<String, BitmapRef> mScreenImageCache;// 屏幕图缓存
-    private Map<String, BitmapRef> mOriginalImageCache;// 原始图缓存
-    private ReferenceQueue<Bitmap> mReferenceQueue;// 垃圾reference队列
-
-    private Map<String, Bitmap> mSmallKeepBitmaps;
-    private Map<String, Bitmap> mScreenKeepBitmaps;
-    private Map<String, Bitmap> mOriginalKeepBitmaps;
 
     /**
      * 继承SoftReference，使得每一个实例都具有可识别的标识。

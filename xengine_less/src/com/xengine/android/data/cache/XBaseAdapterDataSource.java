@@ -1,12 +1,15 @@
 package com.xengine.android.data.cache;
 
+import com.xengine.android.base.listener.XCowListenerMgr;
+import com.xengine.android.base.listener.XListenerMgr;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * 内存中的数据源，可以用于适配界面Adapter。
+ * 实现XAdapterDataSource接口的数据源抽象类。
  * Created by 赵之韵.
  * Date: 11-12-17
  * Time: 上午1:01
@@ -16,38 +19,44 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
     /**
      * 实际的对象列表。
      */
-    protected ArrayList<T> itemList = new ArrayList<T>();
+    protected ArrayList<T> mItemList;
 
     /**
      * 数据变化监听器
      */
-    protected List<XDataChangeListener<T>> listeners = new ArrayList<XDataChangeListener<T>>();
+    protected XListenerMgr<XDataChangeListener<T>> mListeners;
 
     /**
      * 自动通知监听者
      */
-    protected boolean isAutoNotify = true;
+    protected boolean mIsAutoNotify;
+
+    public XBaseAdapterDataSource() {
+        mItemList = new ArrayList<T>();
+        mListeners = new XCowListenerMgr<XDataChangeListener<T>>();
+        mIsAutoNotify = true;
+    }
 
     @Override
     public void sort(Comparator<T> comparator) {
-        Collections.sort(itemList, comparator);
+        Collections.sort(mItemList, comparator);
     }
 
     @Override
     public T get(int index) {
-        return itemList.get(index);
+        return mItemList.get(index);
     }
 
     @Override
     public int size() {
-        return itemList.size();
+        return mItemList.size();
     }
 
     @Override
     public synchronized void add(T item) {
-        if (!itemList.contains(item)) {
-            itemList.add(item);
-            if (isAutoNotify)
+        if (!mItemList.contains(item)) {
+            mItemList.add(item);
+            if (mIsAutoNotify)
                 notifyAddItem(item);
         }
     }
@@ -58,52 +67,52 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
             return;
 
         for (T item: items) {
-            if(!itemList.contains(item))
-                itemList.add(item);
+            if(!mItemList.contains(item))
+                mItemList.add(item);
         }
-        if (isAutoNotify)
+        if (mIsAutoNotify)
             notifyAddItems(items);
     }
 
     @Override
     public boolean isEmpty() {
-        return itemList.isEmpty();
+        return mItemList.isEmpty();
     }
 
     @Override
     public synchronized void delete(int index) {
-        if (index < 0 || index >= itemList.size())
+        if (index < 0 || index >= mItemList.size())
             return;
 
-        T item = itemList.remove(index);
-        if (isAutoNotify)
+        T item = mItemList.remove(index);
+        if (mIsAutoNotify)
             notifyDeleteItem(item);
     }
 
     @Override
     public synchronized void delete(T item) {
-        if (itemList.remove(item)) {
-            if (isAutoNotify)
+        if (mItemList.remove(item)) {
+            if (mIsAutoNotify)
                 notifyDeleteItem(item);
         }
     }
 
     @Override
     public synchronized void deleteAll(List<T> items) {
-        if (itemList.removeAll(items)) {
-            if (isAutoNotify)
+        if (mItemList.removeAll(items)) {
+            if (mIsAutoNotify)
                 notifyDeleteItems(items);
         }
     }
 
     @Override
     public int indexOf(T item) {
-        return itemList.indexOf(item);
+        return mItemList.indexOf(item);
     }
 
     @Override
     public boolean contains(T item) {
-        return itemList.contains(item);
+        return mItemList.contains(item);
     }
 
     /**
@@ -111,73 +120,61 @@ public abstract class XBaseAdapterDataSource<T> implements XAdapterDataSource<T>
      */
     @Override
     public List<T> copyAll() {
-        return new ArrayList<T>(itemList);
+        return new ArrayList<T>(mItemList);
     }
 
     @Override
     public synchronized void clear() {
-        List<T> copyItems = new ArrayList<T>(itemList);
-        itemList.clear();
-        if (isAutoNotify)
+        List<T> copyItems = new ArrayList<T>(mItemList);
+        mItemList.clear();
+        if (mIsAutoNotify)
             notifyDeleteItems(copyItems);
     }
 
     @Override
-    public synchronized void registerDataChangeListener(XDataChangeListener<T> listener) {
-        if (listener != null) {
-            // cow
-            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(listeners);
-            if (!copyListeners.contains(listener)) {
-                copyListeners.add(listener);
-                listeners = copyListeners;
-            }
-        }
+    public void registerDataChangeListener(XDataChangeListener<T> listener) {
+        mListeners.registerListener(listener);
     }
 
     @Override
-    public synchronized void unregisterDataChangeListener(XDataChangeListener<T> listener) {
-        if (listener != null) {
-            // cow
-            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(listeners);
-            if (copyListeners.remove(listener))
-                listeners = copyListeners;
-        }
+    public void unregisterDataChangeListener(XDataChangeListener<T> listener) {
+        mListeners.unregisterListener(listener);
     }
 
     @Override
     public void notifyDataChanged() {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners) {
             listener.onChange();
         }
     }
 
     protected void notifyAddItem(T item) {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onAdd(item);
     }
 
     protected void notifyAddItems(List<T> items) {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onAddAll(items);
     }
 
     protected void notifyDeleteItem(T item) {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onDelete(item);
     }
 
     protected void notifyDeleteItems(List<T> items) {
-        final List<XDataChangeListener<T>> finalListeners = listeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onDeleteAll(items);
     }
 
     @Override
     public void setAutoNotifyListeners(boolean isAuto) {
-        this.isAutoNotify = isAuto;
+        this.mIsAutoNotify = isAuto;
     }
 }

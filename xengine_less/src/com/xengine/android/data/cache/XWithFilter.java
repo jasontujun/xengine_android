@@ -1,6 +1,6 @@
 package com.xengine.android.data.cache;
 
-import com.xengine.android.data.cache.filter.XFilter;
+import com.xengine.android.base.filter.XFilter;
 
 import java.util.Comparator;
 

@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 内存中的数据源，可以用于适配界面Adapter。
+ * 基于UserName分类的数据源抽象类。
  * Created by 赵之韵.
  * Date: 11-12-17
  * Time: 上午1:01
  */
 public abstract class XBaseAdapterUsernameDataSource<T>
         extends XBaseAdapterDataSource<T> implements XWithUsername<T> {
+
     /**
      * 根据用户名获取元素
      * @param username

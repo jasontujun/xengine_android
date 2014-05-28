@@ -1,7 +1,6 @@
 package com.xengine.android.data.cache;
 
-import com.xengine.android.data.cache.filter.XFilter;
-import com.xengine.android.data.cache.filter.XNullFilter;
+import com.xengine.android.base.filter.XFilter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,8 +8,9 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * FIXME, 合理安排onchange的调用次数，提高性能
+ * 带过滤功能的数据源抽象类。
  * Created by 赵之韵.
+ * Modified by jasontujun
  * Email: ttxzmorln@163.com
  * Date: 12-3-17
  * Time: 下午11:43
@@ -31,7 +31,6 @@ public abstract class XBaseFilteredAdapterSource<T>
     protected boolean isAutoNotify = true;
 
     public XBaseFilteredAdapterSource() {
-        mFilter = new XNullFilter<T>();
         mItemList = new ArrayList<T>();
         mCache = new ArrayList<T>();
         mListeners = new ArrayList<XDataChangeListener<T>>();
@@ -70,11 +69,10 @@ public abstract class XBaseFilteredAdapterSource<T>
     @Override
     public void doFilter() {
         mCache.clear();
-        if (mFilter == null) {
+        if (mFilter == null)
             mCache.addAll(mItemList);
-        } else {
+        else
             mCache.addAll(mFilter.doFilter(mItemList));
-        }
         if (mComparator != null) {
             Collections.sort(mCache, mComparator);
             Collections.sort(mItemList, mComparator);
@@ -111,7 +109,7 @@ public abstract class XBaseFilteredAdapterSource<T>
             if (isAutoNotify)
                 notifyAddOriginItem(item);
 
-            T result = mFilter.doFilter(item);
+            T result = (mFilter != null) ? mFilter.doFilter(item) : item;
             if (result != null) {
                 mCache.add(result);
                 if (isAutoNotify)
@@ -131,7 +129,7 @@ public abstract class XBaseFilteredAdapterSource<T>
                 mItemList.add(item);
                 addedToOrigin.add(item);
 
-                T result = mFilter.doFilter(item);
+                T result = (mFilter != null) ? mFilter.doFilter(item) : item;
                 if (result != null) {
                     mCache.add(result);
                     addedToCache.add(item);

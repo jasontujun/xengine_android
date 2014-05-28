@@ -1,6 +1,7 @@
 package com.xengine.android.data.cache;
 
 /**
+ * 数据源接口
  * Created by 赵之韵.
  * Email: ttxzmorln@163.com
  * Date: 12-3-3

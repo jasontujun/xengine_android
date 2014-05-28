@@ -8,17 +8,12 @@ import java.util.HashMap;
  */
 public class DefaultDataRepo implements XDataRepository {
 
-    private static DefaultDataRepo instance;
-
-    public synchronized static DefaultDataRepo getInstance() {
-        if(instance == null) {
-            instance = new DefaultDataRepo();
-        }
-        return instance;
+    private static class SingletonHolder {
+        final static DefaultDataRepo INSTANCE = new DefaultDataRepo();
     }
 
-    public static void clearInstance() {
-        instance = null;
+    public static DefaultDataRepo getInstance() {
+        return SingletonHolder.INSTANCE;
     }
 
     private HashMap<String, XDataSource> map;
