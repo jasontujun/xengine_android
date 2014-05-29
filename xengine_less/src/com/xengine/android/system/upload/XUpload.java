@@ -1,4 +1,4 @@
-package com.xengine.android.session.upload;
+package com.xengine.android.system.upload;
 
 import java.io.File;
 import java.util.Map;

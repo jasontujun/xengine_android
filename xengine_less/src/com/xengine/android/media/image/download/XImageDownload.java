@@ -1,7 +1,7 @@
 package com.xengine.android.media.image.download;
 
 import android.graphics.Bitmap;
-import com.xengine.android.session.download.XDownload;
+import com.xengine.android.system.download.XDownload;
 
 /**
  * 图片下载接口

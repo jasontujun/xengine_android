@@ -1,4 +1,4 @@
-package com.xengine.android.session.upload;
+package com.xengine.android.system.upload;
 
 import com.xengine.android.session.http.XHttp;
 import com.xengine.android.session.http.XHttpRequest;

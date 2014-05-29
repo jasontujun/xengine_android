@@ -1,6 +1,6 @@
-package com.xengine.android.session.upload;
+package com.xengine.android.system.upload;
 
-import com.xengine.android.session.upload.XUploadListener;
+import com.xengine.android.system.upload.XUploadListener;
 
 /**
  * Created with IntelliJ IDEA.

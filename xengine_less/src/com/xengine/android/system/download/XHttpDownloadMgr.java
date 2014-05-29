@@ -1,4 +1,4 @@
-package com.xengine.android.session.download;
+package com.xengine.android.system.download;
 
 import android.text.TextUtils;
 import com.xengine.android.session.http.XHttp;

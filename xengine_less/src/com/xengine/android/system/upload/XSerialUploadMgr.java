@@ -1,4 +1,4 @@
-package com.xengine.android.session.upload;
+package com.xengine.android.system.upload;
 
 import android.os.AsyncTask;
 import com.xengine.android.system.series.XWrapperSerialMgr;

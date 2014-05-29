@@ -1,6 +1,6 @@
-package com.xengine.android.session.download;
+package com.xengine.android.system.download;
 
-import com.xengine.android.session.download.XDownloadListener;
+import com.xengine.android.system.download.XDownloadListener;
 
 /**
  * Created with IntelliJ IDEA.

@@ -5,7 +5,7 @@ import android.graphics.Rect;
 import android.text.TextUtils;
 import com.xengine.android.media.image.processor.XAndroidImageProcessor;
 import com.xengine.android.media.image.processor.XImageProcessor;
-import com.xengine.android.session.download.XHttpDownloadMgr;
+import com.xengine.android.system.download.XHttpDownloadMgr;
 import com.xengine.android.session.http.XBufferedHttpResponse;
 import com.xengine.android.session.http.XHttp;
 import com.xengine.android.session.http.XHttpRequest;

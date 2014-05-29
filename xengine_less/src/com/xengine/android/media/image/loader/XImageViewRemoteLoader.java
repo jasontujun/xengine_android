@@ -11,7 +11,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
 import com.xengine.android.media.image.download.XImageDownload;
 import com.xengine.android.media.image.processor.XImageProcessor;
-import com.xengine.android.session.download.XSerialDownloadListener;
+import com.xengine.android.system.download.XSerialDownloadListener;
 import com.xengine.android.utils.XLog;
 
 import java.lang.ref.WeakReference;

@@ -1,4 +1,4 @@
-package com.xengine.android.session.download;
+package com.xengine.android.system.download;
 
 import android.os.AsyncTask;
 import com.xengine.android.system.series.XWrapperSerialMgr;
