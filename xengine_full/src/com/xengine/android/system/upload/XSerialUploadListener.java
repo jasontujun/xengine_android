@@ -1,7 +1,5 @@
 package com.xengine.android.system.upload;
 
-import com.xengine.android.system.upload.XUploadListener;
-
 /**
  * Created with IntelliJ IDEA.
  * User: tujun

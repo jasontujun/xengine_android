@@ -11,8 +11,8 @@ import com.xengine.android.media.image.processor.XImageProcessor;
  * 2. 二级缓存（内存 + sd卡的图片缓存）。
  * 3. 异步方式加载。
  * 4. 同步方式加载。
- * @see XImageViewLocalLoader
- * @see XImageSwitcherLocalLoader
+ * @see com.xengine.android.media.image.loader.XImageViewLocalLoader
+ * @see com.xengine.android.media.image.loader.XImageSwitcherLocalLoader
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-8-1
@@ -39,5 +39,5 @@ public interface XImageLocalLoader<T extends View> extends XImageLoader{
      * @param size
      */
     void syncLoadBitmap(Context context, String imageUrl,
-                               T view, XImageProcessor.ImageSize size);
+                        T view, XImageProcessor.ImageSize size);
 }

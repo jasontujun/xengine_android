@@ -22,7 +22,7 @@ import com.xengine.android.utils.XLog;
  * 4. 延迟加载特性：只有停止时才加载，滑动时候不加载。
  * 5. 双队列执行（两个线程）：下载队列负责异步下载任务，加载队列负责异步加载图片。
  * 6. 支持对多个不同imageView同时加载相同url的图片（图片:imageView = 1:N）
- * @see XScrollLocalLoader
+ * @see com.xengine.android.media.image.loader.XScrollLocalLoader
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-8-6

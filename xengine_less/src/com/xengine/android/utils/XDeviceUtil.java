@@ -16,6 +16,7 @@ import java.util.Locale;
 
 /**
  * <pre>
+ * 设备相关工具类
  * User: jasontujun
  * Date: 14-5-26
  * Time: 下午3:37
@@ -57,15 +58,15 @@ public class XDeviceUtil {
     }
 
     public static String getOSVersion() {
-        return android.os.Build.VERSION.RELEASE;
+        return Build.VERSION.RELEASE;
     }
 
     public static String getDevice() {
-        return android.os.Build.MODEL;
+        return Build.MODEL;
     }
 
     public static String getBrand(){
-        return android.os.Build.BRAND;
+        return Build.BRAND;
     }
 
     public static String getCPUInfo() {

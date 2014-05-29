@@ -1,7 +1,5 @@
 package com.xengine.android.system.download;
 
-import com.xengine.android.system.download.XDownloadListener;
-
 /**
  * Created with IntelliJ IDEA.
  * User: tujun

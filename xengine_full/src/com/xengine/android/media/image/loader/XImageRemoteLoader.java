@@ -11,7 +11,7 @@ import com.xengine.android.system.download.XSerialDownloadListener;
  * 1. 包括本地加载，如果本地没有则下载。
  * 2. 加载器先从一级缓存（内存）和二级缓存（sd卡）中寻找，如果没有则从网上下载。
  * 3. 异步方式加载。
- * @see XImageViewRemoteLoader
+ * @see com.xengine.android.media.image.loader.XImageViewRemoteLoader
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-8-1

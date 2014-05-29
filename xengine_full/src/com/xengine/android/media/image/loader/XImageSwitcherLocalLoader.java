@@ -19,7 +19,7 @@ import java.lang.ref.WeakReference;
  * 4. 同步方式加载。
  * 5. 多线程并发，无序且比较耗费资源
  * 6. 持有ImageSwitcher内部的两个bitmap，不被销毁。最后要记得关闭该特性，销毁持有的bitmap。
- * @see XImageViewLocalLoader 用于ImageView的本地图片加载器
+ * @see com.xengine.android.media.image.loader.XImageViewLocalLoader 用于ImageView的本地图片加载器
  * Created by jasontujun.
  * Date: 12-10-9
  * Time: 下午1:22

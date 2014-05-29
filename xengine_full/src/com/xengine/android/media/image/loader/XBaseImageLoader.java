@@ -17,9 +17,9 @@ import java.lang.ref.WeakReference;
 
 /**
  * 实现图片加载器接口的基础类。
- * @see XImageViewLocalLoader
- * @see XImageSwitcherLocalLoader
- * @see XImageViewRemoteLoader
+ * @see com.xengine.android.media.image.loader.XImageViewLocalLoader
+ * @see com.xengine.android.media.image.loader.XImageSwitcherLocalLoader
+ * @see com.xengine.android.media.image.loader.XImageViewRemoteLoader
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-8-7
