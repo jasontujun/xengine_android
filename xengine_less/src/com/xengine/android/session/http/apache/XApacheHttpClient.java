@@ -10,6 +10,8 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -47,6 +49,9 @@ public class XApacheHttpClient extends XBaseHttp {
     private static final String ACCEPT_ENCODING = "Accept-Encoding";
     private static final String GZIP = "gzip";
 
+    public final static int MAX_TOTAL_CONNECTIONS = 800;// 最大连接数
+    public final static int MAX_ROUTE_CONNECTIONS = 400;// 每个路由最大连接数
+
     private HttpContext mHttpContext;
     private DefaultHttpClient mHttpClient;
     private HttpUriRequest mCurrentRequest;
@@ -64,7 +69,12 @@ public class XApacheHttpClient extends XBaseHttp {
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
         HttpProtocolParams.setUseExpectContinue(params, true);
+        // http连接池设置
+        ConnManagerParams.setMaxTotalConnections(params, MAX_TOTAL_CONNECTIONS);// 设置最大连接数
+        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(MAX_ROUTE_CONNECTIONS);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);// 设置每个路由最大连接数
         // http连接参数设置
+        HttpConnectionParams.setSocketBufferSize(params, 8 * 1024);
         HttpConnectionParams.setConnectionTimeout(params, mConnectionTimeOut);
         HttpConnectionParams.setSoTimeout(params, mConnectionTimeOut);
         HttpConnectionParams.setStaleCheckingEnabled(params, false);
