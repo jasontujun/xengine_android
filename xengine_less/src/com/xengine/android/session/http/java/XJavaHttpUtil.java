@@ -1,6 +1,7 @@
 package com.xengine.android.session.http.java;
 
 import android.text.TextUtils;
+import com.xengine.android.session.http.XHttp;
 import com.xengine.android.utils.XLog;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.mime.MIME;
@@ -160,7 +161,7 @@ public class XJavaHttpUtil {
         int start = 0;
         BasicClientCookie cookie = null;
         // 去除空格
-        cookieStr = cookieStr.replaceAll(" ", "");
+        cookieStr = cookieStr.replace(" ", "");
         // 获取name和value生成cookie，是第一个分号；
         int equalSignIndex = cookieStr.indexOf("=", start);
         int semicolonIndex = cookieStr.indexOf(";", start);
@@ -275,20 +276,26 @@ public class XJavaHttpUtil {
             return null;
 
         // 去除空格
-        contentTypeValue = contentTypeValue.replaceAll(" ", "");
+        contentTypeValue = contentTypeValue.replace(" ", "");
         // 提取charset字段的值
         final String tag = "charset";
         int tagIndex = contentTypeValue.indexOf(tag);
         if (tagIndex == -1)
             return null;
 
+        // 获取字符编码
         String charsetName;
         int semicolonIndex = contentTypeValue.indexOf(";", tagIndex);
         if (semicolonIndex == -1)
             charsetName = contentTypeValue.substring(tagIndex + tag.length() + 1);
         else
             charsetName = contentTypeValue.substring(tagIndex + tag.length() + 1, semicolonIndex);
-        return Charset.forName(charsetName);
+        Charset charset = !TextUtils.isEmpty(charsetName) ? Charset.forName(charsetName) : null;
+        // 如果解析失败，则使用默认编码
+        if (charset == null)
+            charset = XHttp.DEF_CONTENT_CHARSET;
+
+        return charset;
     }
 
 }

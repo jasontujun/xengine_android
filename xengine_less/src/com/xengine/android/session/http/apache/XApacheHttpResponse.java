@@ -1,9 +1,12 @@
 package com.xengine.android.session.http.apache;
 
+import android.text.TextUtils;
 import com.xengine.android.session.http.XBaseHttpResponse;
 import com.xengine.android.session.http.XHttp;
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
-import org.apache.http.entity.ContentType;
+import org.apache.http.NameValuePair;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -39,16 +42,23 @@ class XApacheHttpResponse extends XBaseHttpResponse {
         if (mEntity == null)
             return null;
 
-        Charset charset = null;
-        // 先调用ContentType去尝试解析字符编码
-        ContentType contentType = ContentType.get(mEntity);
-        if (contentType != null) {
-            charset = contentType.getCharset();
-        }
+        Header header = mEntity.getContentType();
+        if (header == null)
+            return null;
+        HeaderElement[] elements = header.getElements();
+        if (elements.length == 0)
+            return null;
+        HeaderElement ctElement = elements[0];
+        NameValuePair param = ctElement.getParameterByName("charset");
+        if (param == null)
+            return null;
+        // 获取字符编码
+        String charsetName = param.getValue();
+        Charset charset = !TextUtils.isEmpty(charsetName) ? Charset.forName(charsetName) : null;
         // 如果解析失败，则使用默认编码
-        if (charset == null) {
+        if (charset == null)
             charset = XHttp.DEF_CONTENT_CHARSET;
-        }
+
         return charset;
     }
 }
