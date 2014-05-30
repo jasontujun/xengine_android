@@ -1,6 +1,8 @@
 package com.xengine.android.data.cache;
 
 import com.xengine.android.base.filter.XFilter;
+import com.xengine.android.base.listener.XCowListenerMgr;
+import com.xengine.android.base.listener.XListenerMgr;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,8 +23,8 @@ public abstract class XBaseFilteredAdapterSource<T>
     protected XFilter<T> mFilter;
     protected ArrayList<T> mItemList;
     protected ArrayList<T> mCache;
-    protected List<XDataChangeListener<T>> mListeners;
-    protected List<XDataChangeListener<T>> mOriginListeners;
+    protected XListenerMgr<XDataChangeListener<T>> mListeners;
+    protected XListenerMgr<XDataChangeListener<T>> mOriginListeners;
     protected Comparator<T> mComparator;
 
     /**
@@ -33,8 +35,8 @@ public abstract class XBaseFilteredAdapterSource<T>
     public XBaseFilteredAdapterSource() {
         mItemList = new ArrayList<T>();
         mCache = new ArrayList<T>();
-        mListeners = new ArrayList<XDataChangeListener<T>>();
-        mOriginListeners = new ArrayList<XDataChangeListener<T>>();
+        mListeners = new XCowListenerMgr<XDataChangeListener<T>>();
+        mOriginListeners = new XCowListenerMgr<XDataChangeListener<T>>();
         doFilter();
     }
 
@@ -189,61 +191,61 @@ public abstract class XBaseFilteredAdapterSource<T>
     }
 
     protected void notifyCacheDataChanged() {
-        final List<XDataChangeListener<T>> finalListeners = mListeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onChange();
     }
 
     protected void notifyOriginDataChanged() {
-        final List<XDataChangeListener<T>> finalListeners = mOriginListeners;
+        final List<XDataChangeListener<T>> finalListeners = mOriginListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onChange();
     }
 
     protected void notifyAddItem(T item) {
-        final List<XDataChangeListener<T>> finalListeners = mListeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onAdd(item);
     }
 
     protected void notifyAddOriginItem(T item) {
-        final List<XDataChangeListener<T>> finalListeners = mOriginListeners;
+        final List<XDataChangeListener<T>> finalListeners = mOriginListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onAdd(item);
     }
 
     protected void notifyAddItems(List<T> items) {
-        final List<XDataChangeListener<T>> finalListeners = mListeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onAddAll(items);
     }
 
     protected void notifyAddOriginItems(List<T> items) {
-        final List<XDataChangeListener<T>> finalListeners = mOriginListeners;
+        final List<XDataChangeListener<T>> finalListeners = mOriginListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onAddAll(items);
     }
 
     protected void notifyDeleteItem(T item) {
-        final List<XDataChangeListener<T>> finalListeners = mListeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onDelete(item);
     }
 
     protected void notifyDeleteOriginItem(T item) {
-        final List<XDataChangeListener<T>> finalListeners = mOriginListeners;
+        final List<XDataChangeListener<T>> finalListeners = mOriginListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onDelete(item);
     }
 
     protected void notifyDeleteItems(List<T> items) {
-        final List<XDataChangeListener<T>> finalListeners = mListeners;
+        final List<XDataChangeListener<T>> finalListeners = mListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onDeleteAll(items);
     }
 
     protected void notifyDeleteOriginItems(List<T> items) {
-        final List<XDataChangeListener<T>> finalListeners = mOriginListeners;
+        final List<XDataChangeListener<T>> finalListeners = mOriginListeners.getListeners();
         for (XDataChangeListener<T> listener: finalListeners)
             listener.onDeleteAll(items);
     }
@@ -276,48 +278,24 @@ public abstract class XBaseFilteredAdapterSource<T>
     }
 
     @Override
-    public synchronized void registerDataChangeListener(XDataChangeListener<T> listener) {
-        if (listener != null) {
-            // cow
-            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(mListeners);
-            if (!copyListeners.contains(listener)) {
-                copyListeners.add(listener);
-                mListeners = copyListeners;
-            }
-        }
+    public void registerDataChangeListener(XDataChangeListener<T> listener) {
+        mListeners.registerListener(listener);
     }
 
     @Override
-    public synchronized void unregisterDataChangeListener(XDataChangeListener<T> listener) {
-        if (listener != null) {
-            // cow
-            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(mListeners);
-            if (copyListeners.remove(listener))
-                mListeners = copyListeners;
-        }
+    public void unregisterDataChangeListener(XDataChangeListener<T> listener) {
+        mListeners.unregisterListener(listener);
     }
 
 
     @Override
-    public synchronized void registerDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
-        if (listener != null) {
-            // cow
-            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(mOriginListeners);
-            if (!copyListeners.contains(listener)) {
-                copyListeners.add(listener);
-                mOriginListeners = copyListeners;
-            }
-        }
+    public void registerDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
+        mOriginListeners.registerListener(listener);
     }
 
     @Override
-    public synchronized void unregisterDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
-        if (listener != null) {
-            // cow
-            List<XDataChangeListener<T>> copyListeners = new ArrayList<XDataChangeListener<T>>(mOriginListeners);
-            if (copyListeners.remove(listener))
-                mOriginListeners = copyListeners;
-        }
+    public void unregisterDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
+        mOriginListeners.unregisterListener(listener);
     }
 
     @Override

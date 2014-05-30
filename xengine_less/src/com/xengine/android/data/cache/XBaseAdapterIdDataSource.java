@@ -190,7 +190,7 @@ public abstract class XBaseAdapterIdDataSource<T> implements XAdapterDataSource<
     }
 
     @Override
-    public synchronized void unregisterDataChangeListener(XDataChangeListener<T> listener) {
+    public void unregisterDataChangeListener(XDataChangeListener<T> listener) {
         mListeners.unregisterListener(listener);
     }
 

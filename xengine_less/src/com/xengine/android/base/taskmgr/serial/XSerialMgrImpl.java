@@ -519,12 +519,12 @@ public class XSerialMgrImpl<B extends XTaskBean>
     }
 
     @Override
-    public synchronized void registerListener(XTaskMgrListener<B> listener) {
+    public void registerListener(XTaskMgrListener<B> listener) {
         mListeners.registerListener(listener);
     }
 
     @Override
-    public synchronized void unregisterListener(XTaskMgrListener<B> listener) {
+    public void unregisterListener(XTaskMgrListener<B> listener) {
         mListeners.unregisterListener(listener);
     }
 

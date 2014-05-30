@@ -342,18 +342,18 @@ public abstract class XBaseFilteredAdapterIdSource<T>
     }
 
     @Override
-    public synchronized void unregisterDataChangeListener(XDataChangeListener<T> listener) {
+    public void unregisterDataChangeListener(XDataChangeListener<T> listener) {
         mListeners.unregisterListener(listener);
     }
 
 
     @Override
-    public synchronized void registerDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
+    public void registerDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
         mOriginListeners.registerListener(listener);
     }
 
     @Override
-    public synchronized void unregisterDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
+    public void unregisterDataChangeListenerForOrigin(XDataChangeListener<T> listener) {
         mOriginListeners.unregisterListener(listener);
     }
 
