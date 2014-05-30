@@ -10,13 +10,6 @@ package com.xengine.android.base.taskmgr;
  * </pre>
  */
 public interface XTaskScheduler<T> {
-
-    /**
-     * 获取任务调度器的类型。
-     * @return 返回代表该类型的唯一int值
-     */
-    int getType();
-
     /**
      * 比较两个任务的先后执行顺序。
      * @param task1 第一个任务(比较对象)
