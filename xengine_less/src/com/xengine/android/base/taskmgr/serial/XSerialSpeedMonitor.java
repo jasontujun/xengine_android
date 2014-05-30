@@ -16,19 +16,19 @@ import java.util.List;
  * Time: 下午5:03
  * </pre>
  */
-public class XSerialXSpeedMonitor<B extends XTaskBean>
+public class XSerialSpeedMonitor<B extends XTaskBean>
         extends XBaseSpeedMonitor<XBaseMgrTaskExecutor<B>> {
 
     private XSerialMgr<XBaseMgrTaskExecutor<B>, B> mSerialMgr;
     private List<XBaseMgrTaskExecutor<B>> mRunningTasks;
 
-    public XSerialXSpeedMonitor(XSerialMgr<XBaseMgrTaskExecutor<B>, B> serialMgr) {
+    public XSerialSpeedMonitor(XSerialMgr<XBaseMgrTaskExecutor<B>, B> serialMgr) {
         super();
         mSerialMgr = serialMgr;
         mRunningTasks = new LinkedList<XBaseMgrTaskExecutor<B>>();
     }
 
-    public XSerialXSpeedMonitor(XSerialMgr<XBaseMgrTaskExecutor<B>, B> serialMgr, int interval) {
+    public XSerialSpeedMonitor(XSerialMgr<XBaseMgrTaskExecutor<B>, B> serialMgr, int interval) {
         super(interval);
         mSerialMgr = serialMgr;
         mRunningTasks = new LinkedList<XBaseMgrTaskExecutor<B>>();
