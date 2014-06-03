@@ -38,7 +38,7 @@ public class XExternalRootImpl implements XExternalRoot {
     }
 
     @Override
-    public synchronized void init(Context context) {
+    public void init(Context context) {
         init(context, null);
     }
 
