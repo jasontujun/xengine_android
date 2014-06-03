@@ -7,7 +7,6 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
-import com.xengine.android.session.http.XNetworkUtil;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

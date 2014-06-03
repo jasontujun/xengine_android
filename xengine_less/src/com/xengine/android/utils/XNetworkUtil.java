@@ -1,4 +1,4 @@
-package com.xengine.android.session.http;
+package com.xengine.android.utils;
 
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -13,6 +13,7 @@ import android.provider.Settings;
 /**
  * 网络辅助类
  * Created by 赵之韵.
+ * Modified by jasontujun
  * Date: 12-2-29
  * Time: 下午6:56
  */

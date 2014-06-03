@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.TextUtils;
 import com.xengine.android.session.http.*;
 import com.xengine.android.utils.XLog;
+import com.xengine.android.utils.XNetworkUtil;
 import org.apache.http.*;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;

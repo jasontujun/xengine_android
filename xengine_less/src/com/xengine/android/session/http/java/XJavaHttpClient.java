@@ -3,6 +3,7 @@ package com.xengine.android.session.http.java;
 import android.content.Context;
 import com.xengine.android.session.http.*;
 import com.xengine.android.utils.XLog;
+import com.xengine.android.utils.XNetworkUtil;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.mime.MIME;
 
