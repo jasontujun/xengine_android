@@ -48,7 +48,8 @@ public class XExternalRootImpl implements XExternalRoot {
         mRoots.clear();
         // 将getExternalStorage()返回的根路径添加到第一个位置
         String apiRoot = XRootUtil.getRootByApi();
-        if (!TextUtils.isEmpty(apiRoot))
+        if (!TextUtils.isEmpty(apiRoot) &&
+                (filter == null || filter.doFilter(apiRoot) != null))
             mRoots.add(apiRoot);
         // 先通过反射获取所有根路径
         List<String> roots = XRootUtil.getRootsByReflection(context);
@@ -57,7 +58,9 @@ public class XExternalRootImpl implements XExternalRoot {
             roots = XRootUtil.getRootsByCmd();
         if (roots != null) {
             for (String root : roots) {
-                if (!mRoots.contains(root))
+                // 根路径不重复，且没被过滤掉
+                if (!mRoots.contains(root) &&
+                        (filter == null || filter.doFilter(root) != null))
                     mRoots.add(root);
             }
         }
