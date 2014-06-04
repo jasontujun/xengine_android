@@ -249,7 +249,7 @@ public class XRootUtil {
      * @param rootPaths 已知路径集合
      * @return 如果是软链接，返回链接的目的地址；否则，返回null
      */
-    public String isSoftLink(String path, List<String> rootPaths) {
+    public static String isSoftLink(String path, List<String> rootPaths) {
         if (TextUtils.isEmpty(path) || rootPaths == null || rootPaths.size() == 0)
             return null;
 
