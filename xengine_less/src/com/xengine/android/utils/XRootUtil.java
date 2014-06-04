@@ -1,6 +1,7 @@
 package com.xengine.android.utils;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.text.TextUtils;
@@ -25,7 +26,7 @@ public class XRootUtil {
 
     /**
      * 通过Environment.getExternalStorage()获取外部存储根路径
-     * @return
+     * @return 如果没有存储设备，返回null；否则返回外部存储路径
      */
     public static String getRootByApi() {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -38,11 +39,17 @@ public class XRootUtil {
 
     /**
      * 通过反射getVolumePath()放射，获取所有外部存储的路径。
-     * 注：Android3.2及以后，StorageManager才有getVolumePath()这个方法
+     * 注：
+     * 1.Android 3.2及以上，StorageManager才有getVolumePath()这个方法
+     * 2.Android 2.3及以上，才可以调用这个方法；否则返回null
      * @param context
-     * @return 返回所有外部存储的根路径
+     * @return 如果是Android 2.3，返回null；否则当前返回所有外部存储的根路径
      */
     public static List<String> getRootsByReflection(Context context) {
+        // Android 2.3以下，没有StorageManager，所以无法执行下面的逻辑
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD)
+            return null;
+
         XLog.d(TAG, "getRootsByReflection()");
         StorageManager sm = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
         try {

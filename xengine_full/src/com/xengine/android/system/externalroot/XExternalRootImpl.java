@@ -54,7 +54,7 @@ public class XExternalRootImpl implements XExternalRoot {
         // 先通过反射获取所有根路径
         List<String> roots = XRootUtil.getRootsByReflection(context);
         // 如果反射无法获取所有根路径，尝试通过cmd获取
-        if (roots == null)
+        if (roots == null || roots.size() == 0)
             roots = XRootUtil.getRootsByCmd();
         if (roots != null) {
             for (String root : roots) {
