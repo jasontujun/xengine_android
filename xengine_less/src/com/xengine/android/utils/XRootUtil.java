@@ -214,31 +214,53 @@ public class XRootUtil {
     }
 
     /**
+     * 判断指定路径是否从属app专属存储大文件的路径
+     * @param context app的Context
+     * @param path 指定路径
+     * @return 如果是返回true；否则返回false
+     */
+    public static boolean isAppFilesPath(Context context, String path) {
+        return !TextUtils.isEmpty(path) &&
+                path.contains("/Android/data/" + context.getPackageName() + "/files");
+    }
+
+    /**
+     * 判断指定路径是否从属app专属存储临时文件的路径
+     * @param context app的Context
+     * @param path 指定路径
+     * @return 如果是返回true；否则返回false
+     */
+    public static boolean isAppCachePath(Context context, String path) {
+        return !TextUtils.isEmpty(path) &&
+                path.contains("/Android/data/" + context.getPackageName() + "/cache");
+    }
+
+    /**
      * 将根路径转换成app专属的存储大文件的路径。
      * 格式：/root/Android/data/"package name"/files
-     * @param appContext app的Context
+     * @param context app的Context
      * @param root 外部存储的根路径
      * @return 返回app专属的存储大文件的路径
      * @see android.content.Context#getExternalFilesDir(String)
      */
-    public static String root2AppFilesPath(Context appContext, String root) {
-        if (appContext == null || TextUtils.isEmpty(root))
+    public static String root2AppFilesPath(Context context, String root) {
+        if (context == null || TextUtils.isEmpty(root))
             return null;
-        return root + "/Android/data/" + appContext.getPackageName() + "/files";
+        return root + "/Android/data/" + context.getPackageName() + "/files";
     }
 
     /**
      * 将根路径转换成app专属的存储临时文件的路径。
      * 格式：/root/Android/data/"package name"/cache
-     * @param appContext app的Context
+     * @param context app的Context
      * @param root 外部存储的根路径
      * @return 返回app专属的存储临时文件的路径
      * @see android.content.Context#getExternalCacheDir()
      */
-    public static String root2AppCachePath(Context appContext, String root) {
-        if (appContext == null || TextUtils.isEmpty(root))
+    public static String root2AppCachePath(Context context, String root) {
+        if (context == null || TextUtils.isEmpty(root))
             return null;
-        return root + "/Android/data/" + appContext.getPackageName() + "/cache";
+        return root + "/Android/data/" + context.getPackageName() + "/cache";
     }
 
     /**
