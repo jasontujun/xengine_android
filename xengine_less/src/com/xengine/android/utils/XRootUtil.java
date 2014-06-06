@@ -264,6 +264,36 @@ public class XRootUtil {
     }
 
     /**
+     * 将app专属的存储大文件的路径转换成根路径。
+     * 格式：/root/Android/data/"package name"/files -> /root
+     * @param context app的Context
+     * @param path 外部存储的根路径
+     * @return 返回app专属的存储大文件的路径
+     * @see android.content.Context#getExternalFilesDir(String)
+     */
+    public static String appFilesPath2Root(Context context, String path) {
+        if (context == null || TextUtils.isEmpty(path))
+            return path;
+        String suffix = "/Android/data/" + context.getPackageName() + "/files";
+        return path.replace(suffix, "");
+    }
+
+    /**
+     * 将app专属的存储临时文件的路径转换成根路径。
+     * 格式：/root/Android/data/"package name"/cache -> /root
+     * @param context app的Context
+     * @param path 外部存储的根路径
+     * @return 返回app专属的存储临时文件的路径
+     * @see android.content.Context#getExternalCacheDir()
+     */
+    public static String appCachePath2Root(Context context, String path) {
+        if (context == null || TextUtils.isEmpty(path))
+            return path;
+        String suffix = "/Android/data/" + context.getPackageName() + "/cache";
+        return path.replace(suffix, "");
+    }
+
+    /**
      * 测试某个路径下IO读写操作是否正常。
      * 新建一个test.dat文件，写一段数据，再读出来，比较，最后删掉。
      * 如果这一系列操作都成功，则表示正常，否则不正常。

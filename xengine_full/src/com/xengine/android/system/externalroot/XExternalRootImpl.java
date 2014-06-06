@@ -102,4 +102,30 @@ public class XExternalRootImpl implements XExternalRoot {
 
         return null;
     }
+
+    /**
+     * 立即获取一个app专属放置大文件的外部存储根路径(无需初始化)。
+     * 格式：/root/Android/data/"package name"/files
+     * 注：不能通过此方法判断设备无外部存储根路径
+     * @return 返回一个外部存储根路径；如果没有，则返回null
+     */
+    public String getAppFilesRootWithoutInit(Context context) {
+        String root = getRootWithoutInit(context);
+        if (!TextUtils.isEmpty(root))
+            root = XRootUtil.root2AppFilesPath(context, root);
+        return root;
+    }
+
+    /**
+     * 立即获取一个app专属放置临时文件的外部存储根路径(无需初始化)。
+     * 格式：/root/Android/data/"package name"/cache
+     * 注：不能通过此方法判断设备无外部存储根路径
+     * @return 返回一个外部存储根路径；如果没有，则返回null
+     */
+    public String getAppCacheRootWithoutInit(Context context) {
+        String root = getRootWithoutInit(context);
+        if (!TextUtils.isEmpty(root))
+            root = XRootUtil.root2AppCachePath(context, root);
+        return root;
+    }
 }
