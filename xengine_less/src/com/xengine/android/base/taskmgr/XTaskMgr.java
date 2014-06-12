@@ -1,6 +1,7 @@
 package com.xengine.android.base.taskmgr;
 
 import com.xengine.android.base.filter.XFilter;
+import com.xengine.android.base.speed.XSpeedMonitor;
 import com.xengine.android.base.task.XTaskBean;
 import com.xengine.android.base.task.XTaskExecutor;
 
@@ -16,7 +17,7 @@ import java.util.List;
  * Time: 下午3:37
  * </pre>
  */
-public interface XTaskMgr<T extends XTaskExecutor<B>, B extends XTaskBean> {
+public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
 
     /**
      * 获取task的唯一Id。
@@ -153,6 +154,12 @@ public interface XTaskMgr<T extends XTaskExecutor<B>, B extends XTaskBean> {
      * 停止并清空所有任务。
      */
     void stopAndReset();
+
+    /**
+     * 设置速度监控器
+     * @param speedMonitor
+     */
+    void setSpeedMonitor(XSpeedMonitor<T> speedMonitor);
 
     /**
      * 设置任务过滤器，过滤掉的任务不会被执行。

@@ -2,7 +2,7 @@ package com.xengine.android.base.task;
 
 /**
  * <pre>
- * 任务执行的接口。
+ * 任务执行器的接口。
  * 每个任务执行类包含一个任务数据类，
  * B表示任务数据的类型，B继承自TaskBean。
  * User: jasontujun

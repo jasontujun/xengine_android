@@ -1,7 +1,7 @@
 package com.xengine.android.base.taskmgr.serial;
 
 import com.xengine.android.base.task.XTaskBean;
-import com.xengine.android.base.task.XTaskExecutor;
+import com.xengine.android.base.taskmgr.XMgrTaskExecutor;
 import com.xengine.android.base.taskmgr.XTaskMgr;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
  * Time: 下午8:48
  * </pre>
  */
-public interface XSerialMgr<T extends XTaskExecutor<B>, B extends XTaskBean>
+public interface XSerialMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean>
         extends XTaskMgr<T, B> {
 
     /**

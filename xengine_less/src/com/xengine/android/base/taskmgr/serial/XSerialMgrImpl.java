@@ -6,7 +6,7 @@ import com.xengine.android.base.listener.XListenerMgr;
 import com.xengine.android.base.speed.XSpeedMonitor;
 import com.xengine.android.base.speed.calc.DefaultSpeedCalculator;
 import com.xengine.android.base.task.XTaskBean;
-import com.xengine.android.base.taskmgr.XBaseMgrTaskExecutor;
+import com.xengine.android.base.taskmgr.XMgrTaskExecutor;
 import com.xengine.android.base.taskmgr.XTaskMgrListener;
 import com.xengine.android.base.taskmgr.XTaskScheduler;
 
@@ -29,47 +29,39 @@ import java.util.*;
  * </pre>
  */
 public class XSerialMgrImpl<B extends XTaskBean>
-        implements XSerialMgr<XBaseMgrTaskExecutor<B>, B> {
+        implements XSerialMgr<XMgrTaskExecutor<B>, B> {
 
     private boolean mIsWorking;// 标识运行状态
-    private volatile XBaseMgrTaskExecutor<B> mCurrentExecuted;// 当前正在运行的任务
-    private volatile LinkedList<XBaseMgrTaskExecutor<B>> mTobeExecuted;// 待执行的任务队列
+    private volatile XMgrTaskExecutor<B> mCurrentExecuted;// 当前正在运行的任务
+    private volatile LinkedList<XMgrTaskExecutor<B>> mTobeExecuted;// 待执行的任务队列
     private XTaskScheduler<B> mScheduler;// 任务排序器(外部设置)
     private XFilter<B> mFilter;// 任务过滤器
-    private Comparator<XBaseMgrTaskExecutor<B>> mInnerComparator;// 实际用来排序的比较器
-    private XSpeedMonitor<XBaseMgrTaskExecutor<B>> mSpeedMonitor;// 速度监视器
+    private Comparator<XMgrTaskExecutor<B>> mInnerComparator;// 实际用来排序的比较器
+    private XSpeedMonitor<XMgrTaskExecutor<B>> mSpeedMonitor;// 速度监视器
     private XListenerMgr<XTaskMgrListener<B>> mListeners;// 外部监听者
 
     public XSerialMgrImpl() {
         mCurrentExecuted = null;
-        mTobeExecuted = new LinkedList<XBaseMgrTaskExecutor<B>>();
+        mTobeExecuted = new LinkedList<XMgrTaskExecutor<B>>();
         mInnerComparator = new InnerTaskComparator();
         mListeners = new XCowListenerMgr<XTaskMgrListener<B>>();
         mIsWorking = false;
     }
 
-    /**
-     * 设置速度监控器
-     * @param speedMonitor
-     */
-    public void setSpeedMonitor(XSpeedMonitor<XBaseMgrTaskExecutor<B>> speedMonitor) {
-        mSpeedMonitor = speedMonitor;
-    }
-
     @Override
-    public String getTaskId(XBaseMgrTaskExecutor<B> task) {
+    public String getTaskId(XMgrTaskExecutor<B> task) {
         return task.getId();
     }
 
     @Override
-    public XBaseMgrTaskExecutor<B> getTaskById(String id) {
+    public XMgrTaskExecutor<B> getTaskById(String id) {
         if (id == null)
             return null;
 
         if (mCurrentExecuted != null && id.equals(getTaskId(mCurrentExecuted)))
             return mCurrentExecuted;
 
-        for (XBaseMgrTaskExecutor<B> task : mTobeExecuted) {
+        for (XMgrTaskExecutor<B> task : mTobeExecuted) {
             if (id.equals(getTaskId(task)))
                 return task;
         }
@@ -77,7 +69,7 @@ public class XSerialMgrImpl<B extends XTaskBean>
     }
 
     @Override
-    public synchronized boolean addTask(XBaseMgrTaskExecutor<B> task) {
+    public synchronized boolean addTask(XMgrTaskExecutor<B> task) {
         if (getTaskById(getTaskId(task)) != null)// 判断是否重复
             return false;
 
@@ -93,12 +85,12 @@ public class XSerialMgrImpl<B extends XTaskBean>
     }
 
     @Override
-    public synchronized void addTasks(List<XBaseMgrTaskExecutor<B>> tasks) {
+    public synchronized void addTasks(List<XMgrTaskExecutor<B>> tasks) {
         if (tasks == null || tasks.size() == 0)
             return;
 
         List<B> added = new ArrayList<B>();
-        for (XBaseMgrTaskExecutor<B> task : tasks) {
+        for (XMgrTaskExecutor<B> task : tasks) {
             if (task == null)
                 continue;
             if (getTaskById(getTaskId(task)) != null)// 判断是否重复
@@ -116,7 +108,7 @@ public class XSerialMgrImpl<B extends XTaskBean>
     }
 
     @Override
-    public synchronized void removeTask(XBaseMgrTaskExecutor<B> task) {
+    public synchronized void removeTask(XMgrTaskExecutor<B> task) {
         if (task == null)
             return;
 
@@ -146,12 +138,12 @@ public class XSerialMgrImpl<B extends XTaskBean>
     }
 
     @Override
-    public synchronized void removeTasks(List<XBaseMgrTaskExecutor<B>> tasks) {
+    public synchronized void removeTasks(List<XMgrTaskExecutor<B>> tasks) {
         if (tasks == null || tasks.size() == 0)
             return;
 
         List<B> removed = new ArrayList<B>();
-        for (XBaseMgrTaskExecutor<B> task : tasks) {
+        for (XMgrTaskExecutor<B> task : tasks) {
             if (task == null)
                 continue;
             task.abort();// 终止当前任务
@@ -180,9 +172,9 @@ public class XSerialMgrImpl<B extends XTaskBean>
         if (taskIds == null || taskIds.size() == 0)
             return;
 
-        List<XBaseMgrTaskExecutor<B>> tasks = new ArrayList<XBaseMgrTaskExecutor<B>>();
+        List<XMgrTaskExecutor<B>> tasks = new ArrayList<XMgrTaskExecutor<B>>();
         for (String taskId : taskIds) {
-            XBaseMgrTaskExecutor<B> task = getTaskById(taskId);
+            XMgrTaskExecutor<B> task = getTaskById(taskId);
             if (task != null)
                 tasks.add(task);
         }
@@ -191,7 +183,7 @@ public class XSerialMgrImpl<B extends XTaskBean>
 
     @Override
     public synchronized void setRunningTask(String taskId) {
-        XBaseMgrTaskExecutor<B> task = getTaskById(taskId);
+        XMgrTaskExecutor<B> task = getTaskById(taskId);
         if (mCurrentExecuted == null && task != null) {
             mTobeExecuted.remove(task);
             mCurrentExecuted = task;
@@ -199,13 +191,13 @@ public class XSerialMgrImpl<B extends XTaskBean>
     }
 
     @Override
-    public XBaseMgrTaskExecutor<B> getRunningTask() {
+    public XMgrTaskExecutor<B> getRunningTask() {
         return mCurrentExecuted;
     }
 
     @Override
-    public List<XBaseMgrTaskExecutor<B>> getWaitingTask() {
-//        return new ArrayList<XBaseMgrTaskExecutor>(mTobeExecuted);
+    public List<XMgrTaskExecutor<B>> getWaitingTask() {
+//        return new ArrayList<XMgrTaskExecutor>(mTobeExecuted);
         // 为了效率起见，牺牲安全性
         return mTobeExecuted;
     }
@@ -234,7 +226,7 @@ public class XSerialMgrImpl<B extends XTaskBean>
 
     @Override
     public synchronized boolean start(String taskId) {
-        XBaseMgrTaskExecutor<B> task = getTaskById(taskId);
+        XMgrTaskExecutor<B> task = getTaskById(taskId);
         // 如果指定的task不存在，则什么都不做，返回false
         if (task == null)
             return false;
@@ -281,7 +273,7 @@ public class XSerialMgrImpl<B extends XTaskBean>
 
     @Override
     public synchronized boolean resume(String taskId) {
-        XBaseMgrTaskExecutor<B> task = getTaskById(taskId);
+        XMgrTaskExecutor<B> task = getTaskById(taskId);
         // 如果指定的task不存在，则什么都不做，返回false
         if (task == null)
             return false;
@@ -324,7 +316,7 @@ public class XSerialMgrImpl<B extends XTaskBean>
 
     @Override
     public synchronized boolean pause(String taskId) {
-        XBaseMgrTaskExecutor<B> task = getTaskById(taskId);
+        XMgrTaskExecutor<B> task = getTaskById(taskId);
         // 如果指定Id的任务不存在，或在等待队列中，则什么都不做，返回false
         if (task == null || mCurrentExecuted != task)
             return false;
@@ -400,12 +392,17 @@ public class XSerialMgrImpl<B extends XTaskBean>
             mCurrentExecuted = null;
         }
         // 结束并清空等待队列中的任务
-        for (XBaseMgrTaskExecutor<B> task : mTobeExecuted)
+        for (XMgrTaskExecutor<B> task : mTobeExecuted)
             task.abort();
         mTobeExecuted.clear();
         // 通知监听者
         for (XTaskMgrListener<B> listener : mListeners.getListeners())
             listener.onStopAndReset();
+    }
+
+    @Override
+    public void setSpeedMonitor(XSpeedMonitor<XMgrTaskExecutor<B>> speedMonitor) {
+        mSpeedMonitor = speedMonitor;
     }
 
     @Override
@@ -426,16 +423,16 @@ public class XSerialMgrImpl<B extends XTaskBean>
      * @return 返回下一个待执行的任务，如果没有符合要求的任务，则返回null
      * @see #setTaskScheduler(com.xengine.android.base.taskmgr.XTaskScheduler)
      */
-    protected XBaseMgrTaskExecutor<B> findNextTask() {
+    protected XMgrTaskExecutor<B> findNextTask() {
         // 用TaskScheduler排序
         if (mScheduler != null)
             Collections.sort(mTobeExecuted, mInnerComparator);
 
         // 用TaskFilter过滤，找到第一个是TODO状态的任务
         final XFilter<B> finalFilter = mFilter;
-        XBaseMgrTaskExecutor<B> nextTask = null;// 最终的结果，下一个待执行任务
-        XBaseMgrTaskExecutor<B> filteredTask = null;// 第一个符合状态但被过滤掉的任务
-        for (XBaseMgrTaskExecutor<B> task : mTobeExecuted) {
+        XMgrTaskExecutor<B> nextTask = null;// 最终的结果，下一个待执行任务
+        XMgrTaskExecutor<B> filteredTask = null;// 第一个符合状态但被过滤掉的任务
+        for (XMgrTaskExecutor<B> task : mTobeExecuted) {
             // 不是TODO状态的任务，跳过
             if (task.getStatus() != XTaskBean.STATUS_TODO)
                 continue;
@@ -461,7 +458,7 @@ public class XSerialMgrImpl<B extends XTaskBean>
     }
 
     @Override
-    public synchronized void notifyTaskFinished(XBaseMgrTaskExecutor<B> task, boolean addBack) {
+    public synchronized void notifyTaskFinished(XMgrTaskExecutor<B> task, boolean addBack) {
         if (task == null)
             return;
 
@@ -493,7 +490,7 @@ public class XSerialMgrImpl<B extends XTaskBean>
             mTobeExecuted.offer(task);
         // 如果等待队列中所有的任务都是异常状态，则全部重置成TODO，方便下次全部自动执行
         if (allError) {
-            for (XBaseMgrTaskExecutor<B> errorTask : mTobeExecuted)
+            for (XMgrTaskExecutor<B> errorTask : mTobeExecuted)
                 errorTask.setStatus(XTaskBean.STATUS_TODO);
         }
 
@@ -537,9 +534,9 @@ public class XSerialMgrImpl<B extends XTaskBean>
      * 内部Comparator<T>子类，用于对mTobeExecuted进行优先级排序。
      * 通过传入的TaskScheduler来实际进行排序比较。
      */
-    private class InnerTaskComparator implements Comparator<XBaseMgrTaskExecutor<B>> {
+    private class InnerTaskComparator implements Comparator<XMgrTaskExecutor<B>> {
         @Override
-        public int compare(XBaseMgrTaskExecutor<B> lhs, XBaseMgrTaskExecutor<B> rhs) {
+        public int compare(XMgrTaskExecutor<B> lhs, XMgrTaskExecutor<B> rhs) {
             return mScheduler.compare(lhs.getBean(), rhs.getBean(),
                     mCurrentExecuted == null ? null : mCurrentExecuted.getBean());
         }

@@ -13,8 +13,10 @@ public interface XTaskBean {
     // ============ 任务的状态值 ============ //
     public static final int STATUS_ERROR = -1;// 错误状态
     public static final int STATUS_TODO = 0;// 未执行状态
-    public static final int STATUS_DOING = 1;// 正在执行状态
-    public static final int STATUS_DONE = 2;// 已完成状态
+    public static final int STATUS_DONE = 1;// 已完成状态
+    public static final int STATUS_DOING = 2;// 正在执行状态
+    public static final int STATUS_STARTING = 3;// 正在启动状态
+    public static final int STATUS_PAUSING = 4;// 正在暂停状态
 
 	/**
 	 * 获取下载任务的唯一Id，用于区分不同的下载任务。

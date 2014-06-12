@@ -2,7 +2,7 @@ package com.xengine.android.base.task;
 
 /**
  * <pre>
- * 实现TaskExecutor接口的抽象类。
+ * 普通任务执行器的抽象类。
  * 封装了一个任务的核心状态机逻辑。
  * 注意:
  * 1.状态机：有四个状态TODO,DOING,DONE,ERROR
@@ -50,7 +50,7 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public final boolean start() {
+    public boolean start() {
         if (getStatus() != XTaskBean.STATUS_TODO
                 && getStatus() != XTaskBean.STATUS_ERROR)
             return false;
@@ -69,7 +69,7 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public final boolean pause() {
+    public boolean pause() {
         if (getStatus() != XTaskBean.STATUS_DOING)
             return false;
 
@@ -82,7 +82,7 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public final boolean abort() {
+    public boolean abort() {
         if (getStatus() != XTaskBean.STATUS_TODO
                 && getStatus() != XTaskBean.STATUS_DOING)
             return false;
@@ -95,7 +95,7 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
         return true;
     }
 
-    public final boolean endSuccess() {
+    public boolean endSuccess() {
         if (getStatus() != XTaskBean.STATUS_DOING)
             return false;
 
@@ -107,7 +107,7 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
         return true;
     }
 
-    public final boolean endError(String errorCode, boolean retry) {
+    public boolean endError(String errorCode, boolean retry) {
         if (getStatus() != XTaskBean.STATUS_DOING)
             return false;
 
