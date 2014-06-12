@@ -2,7 +2,7 @@ package com.xengine.android.base.taskmgr.serial;
 
 import com.xengine.android.base.speed.XBaseSpeedMonitor;
 import com.xengine.android.base.task.XTaskBean;
-import com.xengine.android.base.taskmgr.XBaseMgrTaskExecutor;
+import com.xengine.android.base.taskmgr.XMgrTaskExecutor;
 import com.xengine.android.base.taskmgr.XTaskMgrListener;
 
 import java.util.LinkedList;
@@ -17,34 +17,34 @@ import java.util.List;
  * </pre>
  */
 public class XSerialSpeedMonitor<B extends XTaskBean>
-        extends XBaseSpeedMonitor<XBaseMgrTaskExecutor<B>> {
+        extends XBaseSpeedMonitor<XMgrTaskExecutor<B>> {
 
-    private XSerialMgr<XBaseMgrTaskExecutor<B>, B> mSerialMgr;
-    private List<XBaseMgrTaskExecutor<B>> mRunningTasks;
+    private XSerialMgr<B> mSerialMgr;
+    private List<XMgrTaskExecutor<B>> mRunningTasks;
 
-    public XSerialSpeedMonitor(XSerialMgr<XBaseMgrTaskExecutor<B>, B> serialMgr) {
+    public XSerialSpeedMonitor(XSerialMgr<B> serialMgr) {
         super();
         mSerialMgr = serialMgr;
-        mRunningTasks = new LinkedList<XBaseMgrTaskExecutor<B>>();
+        mRunningTasks = new LinkedList<XMgrTaskExecutor<B>>();
     }
 
-    public XSerialSpeedMonitor(XSerialMgr<XBaseMgrTaskExecutor<B>, B> serialMgr, int interval) {
+    public XSerialSpeedMonitor(XSerialMgr<B> serialMgr, int interval) {
         super(interval);
         mSerialMgr = serialMgr;
-        mRunningTasks = new LinkedList<XBaseMgrTaskExecutor<B>>();
+        mRunningTasks = new LinkedList<XMgrTaskExecutor<B>>();
     }
 
     @Override
-    public List<XBaseMgrTaskExecutor<B>> getRunningTasks() {
+    public List<XMgrTaskExecutor<B>> getRunningTasks() {
         mRunningTasks.clear();
-        XBaseMgrTaskExecutor<B> task = mSerialMgr.getRunningTask();
+        XMgrTaskExecutor<B> task = mSerialMgr.getRunningTask();
         if (task != null)
             mRunningTasks.add(task);
         return mRunningTasks;
     }
 
     @Override
-    public void notifyUpdateSpeed(XBaseMgrTaskExecutor<B> task, long speed) {
+    public void notifyUpdateSpeed(XMgrTaskExecutor<B> task, long speed) {
         List<XTaskMgrListener<B>> listeners =  task.getTaskMgr().getListeners();
         for (int i = 0; i < listeners.size(); i++)
             listeners.get(i).onSpeedUpdate(task.getBean(), speed);

@@ -16,8 +16,8 @@ import java.util.List;
  * Time: 下午8:48
  * </pre>
  */
-public interface XParallelMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean>
-        extends XTaskMgr<T, B> {
+public interface XParallelMgr<B extends XTaskBean>
+        extends XTaskMgr<XMgrTaskExecutor<B>, B> {
 
     /**
      * 运行队列是否已空
@@ -49,11 +49,11 @@ public interface XParallelMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean
      * 获取运行队列的所有任务
      * @return 返回当前正在运行的任务，如果没有，则返回null
      */
-    List<T> getRunningTask();
+    List<XMgrTaskExecutor<B>> getRunningTask();
 
     /**
      * 获取当前等待队列的所有任务
      * @return 返回等待执行的任务列表
      */
-    List<T> getWaitingTask();
+    List<XMgrTaskExecutor<B>> getWaitingTask();
 }

@@ -29,7 +29,7 @@ import java.util.*;
  * </pre>
  */
 public class XSerialMgrImpl<B extends XTaskBean>
-        implements XSerialMgr<XMgrTaskExecutor<B>, B> {
+        implements XSerialMgr<B> {
 
     private boolean mIsWorking;// 标识运行状态
     private volatile XMgrTaskExecutor<B> mCurrentExecuted;// 当前正在运行的任务

@@ -2,7 +2,7 @@ package com.xengine.android.base.taskmgr.parallel;
 
 import com.xengine.android.base.speed.XBaseSpeedMonitor;
 import com.xengine.android.base.task.XTaskBean;
-import com.xengine.android.base.taskmgr.XBaseMgrTaskExecutor;
+import com.xengine.android.base.taskmgr.XMgrTaskExecutor;
 import com.xengine.android.base.taskmgr.XTaskMgrListener;
 
 import java.util.ArrayList;
@@ -17,32 +17,32 @@ import java.util.List;
  * </pre>
  */
 public class XParallelSpeedMonitor<B extends XTaskBean>
-        extends XBaseSpeedMonitor<XBaseMgrTaskExecutor<B>> {
+        extends XBaseSpeedMonitor<XMgrTaskExecutor<B>> {
 
-    private XParallelMgr<XBaseMgrTaskExecutor<B>, B> mParallelMgr;
-    private List<XBaseMgrTaskExecutor<B>> mRunningTasks;
+    private XParallelMgr<B> mParallelMgr;
+    private List<XMgrTaskExecutor<B>> mRunningTasks;
 
-    public XParallelSpeedMonitor(XParallelMgr<XBaseMgrTaskExecutor<B>, B> parallelMgr) {
+    public XParallelSpeedMonitor(XParallelMgr<B> parallelMgr) {
         super();
         mParallelMgr = parallelMgr;
-        mRunningTasks = new ArrayList<XBaseMgrTaskExecutor<B>>();
+        mRunningTasks = new ArrayList<XMgrTaskExecutor<B>>();
     }
 
-    public XParallelSpeedMonitor(XParallelMgr<XBaseMgrTaskExecutor<B>, B> parallelMgr, int interval) {
+    public XParallelSpeedMonitor(XParallelMgr<B> parallelMgr, int interval) {
         super(interval);
         mParallelMgr = parallelMgr;
-        mRunningTasks = new ArrayList<XBaseMgrTaskExecutor<B>>();
+        mRunningTasks = new ArrayList<XMgrTaskExecutor<B>>();
     }
 
     @Override
-    public List<XBaseMgrTaskExecutor<B>> getRunningTasks() {
+    public List<XMgrTaskExecutor<B>> getRunningTasks() {
         mRunningTasks.clear();
         mRunningTasks.addAll(mParallelMgr.getRunningTask());
         return mRunningTasks;
     }
 
     @Override
-    public void notifyUpdateSpeed(XBaseMgrTaskExecutor<B> task, long speed) {
+    public void notifyUpdateSpeed(XMgrTaskExecutor<B> task, long speed) {
         List<XTaskMgrListener<B>> listeners =  task.getTaskMgr().getListeners();
         for (int i = 0; i < listeners.size(); i++)
             listeners.get(i).onSpeedUpdate(task.getBean(), speed);

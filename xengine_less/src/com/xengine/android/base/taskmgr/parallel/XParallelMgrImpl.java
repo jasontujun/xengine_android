@@ -29,7 +29,7 @@ import java.util.*;
  * </pre>
  */
 public class XParallelMgrImpl<B extends XTaskBean>
-        implements XParallelMgr<XMgrTaskExecutor<B>, B> {
+        implements XParallelMgr<B> {
 
     private boolean mIsWorking;// 标识运行状态
     private int mParallelLimit;// 并行任务的数量上限
