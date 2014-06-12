@@ -14,7 +14,7 @@ package com.xengine.android.base.task;
  *      pauseFinish = PAUSING -> TODO
  *      abort = TODO/DOING/STARTING -> DONE
  *      endSuccess = DOING -> DONE
- *      endError = DOING -> ERROR
+ *      endError = DOING/STARTING -> ERROR
  * 2.子类继承时，重写五个行为的回调方法即可：
  *      onStart(),onPause(),onAbort(),onEndSuccess(),onEndError
  * User: jasontujun
@@ -75,6 +75,20 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
 
         setStatus(XTaskBean.STATUS_DONE);
         notifyAbort(getBean());
+        return true;
+    }
+
+    @Override
+    public boolean endError(String errorCode, boolean retry) {
+        if (getStatus() != XTaskBean.STATUS_DOING
+                && getStatus() != XTaskBean.STATUS_STARTING)
+            return false;
+
+        if (!onEndError(errorCode, retry))
+            return false;
+
+        setStatus(XTaskBean.STATUS_ERROR);
+        notifyEndError(getBean(), errorCode, retry);
         return true;
     }
 
