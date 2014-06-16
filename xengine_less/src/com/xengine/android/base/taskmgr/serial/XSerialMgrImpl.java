@@ -31,7 +31,7 @@ import java.util.*;
 public class XSerialMgrImpl<B extends XTaskBean>
         implements XSerialMgr<B> {
 
-    private boolean mIsWorking;// 标识运行状态
+    private volatile boolean mIsWorking;// 标识运行状态
     private volatile XMgrTaskExecutor<B> mCurrentExecuted;// 当前正在运行的任务
     private volatile LinkedList<XMgrTaskExecutor<B>> mTobeExecuted;// 待执行的任务队列
     private XTaskScheduler<B> mScheduler;// 任务排序器(外部设置)

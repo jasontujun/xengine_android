@@ -31,15 +31,15 @@ import java.util.*;
 public class XParallelMgrImpl<B extends XTaskBean>
         implements XParallelMgr<B> {
 
-    private boolean mIsWorking;// 标识运行状态
-    private int mParallelLimit;// 并行任务的数量上限
-    private LinkedList<XMgrTaskExecutor<B>> mCurrentExecuted;// 正在运行的任务队列
-    private LinkedList<XMgrTaskExecutor<B>> mTobeExecuted;// 待执行的任务队列
+    private volatile boolean mIsWorking;// 标识运行状态
+    private volatile LinkedList<XMgrTaskExecutor<B>> mCurrentExecuted;// 正在运行的任务队列
+    private volatile LinkedList<XMgrTaskExecutor<B>> mTobeExecuted;// 待执行的任务队列
     private XTaskScheduler<B> mScheduler;// 任务排序器(外部设置)
     private XFilter<B> mFilter;// 任务过滤器
     private InnerTaskComparator mInnerComparator;// 实际用来排序的比较器
     private XSpeedMonitor<XMgrTaskExecutor<B>> mSpeedMonitor;// 下载速度监视器
     private XListenerMgr<XTaskMgrListener<B>> mListeners;// 外部监听者
+    private int mParallelLimit;// 并行任务的数量上限
 
     public XParallelMgrImpl(int parallelLimit) {
         mParallelLimit = Math.max(parallelLimit, 1);
