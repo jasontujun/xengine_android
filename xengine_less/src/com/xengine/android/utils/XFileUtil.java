@@ -1,6 +1,13 @@
 package com.xengine.android.utils;
 
+import android.text.TextUtils;
+
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Created with IntelliJ IDEA.
@@ -190,10 +197,152 @@ public class XFileUtil {
 
         File[] files = dir.listFiles();
         if (files != null) // 如果dir不是文件夹，files会为null
-            for (int i = 0; i <files.length; i++)
-                files[i].delete();
+            for (File file : files)
+                clearDirectory(file, true);// 递归
 
         if (removeSelf)
             dir.delete();
+    }
+
+    /**
+     * 将多个文件压缩成一个.zip压缩文件
+     * @param originFilePaths 多个指定文件的路径
+     * @param zipFilePath 压缩生成的.zip文件的路径
+     * @return 压缩成功返回true;否则返回false
+     */
+    public static boolean zipFile(List<String> originFilePaths, String zipFilePath) {
+        // 防止外部修改列表
+        List<String> copyFilePaths = new ArrayList<String>(originFilePaths);
+        // 创建.zip文件所在的文件夹(如果不存在)，以及删除同名的.zip文件(如果存在)
+        File zipFile = new File(zipFilePath);
+        File zipFileDir = zipFile.getParentFile();
+        if (zipFileDir != null && !zipFileDir.exists()) {
+            zipFileDir.mkdirs();
+        }
+        if (zipFile.exists()) {
+            zipFile.delete();
+        }
+        FileOutputStream out = null;
+        ZipOutputStream zipOut = null;
+        try {
+            out = new FileOutputStream(zipFilePath);// 根据文件路径构造一个文件输出流
+            zipOut = new ZipOutputStream(out);// 创建ZIP数据输出流对象
+            // 循环待压缩的文件列表
+            byte[] buffer = new byte[512];
+            for (String originFilePath : copyFilePaths) {
+                if (TextUtils.isEmpty(originFilePath))
+                    continue;
+                File originFile = new File(originFilePath);
+                if (!originFile.exists())
+                    continue;
+                // 创建文件输入流对象
+                FileInputStream in = new FileInputStream(originFile);
+                // 创建指向压缩原始文件的入口
+                ZipEntry entry = new ZipEntry(originFile.getName());
+                zipOut.putNextEntry(entry);
+                // 向压缩文件中输出数据
+                int nNumber = 0;
+                while ((nNumber = in.read(buffer)) != -1) {
+                    zipOut.write(buffer, 0, nNumber);
+                }
+                // 关闭创建的流对象
+                in.close();
+            }
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (out != null)
+                    out.close();
+                if (zipOut != null)
+                    zipOut.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 解压.zip文件
+     * @param zipFile
+     * @param dirPath
+     * @param override
+     * @return
+     */
+    public static boolean unzipFile(String zipFile, String dirPath,
+                                    boolean override) {
+        if (TextUtils.isEmpty(zipFile))
+            return false;
+        File file = new File(zipFile);
+        if (!file.exists())
+            return false;
+        try {
+            InputStream is = new FileInputStream(file);
+            return unzipFile(is, dirPath, override);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * 解压.zip文件
+     * @param zipInput
+     * @param dirPath
+     * @param override
+     * @return
+     */
+    public static boolean unzipFile(InputStream zipInput, String dirPath,
+                                    boolean override) {
+        if (TextUtils.isEmpty(dirPath))
+            return false;
+
+        File df = new File(dirPath);
+        df.mkdirs();
+        if (!df.exists())
+            return false;
+
+        ZipInputStream zis = null;
+        BufferedInputStream bis = null;
+        try {
+            zis = new ZipInputStream(zipInput);
+            bis = new BufferedInputStream(zis);
+            File file = null;
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null && !entry.isDirectory()) {
+                file = new File(dirPath, entry.getName());
+                if (file.exists()) {// 如果文件存在，根据override字段决定是否要覆盖
+                    if (override)
+                        file.delete();// 覆盖，先删除原先的文件
+                    else
+                        continue;// 不覆盖，直接跳过
+                }
+                FileOutputStream out = new FileOutputStream(file);
+                BufferedOutputStream bos = new BufferedOutputStream(out);
+                byte buffer[] = new byte[512];
+                int realLength = 0;
+                while ((realLength = bis.read(buffer)) != -1) {
+                    out.write(buffer, 0, realLength);
+                }
+                bos.flush();
+                bos.close();
+                out.close();
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (bis != null)
+                    bis.close();
+                if (zis != null)
+                    zis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 }
