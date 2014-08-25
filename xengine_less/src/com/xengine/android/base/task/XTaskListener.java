@@ -20,7 +20,7 @@ public interface XTaskListener<T extends XTaskBean> {
      * 暂停的回调函数
      * @param task
      */
-    void onStop(T task);
+    void onPause(T task);
 
     /**
      * 终止的回调函数
@@ -46,12 +46,5 @@ public interface XTaskListener<T extends XTaskBean> {
      * @param task
      * @param errorCode
      */
-    void onError(T task, String errorCode);
-
-    /**
-     * 执行速度更新的回调函数（在异步线程）
-     * @param task
-     * @param speed
-     */
-    void onSpeedUpdate(T task, long speed);
+    void onError(T task, String errorCode, boolean retry);
 }

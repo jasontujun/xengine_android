@@ -11,12 +11,13 @@ package com.xengine.android.base.task;
 public interface XTaskBean {
 
     // ============ 任务的状态值 ============ //
-    public static final int STATUS_ERROR = -1;// 错误状态
+    public static final int STATUS_DEFAULT = -1;// 默认状态(未进执行队列)
     public static final int STATUS_TODO = 0;// 未执行状态
-    public static final int STATUS_DONE = 1;// 已完成状态
-    public static final int STATUS_DOING = 2;// 正在执行状态
-    public static final int STATUS_STARTING = 3;// 正在启动状态
-    public static final int STATUS_PAUSING = 4;// 正在暂停状态
+    public static final int STATUS_DOING = 1;// 正在执行状态
+    public static final int STATUS_DONE = 2;// 已完成状态
+    public static final int STATUS_ERROR = 3;// 错误状态
+    public static final int STATUS_STARTING = 4;// 正在启动状态
+    public static final int STATUS_PAUSING = 5;// 正在暂停状态
 
 	/**
 	 * 获取下载任务的唯一Id，用于区分不同的下载任务。
@@ -33,6 +34,7 @@ public interface XTaskBean {
 	/**
 	 * 获取当前状态。
 	 * @return 返回状态值
+     * @see #STATUS_DEFAULT
      * @see #STATUS_ERROR
      * @see #STATUS_TODO
      * @see #STATUS_DOING
@@ -43,6 +45,7 @@ public interface XTaskBean {
 	/**
 	 * 设置当前状态
 	 * @param status 状态值
+     * @see #STATUS_DEFAULT
      * @see #STATUS_ERROR
      * @see #STATUS_TODO
      * @see #STATUS_DOING

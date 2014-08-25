@@ -3,7 +3,6 @@ package com.xengine.android.base.taskmgr;
 import com.xengine.android.base.filter.XFilter;
 import com.xengine.android.base.speed.XSpeedMonitor;
 import com.xengine.android.base.task.XTaskBean;
-import com.xengine.android.base.task.XTaskExecutor;
 
 import java.util.List;
 
@@ -75,8 +74,9 @@ public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
     /**
      * 启动运行队列的所有任务；
      * 如果运行队列未满，则启动多个等待队列中的任务直到满
+     * @return 如果当前有任务启动成功，则返回true；否则返回false
      */
-    void start();
+    boolean start();
 
     /**
      * 启动指定Id的任务。
@@ -90,8 +90,9 @@ public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
 
     /**
      * 恢复运行队列的所有任务；
+     * @return 如果当前有任务，且被恢复成功，则返回true；否则返回false
      */
-    void resume();
+    boolean resume();
 
     /**
      * 恢复指定Id的任务。
@@ -106,8 +107,9 @@ public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
 
     /**
      * 暂停运行队列的所有任务(不会将任务从运行队列移回等待队列)。
+     * @return 如果当前有任务，且被暂停成功，则返回true；否则返回false
      */
-    void pause();
+    boolean pause();
 
     /**
      * 暂停指定Id的任务。
@@ -129,8 +131,9 @@ public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
 
     /**
      * 停止运行队列的所有任务(将任务从运行队列移回等待队列)
+     * @return 如果当前有任务，且被暂停成功，则返回true；否则返回false
      */
-    void stop();
+    boolean stop();
 
     /**
      * 停止指定Id的任务。
@@ -173,6 +176,12 @@ public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
      * @param scheduler 任务排序器
      */
     void setTaskScheduler(XTaskScheduler<B> scheduler);
+
+    /**
+     * 设置是否自动执行。
+     * @param auto true表示开启自动执行;false表示关闭自动执行。
+     */
+    void setAutoRunning(boolean auto);
 
     /**
      * 回调函数。任务完成后调用执行下一个或停止。

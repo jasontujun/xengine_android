@@ -57,6 +57,12 @@ public interface XRetryRunnable<T> extends Runnable {
     boolean onPreExecute(T bean);
 
     /**
+     * 执行前的准备工作失败的回调
+     * @param bean
+     */
+    void onPreExecuteError(T bean);
+
+    /**
      * 主要执行的工作(会被多次重复执行)
      * @param bean
      * @return 如果任务完成，则返回true；否则返回false，并过段时间重复执行该方法

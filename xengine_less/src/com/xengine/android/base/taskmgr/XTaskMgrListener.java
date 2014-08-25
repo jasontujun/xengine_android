@@ -1,26 +1,18 @@
 package com.xengine.android.base.taskmgr;
 
 import com.xengine.android.base.task.XTaskBean;
-import com.xengine.android.base.task.XTaskListener;
 
 import java.util.List;
 
 /**
  * <pre>
- * 任务管理器监听接口，继承自TaskListener接口
+ * 任务管理器监听接口
  * User: jasontujun
  * Date: 13-9-27
  * Time: 下午4:11
  * </pre>
  */
-public interface XTaskMgrListener<T extends XTaskBean>
-        extends XTaskListener<T> {
-
-    /**
-     * 获取监听的唯一id
-     * @return
-     */
-    String getId();
+public interface XTaskMgrListener<T extends XTaskBean> {
 
     /**
      * 添加任务后的回调函数（在UI线程）
@@ -52,14 +44,56 @@ public interface XTaskMgrListener<T extends XTaskBean>
     void onStopAndReset();
 
     /**
+     * 启动的回调函数
+     * start、resume等操作会触发此回调。
+     * @param task
+     */
+    void onStart(T task);
+
+
+    /**
+     * 停止的回调函数。
+     * stop、pause等操作会触发此回调。
+     * @param task
+     */
+    void onStop(T task);
+
+    /**
      * 所有任务都暂停。
-     * 由于remove、stop等操作导致的，会触发此回调。
-     * 由于pause导致的，不会触发此回调。
+     * remove、stop等操作会触发此回调。
+     * pause等操作不会触发此回调。
      */
     void onStopAll();
 
     /**
-     * 完成所有下载任务
+     * 完成所有下载任务。
      */
     void onFinishAll();
+
+    /**
+     * 执行过程中的回调函数。
+     * @param task
+     * @param completeSize
+     */
+    void onDoing(T task, long completeSize);
+
+    /**
+     * 执行成功结束的回调函数。
+     * @param task
+     */
+    void onComplete(T task);
+
+    /**
+     * 执行失败结束的回调函数。
+     * @param task
+     * @param errorCode
+     */
+    void onError(T task, String errorCode);
+
+    /**
+     * 执行速度更新的回调函数（在异步线程）
+     * @param task
+     * @param speed
+     */
+    void onSpeedUpdate(T task, long speed);
 }

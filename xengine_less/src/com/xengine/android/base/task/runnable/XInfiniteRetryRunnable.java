@@ -39,6 +39,8 @@ public abstract class XInfiniteRetryRunnable<T> implements XRetryRunnable<T> {
         if (!onPreExecute(bean)) {
             if (!isRunning) {
                 onCancelled(bean);
+            } else {
+                onPreExecuteError(bean);
             }
             return;
         }

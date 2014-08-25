@@ -46,7 +46,7 @@ public class XSerialSpeedMonitor<B extends XTaskBean>
     @Override
     public void notifyUpdateSpeed(XMgrTaskExecutor<B> task, long speed) {
         List<XTaskMgrListener<B>> listeners =  task.getTaskMgr().getListeners();
-        for (int i = 0; i < listeners.size(); i++)
-            listeners.get(i).onSpeedUpdate(task.getBean(), speed);
+        for (XTaskMgrListener<B> listener : listeners)
+            listener.onSpeedUpdate(task.getBean(), speed);
     }
 }

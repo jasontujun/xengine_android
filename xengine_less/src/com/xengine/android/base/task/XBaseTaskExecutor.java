@@ -22,11 +22,13 @@ package com.xengine.android.base.task;
 public abstract class XBaseTaskExecutor<B extends XTaskBean>
         implements XTaskExecutor<B> {
 
+    private volatile int mStatus;// 状态
     private B mBean;// 任务数据
+    private XTaskListener<B> mListener;
 
     public XBaseTaskExecutor(B bean) {
         mBean = bean;
-        setStatus(XTaskBean.STATUS_TODO);// 初识状态为TODO
+        mStatus = bean.getStatus();
     }
 
     @Override
@@ -40,44 +42,58 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public void setStatus(int status) {
+    public synchronized void setStatus(int status) {
+        mStatus = status;
         mBean.setStatus(status);
     }
 
     @Override
     public int getStatus() {
-        return mBean.getStatus();
+        return mStatus;
     }
 
     @Override
-    public boolean start() {
+    public void setListener(XTaskListener<B> listener) {
+        mListener = listener;
+    }
+
+    @Override
+    public XTaskListener<B> getListener() {
+        return mListener;
+    }
+
+    @Override
+    public boolean start(int... preStatus) {
         if (getStatus() != XTaskBean.STATUS_TODO
-                && getStatus() != XTaskBean.STATUS_ERROR)
+                && getStatus() != XTaskBean.STATUS_ERROR
+                && (preStatus.length == 0
+                || getStatus() != preStatus[0]))
             return false;
 
-        // 先修改状态，再调用自定义方法onStart
-        int oldStatus = getStatus();
+        if (!onStart())
+            return false;
+
         setStatus(XTaskBean.STATUS_DOING);
-
-        if (!onStart()) {
-            setStatus(oldStatus);// 启动失败，恢复成以前的状态
-            return false;
-        }
-
-        notifyStart(getBean());
+        if (mListener != null)
+            mListener.onStart(getBean());
         return true;
     }
 
     @Override
-    public boolean pause() {
+    public boolean pause(int... postStatus) {
         if (getStatus() != XTaskBean.STATUS_DOING)
             return false;
 
         if (!onPause())
             return false;
 
-        setStatus(XTaskBean.STATUS_TODO);
-        notifyPause(getBean());
+        if (postStatus.length > 0) {
+            setStatus(postStatus[0]);
+        } else {
+            setStatus(XTaskBean.STATUS_TODO);
+        }
+        if (mListener != null)
+            mListener.onPause(getBean());
         return true;
     }
 
@@ -91,7 +107,8 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
             return false;
 
         setStatus(XTaskBean.STATUS_DONE);
-        notifyAbort(getBean());
+        if (mListener != null)
+            mListener.onAbort(getBean());
         return true;
     }
 
@@ -103,7 +120,8 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
             return false;
 
         setStatus(XTaskBean.STATUS_DONE);
-        notifyEndSuccess(getBean());
+        if (mListener != null)
+            mListener.onComplete(getBean());
         return true;
     }
 
@@ -115,8 +133,17 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
             return false;
 
         setStatus(XTaskBean.STATUS_ERROR);
-        notifyEndError(getBean(), errorCode, retry);
+        if (mListener != null)
+            mListener.onError(getBean(), errorCode, retry);
         return true;
+    }
+
+    /**
+     * 通知外部任务正在执行的进度
+     */
+    public void notifyDoing(long completeSize) {
+        if (mListener != null)
+            mListener.onDoing(getBean(), completeSize);
     }
 
     /**
@@ -137,6 +164,10 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
      */
     protected abstract boolean onAbort();
 
+    /**
+     * 任务成功结束的回调。
+     * @return 没有发生异常返回true;否则返回false
+     */
     protected abstract boolean onEndSuccess();
 
     /**
@@ -147,39 +178,4 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
      */
     protected abstract boolean onEndError(String errorCode, boolean retry);
 
-    /**
-     * 通知外部任务已启动
-     * @param bean
-     */
-    protected void notifyStart(B bean) {}
-
-    /**
-     * 通知外部任务已暂停
-     * @param bean
-     */
-    protected void notifyPause(B bean) {}
-
-    /**
-     * 通知外部任务已终止
-     * @param bean
-     */
-    protected void notifyAbort(B bean) {}
-
-    /**
-     * 通知外部任务正在执行
-     * @param bean
-     */
-    protected void notifyDoing(B bean, long completeSize) {}
-
-    /**
-     * 通知外部任务成功结束
-     * @param bean
-     */
-    protected void notifyEndSuccess(B bean) {}
-
-    /**
-     * 通知外部任务失败结束
-     * @param bean
-     */
-    protected void notifyEndError(B bean, String errorCode, boolean retry) {}
 }

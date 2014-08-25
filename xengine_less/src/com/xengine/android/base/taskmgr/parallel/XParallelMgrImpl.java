@@ -6,6 +6,7 @@ import com.xengine.android.base.listener.XListenerMgr;
 import com.xengine.android.base.speed.XSpeedMonitor;
 import com.xengine.android.base.speed.calc.DefaultSpeedCalculator;
 import com.xengine.android.base.task.XTaskBean;
+import com.xengine.android.base.task.XTaskListener;
 import com.xengine.android.base.taskmgr.XMgrTaskExecutor;
 import com.xengine.android.base.taskmgr.XTaskMgrListener;
 import com.xengine.android.base.taskmgr.XTaskScheduler;
@@ -31,15 +32,17 @@ import java.util.*;
 public class XParallelMgrImpl<B extends XTaskBean>
         implements XParallelMgr<B> {
 
-    private volatile boolean mIsWorking;// 标识运行状态
-    private volatile LinkedList<XMgrTaskExecutor<B>> mCurrentExecuted;// 正在运行的任务队列
-    private volatile LinkedList<XMgrTaskExecutor<B>> mTobeExecuted;// 待执行的任务队列
-    private XTaskScheduler<B> mScheduler;// 任务排序器(外部设置)
-    private XFilter<B> mFilter;// 任务过滤器
-    private InnerTaskComparator mInnerComparator;// 实际用来排序的比较器
-    private XSpeedMonitor<XMgrTaskExecutor<B>> mSpeedMonitor;// 下载速度监视器
-    private XListenerMgr<XTaskMgrListener<B>> mListeners;// 外部监听者
-    private int mParallelLimit;// 并行任务的数量上限
+    protected volatile boolean mIsWorking;// 标识运行状态
+    protected volatile boolean mAuto;// 标识是否自动执行
+    protected LinkedList<XMgrTaskExecutor<B>> mCurrentExecuted;// 正在运行的任务队列
+    protected LinkedList<XMgrTaskExecutor<B>> mTobeExecuted;// 待执行的任务队列
+    protected XTaskScheduler<B> mScheduler;// 任务排序器(外部设置)
+    protected XFilter<B> mFilter;// 任务过滤器
+    protected InnerTaskComparator mInnerComparator;// 实际用来排序的比较器
+    protected XSpeedMonitor<XMgrTaskExecutor<B>> mSpeedMonitor;// 下载速度监视器
+    protected XListenerMgr<XTaskMgrListener<B>> mListeners;// 外部监听者
+    protected XTaskListener<B> mInnerTaskListener;// 内部管理器对每个Task的监听
+    protected int mParallelLimit;// 并行任务的数量上限
 
     public XParallelMgrImpl(int parallelLimit) {
         mParallelLimit = Math.max(parallelLimit, 1);
@@ -48,6 +51,49 @@ public class XParallelMgrImpl<B extends XTaskBean>
         mInnerComparator = new InnerTaskComparator();
         mListeners = new XCowListenerMgr<XTaskMgrListener<B>>();
         mIsWorking = false;
+        mAuto = true;
+        mInnerTaskListener = new XTaskListener<B>() {
+            @Override
+            public void onStart(B task) {
+                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                    listener.onStart(task);
+            }
+
+            @Override
+            public void onPause(B task) {
+                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                    listener.onStop(task);
+            }
+
+            @Override
+            public void onAbort(B task) {}
+
+            @Override
+            public void onDoing(B task, long completeSize) {
+                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                    listener.onDoing(task, completeSize);
+            }
+
+            @Override
+            public void onComplete(B task) {
+                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                    listener.onComplete(task);
+
+                XMgrTaskExecutor<B> taskExecutor = getTaskById(task.getId());
+                if (taskExecutor != null)
+                    notifyTaskFinished(taskExecutor, false);
+            }
+
+            @Override
+            public void onError(B task, String errorCode, boolean retry) {
+                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                    listener.onError(task, errorCode);
+
+                XMgrTaskExecutor<B> taskExecutor = getTaskById(task.getId());
+                if (taskExecutor != null)
+                    notifyTaskFinished(taskExecutor, retry);
+            }
+        };
     }
 
     @Override
@@ -63,7 +109,8 @@ public class XParallelMgrImpl<B extends XTaskBean>
     @Override
     public boolean isAllStop() {
         for (XMgrTaskExecutor<B> task : mCurrentExecuted) {
-            if (task.getStatus() == XTaskBean.STATUS_DOING)
+            if (task.getStatus() == XTaskBean.STATUS_DOING
+                    || task.getStatus() == XTaskBean.STATUS_STARTING)
                 return false;
         }
         return true;
@@ -111,6 +158,7 @@ public class XParallelMgrImpl<B extends XTaskBean>
             return false;
 
         task.setTaskMgr(this);
+        task.setListener(mInnerTaskListener);
         task.setStatus(XTaskBean.STATUS_TODO);
         if (task.getSpeedCalculator() == null) // 若没有速度计算器，则设置默认的
             task.setSpeedCalculator(new DefaultSpeedCalculator());
@@ -134,6 +182,7 @@ public class XParallelMgrImpl<B extends XTaskBean>
                 continue;
             added.add(task.getBean());
             task.setTaskMgr(this);
+            task.setListener(mInnerTaskListener);
             task.setStatus(XTaskBean.STATUS_TODO);
             if (task.getSpeedCalculator() == null)
                 task.setSpeedCalculator(new DefaultSpeedCalculator());
@@ -156,8 +205,7 @@ public class XParallelMgrImpl<B extends XTaskBean>
         } else {
             isRemoved = mTobeExecuted.remove(task);
         }
-        setStopIfAllStop();// 如果当前没有任务运行，则标记结束
-        if (!mIsWorking) {
+        if (setStopIfAllStop()) {// 如果当前没有任务运行，则标记结束
             for (XTaskMgrListener<B> listener : mListeners.getListeners())
                 listener.onStopAll();
         }
@@ -189,8 +237,7 @@ public class XParallelMgrImpl<B extends XTaskBean>
                     removed.add(task.getBean());
             }
         }
-        setStopIfAllStop();// 如果当前没有任务运行，则标记结束
-        if (!mIsWorking) {
+        if (setStopIfAllStop()) {// 如果当前没有任务运行，则标记结束
             for (XTaskMgrListener<B> listener : mListeners.getListeners())
                 listener.onStopAll();
         }
@@ -221,7 +268,7 @@ public class XParallelMgrImpl<B extends XTaskBean>
 
         // 如果运行队列未满，则将指定任务从等待队列添加进运行队列
         XMgrTaskExecutor<B> task = getTaskById(taskId);
-        if (task != null) {
+        if (!mCurrentExecuted.contains(task) && task != null) {
             mTobeExecuted.remove(task);
             mCurrentExecuted.addLast(task);
         }
@@ -242,27 +289,31 @@ public class XParallelMgrImpl<B extends XTaskBean>
     }
 
     @Override
-    public synchronized void start() {
-        // 启动运行队列的所有任务
-        resume();
-        // 如果运行队列已满，则什么都不做
-        if (isFullParallel())
-            return;
+    public synchronized boolean start() {
         // 如果运行队列未满，则启动多个等待队列中的任务直到满
-        XMgrTaskExecutor<B> task;
         while (!isFullParallel()) {
-            task = findNextTask(null);
+            XMgrTaskExecutor<B> task = findNextTask(null);
             if (task == null)
                 break;
             // 如果下一个任务是被过滤掉的，说明已经没有可执行的任务了，退出循环
             if (mFilter != null && mFilter.doFilter(task.getBean()) == null)
                 break;
-            mIsWorking = true;
             mCurrentExecuted.offer(task);
+        }
+        // 如果运行队列为空，则什么都不做
+        if (isEmptyParallel())
+            return false;
+        // 启动运行队列的所有任务
+        for (XMgrTaskExecutor<B> task : mCurrentExecuted) {
+            // 如果过滤掉，则直接启动下一个
+            if (mFilter != null && mFilter.doFilter(task.getBean()) == null)
+                continue;
+            mIsWorking = true;
             task.start();
         }
         if (mIsWorking && mSpeedMonitor != null)
             mSpeedMonitor.start();
+        return true;
     }
 
     @Override
@@ -276,43 +327,43 @@ public class XParallelMgrImpl<B extends XTaskBean>
         if (mFilter != null && mFilter.doFilter(task.getBean()) == null)
             return false;
 
+        // 先尝试启动指定任务
+        if (!task.start())
+            return false;
+
         mIsWorking = true;
-        // 如果指定Id的任务存在，且在等待队列中，则添加进运行队列
+        // 如果指定Id的任务不在运行队列中
         if (!mCurrentExecuted.contains(task)) {
             // 如果运行队列已满，则替换一个任务
-            if (isFullParallel()) {// 如果运行队列已满，则剔除最老的任务
+            if (isFullParallel()) {
                 XMgrTaskExecutor<B> oldTask = mCurrentExecuted.poll();
                 oldTask.pause();
                 mTobeExecuted.addFirst(oldTask);// 添加回等待队列
             }
-            // 启动指定的任务
+            // 调整指定id的任务所在的队列
             mTobeExecuted.remove(task);
             mCurrentExecuted.addFirst(task);
-            task.start();
-            if (mSpeedMonitor != null)
-                mSpeedMonitor.start();
         }
-        // 指定Id的任务在运行队列中，启动该任务
-        task.start();
         if (mSpeedMonitor != null)
             mSpeedMonitor.start();
         return true;
     }
 
     @Override
-    public synchronized void resume() {
+    public synchronized boolean resume() {
         if (isEmptyParallel())
-            return;
+            return false;
 
         for (XMgrTaskExecutor<B> task : mCurrentExecuted) {
-            // 如果没被过滤掉，则启动
-            if (mFilter == null || mFilter.doFilter(task.getBean()) != null) {
-                mIsWorking = true;
-                task.start();
-            }
+            // 如果过滤掉，则直接启动下一个
+            if (mFilter != null && mFilter.doFilter(task.getBean()) == null)
+                continue;
+            mIsWorking = true;
+            task.start();
         }
         if (mIsWorking && mSpeedMonitor != null)
             mSpeedMonitor.start();
+        return true;
     }
 
     @Override
@@ -329,9 +380,10 @@ public class XParallelMgrImpl<B extends XTaskBean>
         // 如果指定Id的任务存在，且在运行队列中，恢复该任务
         if (mCurrentExecuted.contains(task)) {
             mIsWorking = true;
-            task.start();
-            if (mSpeedMonitor != null)
-                mSpeedMonitor.start();
+            if (task.start()) {
+                if (mSpeedMonitor != null)
+                    mSpeedMonitor.start();
+            }
             return true;
         }
 
@@ -343,19 +395,25 @@ public class XParallelMgrImpl<B extends XTaskBean>
         mIsWorking = true;
         mTobeExecuted.remove(task);
         mCurrentExecuted.offer(task);
-        task.start();
-        if (mSpeedMonitor != null)
-            mSpeedMonitor.start();
+        if (task.start()) {
+            if (mSpeedMonitor != null)
+                mSpeedMonitor.start();
+        }
         return true;
     }
 
     @Override
-    public synchronized void pause() {
+    public synchronized boolean pause() {
+        if (isEmptyParallel())
+            return false;
+        // 尝试暂停任务
         for (XMgrTaskExecutor<B> task : mCurrentExecuted)
             task.pause();
-        mIsWorking = false;
-        if (mSpeedMonitor != null)
-            mSpeedMonitor.stop();
+        if (setStopIfAllStop()) {
+            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                listener.onStopAll();
+        }
+        return true;
     }
 
     @Override
@@ -365,35 +423,56 @@ public class XParallelMgrImpl<B extends XTaskBean>
         if (task == null || !mCurrentExecuted.contains(task))
             return false;
         // 如果指定Id的任务存在，且在运行队列中，暂停该任务
-        task.pause();
-        setStopIfAllStop();
+        if (!task.pause())
+            return false;
+        if (setStopIfAllStop()) {
+            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                listener.onStopAll();
+        }
         return true;
     }
 
     @Override
     public synchronized boolean pauseByFilter(XFilter<B> filter) {
         setTaskFilter(filter);// 设置当前的任务过滤器
-        boolean result = false;
+        List<XMgrTaskExecutor<B>> stopTasks = new ArrayList<XMgrTaskExecutor<B>>();
         for (XMgrTaskExecutor<B> task : mCurrentExecuted) {
             if (filter != null && filter.doFilter(task.getBean()) == null) {
-                task.pause();
-                result = true;
+                if (task.pause())
+                    stopTasks.add(task);
             }
         }
-        setStopIfAllStop();
-        return result;
-    }
-
-    @Override
-    public synchronized void stop() {
-        pause();
-        for (XMgrTaskExecutor<B> task : mCurrentExecuted)
-            mTobeExecuted.addFirst(task);
-        mCurrentExecuted.clear();
-        if (!mIsWorking) {
+        // 没有任务暂停成功，则返回false
+        if (stopTasks.size() == 0)
+            return false;
+        if (setStopIfAllStop()) {
             for (XTaskMgrListener<B> listener : mListeners.getListeners())
                 listener.onStopAll();
         }
+        return true;
+    }
+
+    @Override
+    public synchronized boolean stop() {
+        if (isEmptyParallel())
+            return false;
+        // 尝试暂停任务
+        List<XMgrTaskExecutor<B>> stopTasks = new ArrayList<XMgrTaskExecutor<B>>();
+        for (XMgrTaskExecutor<B> task : mCurrentExecuted) {
+            if (task.pause())
+                stopTasks.add(task);
+        }
+        // 没有任务暂停成功，则返回false
+        if (stopTasks.size() == 0)
+            return false;
+        // 添加回等待队列
+        mCurrentExecuted.removeAll(stopTasks);
+        mTobeExecuted.addAll(0, stopTasks);
+        if (setStopIfAllStop()) {
+            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                listener.onStopAll();
+        }
+        return true;
     }
 
     @Override
@@ -403,11 +482,12 @@ public class XParallelMgrImpl<B extends XTaskBean>
         if (task == null || !mCurrentExecuted.contains(task))
             return false;
         // 如果指定Id的任务存在，且在运行队列中，暂停该任务(将任务从运行队列移回等待队列)
-        task.pause();
+        if (!task.pause())
+            return false;
+        // 添加回等待队列
         mCurrentExecuted.remove(task);
         mTobeExecuted.addFirst(task);
-        setStopIfAllStop();
-        if (!mIsWorking) {
+        if (setStopIfAllStop()) {
             for (XTaskMgrListener<B> listener : mListeners.getListeners())
                 listener.onStopAll();
         }
@@ -417,22 +497,20 @@ public class XParallelMgrImpl<B extends XTaskBean>
     @Override
     public synchronized boolean stopByFilter(XFilter<B> filter) {
         setTaskFilter(filter);// 设置当前的任务过滤器
-        boolean result = false;
-        List<XMgrTaskExecutor<B>> tmpList = new ArrayList<XMgrTaskExecutor<B>>();
+        List<XMgrTaskExecutor<B>> stopTasks = new ArrayList<XMgrTaskExecutor<B>>();
         for (XMgrTaskExecutor<B> task : mCurrentExecuted) {
             if (filter != null && filter.doFilter(task.getBean()) == null) {
-                task.pause();
-                result = true;
-                tmpList.add(task);
+                if (task.pause())
+                    stopTasks.add(task);
             }
         }
-        if (!result)
-            return false;// 没有要暂停的
-
-        mCurrentExecuted.removeAll(tmpList);
-        mTobeExecuted.addAll(0, tmpList);
-        setStopIfAllStop();
-        if (!mIsWorking) {
+        // 没有任务暂停成功，则返回false
+        if (stopTasks.size() == 0)
+            return false;
+        // 添加回等待队列
+        mCurrentExecuted.removeAll(stopTasks);
+        mTobeExecuted.addAll(0, stopTasks);
+        if (setStopIfAllStop()) {
             for (XTaskMgrListener<B> listener : mListeners.getListeners())
                 listener.onStopAll();
         }
@@ -444,11 +522,9 @@ public class XParallelMgrImpl<B extends XTaskBean>
         mIsWorking = false;
         // 终止并清空当前任务
         for (XMgrTaskExecutor<B> task : mCurrentExecuted)
-            task.abort();
+            task.pause();
         mCurrentExecuted.clear();
-        // 终止并清空等待队列中的任务
-        for (XMgrTaskExecutor<B> task : mTobeExecuted)
-            task.abort();
+        // 清空等待队列中的任务
         mTobeExecuted.clear();
         // 停止速度监听
         if (mSpeedMonitor != null)
@@ -471,6 +547,11 @@ public class XParallelMgrImpl<B extends XTaskBean>
     @Override
     public void setTaskScheduler(XTaskScheduler<B> scheduler) {
         mScheduler = scheduler;
+    }
+
+    @Override
+    public void setAutoRunning(boolean auto) {
+        mAuto = auto;
     }
 
     /**
@@ -557,21 +638,36 @@ public class XParallelMgrImpl<B extends XTaskBean>
                 errorTask.setStatus(XTaskBean.STATUS_TODO);
         }
 
-        // 如果已经标记停止，则什么都不做
-        if (!mIsWorking)
+        // 如果已经标记停止，或者不自动执行，则什么都不做
+        if (!mIsWorking || !mAuto) {
+            // 回调onStopAll()
+            if (isAllStop()) {
+                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                    listener.onStopAll();
+            }
             return;
+        }
 
-        // 如果有任务(没被过滤)，则继续执行任务
+        // 如果有下一个任务(没被过滤)，则继续执行任务
         if (nextTask != null &&
                 (mFilter == null || mFilter.doFilter(nextTask.getBean()) != null)) {
             nextTask.start();
             if (mSpeedMonitor != null)
                 mSpeedMonitor.start();
         }
-        // 没有下一个任务，且没有运行的任务，标记结束
-        else if (setStopIfAllStop()){
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
-                listener.onFinishAll();
+        // 没有下一个任务
+        else {
+            if (isEmptyParallel() && mTobeExecuted.size() == 0) {
+                // 执行队列没有任务，等待队列也没任务，则回调onFinishAll()
+                mIsWorking = false;
+                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                    listener.onFinishAll();
+            } else if (isAllStop()) {
+                // 当前有任务，但都暂停或完成了，则回调onStopAll()
+                mIsWorking = false;
+                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                    listener.onStopAll();
+            }
         }
     }
 

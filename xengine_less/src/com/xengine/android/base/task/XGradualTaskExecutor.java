@@ -25,41 +25,55 @@ package com.xengine.android.base.task;
 public abstract class XGradualTaskExecutor<B extends XTaskBean>
         extends XBaseTaskExecutor<B> {
 
+    private Integer mPrePauseStatus;// 暂停后的外部设置值
+    private Integer mPostPauseStatus;// 暂停后的外部设置值
+
     public XGradualTaskExecutor(B bean) {
         super(bean);
     }
 
     @Override
-    public boolean start() {
+    public boolean start(int... preStatus) {
         if (getStatus() != XTaskBean.STATUS_TODO
-                && getStatus() != XTaskBean.STATUS_ERROR)
+                && getStatus() != XTaskBean.STATUS_ERROR
+                && (preStatus.length == 0
+                || getStatus() != preStatus[0]))
             return false;
 
-        // 先修改状态，再调用自定义方法onStart
-        int oldStatus = getStatus();
-        setStatus(XTaskBean.STATUS_STARTING);
-
-        if (!onStart()) {
-            setStatus(oldStatus);// 启动失败，恢复成以前的状态
-            return false;
+        if (preStatus.length > 0) {
+            mPrePauseStatus = preStatus[0];
         }
+        if (!onStart()) // 启动失败，直接结束
+            return false;
 
-        notifyStart(getBean());
+        // 可能在onStart()中已经调用了startFinish(),就不用回调了
+        if (getStatus() != XTaskBean.STATUS_DOING) {
+            setStatus(XTaskBean.STATUS_STARTING);
+            if (getListener() != null)
+                getListener().onStart(getBean());
+        }
         return true;
     }
 
     @Override
-    public boolean pause() {
+    public boolean pause(int... postStatus) {
         if (getStatus() != XTaskBean.STATUS_DOING
                 && getStatus() != XTaskBean.STATUS_STARTING)
             return false;
 
-        if (!onPause())
+        if (postStatus.length > 0) {
+            mPostPauseStatus = postStatus[0];
+        }
+        if (!onPause())// 暂停失败，直接结束
             return false;
 
-        setStatus(XTaskBean.STATUS_PAUSING);
-        // PAUSING算是DOING的一种特殊状态，所以调用onDoing()来回调监听
-        notifyDoing(getBean(), -1);
+        // 可能在onPause()中已经调用了pauseFinish(),就不用设置状态和回调了
+        if (getStatus() != XTaskBean.STATUS_TODO &&
+                (postStatus.length == 0 || getStatus() != postStatus[0])) {
+            setStatus(XTaskBean.STATUS_PAUSING);
+            // PAUSING算是DOING的一种特殊状态，所以调用onDoing()来回调监听
+            notifyDoing(-1);
+        }
         return true;
     }
 
@@ -74,7 +88,8 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
             return false;
 
         setStatus(XTaskBean.STATUS_DONE);
-        notifyAbort(getBean());
+        if (getListener() != null)
+            getListener().onAbort(getBean());
         return true;
     }
 
@@ -88,26 +103,56 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
             return false;
 
         setStatus(XTaskBean.STATUS_ERROR);
-        notifyEndError(getBean(), errorCode, retry);
+        if (getListener() != null)
+            getListener().onError(getBean(), errorCode, retry);
         return true;
     }
 
+    /**
+     * 启动完成时调用此方法，此方法会把状态改成STATUS_DOING。
+     * 注意:此方法可以在onStart()中调用，也可在异步线程中调用。
+     * @return
+     */
     public boolean startFinish() {
-        if (getStatus() != XTaskBean.STATUS_STARTING)
+        if (getStatus() != XTaskBean.STATUS_TODO &&
+                getStatus() != XTaskBean.STATUS_ERROR &&
+                getStatus() != XTaskBean.STATUS_STARTING
+                && (mPrePauseStatus != null && getStatus() != mPrePauseStatus))
             return false;
 
-        setStatus(XTaskBean.STATUS_DOING);
-        notifyDoing(getBean(), -1);
+        mPrePauseStatus = null;
+        if (getStatus() == XTaskBean.STATUS_STARTING) {
+            // 在start()之后调用startFinish()
+            setStatus(XTaskBean.STATUS_DOING);
+            notifyDoing(-1);
+        } else {
+            // 在start()中调用startFinish()，直接
+            setStatus(XTaskBean.STATUS_DOING);
+            if (getListener() != null)
+                getListener().onStart(getBean());
+        }
         return true;
     }
 
-
+    /**
+     * 暂停完成时调用此方法，此方法会把状态改成STATUS_TODO。
+     * 注意:此方法可以在onPause()中调用，也可在异步线程中调用。
+     * @return
+     */
     public boolean pauseFinish() {
-        if (getStatus() != XTaskBean.STATUS_PAUSING)
+        if (getStatus() != XTaskBean.STATUS_PAUSING &&
+                getStatus() != XTaskBean.STATUS_DOING &&
+                getStatus() != XTaskBean.STATUS_STARTING)
             return false;
 
-        setStatus(XTaskBean.STATUS_TODO);
-        notifyPause(getBean());
+        if (mPostPauseStatus != null) {
+            setStatus(mPostPauseStatus);
+            mPostPauseStatus = null;
+        } else {
+            setStatus(XTaskBean.STATUS_TODO);
+        }
+        if (getListener() != null)
+            getListener().onPause(getBean());
         return true;
     }
 }

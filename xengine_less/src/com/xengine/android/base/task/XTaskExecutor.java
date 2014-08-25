@@ -14,15 +14,17 @@ public interface XTaskExecutor<B extends XTaskBean> {
 
     /**
      * 开始或继续下载。
+     * @param preStatus 增加兼容的启动前的状态
      * @return 开始或继续下载是否成功
      */
-    boolean start();
+    boolean start(int... preStatus);
 
     /**
      * 暂停下载。
+     * @param postStatus 设置暂停后的状态
      * @return 暂停下载是否成功
      */
-    boolean pause();
+    boolean pause(int... postStatus);
 
     /**
      * 终止并清除下载任务（删除相关内存和文件中的数据）。
@@ -53,4 +55,16 @@ public interface XTaskExecutor<B extends XTaskBean> {
      * @return
      */
     int getStatus();
+
+    /**
+     * 设置监听
+     * @param listener
+     */
+    void setListener(XTaskListener<B> listener);
+
+    /**
+     * 获取监听
+     * @return
+     */
+    XTaskListener<B> getListener();
 }
