@@ -25,15 +25,17 @@ package com.xengine.android.base.task;
 public abstract class XGradualTaskExecutor<B extends XTaskBean>
         extends XBaseTaskExecutor<B> {
 
-    private Integer mPrePauseStatus;// 暂停后的外部设置值
+    private Integer mPrePauseStatus;// 暂停前的外部设置值
     private Integer mPostPauseStatus;// 暂停后的外部设置值
+    private boolean mCallInOnStart;
+    private boolean mCallInOnPause;
 
     public XGradualTaskExecutor(B bean) {
         super(bean);
     }
 
     @Override
-    public boolean start(int... preStatus) {
+    public final synchronized boolean start(int... preStatus) {
         if (getStatus() != XTaskBean.STATUS_TODO
                 && getStatus() != XTaskBean.STATUS_ERROR
                 && (preStatus.length == 0
@@ -56,7 +58,7 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public boolean pause(int... postStatus) {
+    public final synchronized boolean pause(int... postStatus) {
         if (getStatus() != XTaskBean.STATUS_DOING
                 && getStatus() != XTaskBean.STATUS_STARTING)
             return false;
@@ -78,7 +80,7 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public boolean abort() {
+    public final synchronized boolean abort() {
         if (getStatus() != XTaskBean.STATUS_TODO
                 && getStatus() != XTaskBean.STATUS_DOING
                 && getStatus() != XTaskBean.STATUS_STARTING)
@@ -94,7 +96,12 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public boolean endError(String errorCode, boolean retry) {
+    public final synchronized boolean endSuccess() {
+        return super.endSuccess();
+    }
+
+    @Override
+    public final synchronized boolean endError(String errorCode, boolean retry) {
         if (getStatus() != XTaskBean.STATUS_DOING
                 && getStatus() != XTaskBean.STATUS_STARTING)
             return false;
@@ -113,7 +120,7 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
      * 注意:此方法可以在onStart()中调用，也可在异步线程中调用。
      * @return
      */
-    public boolean startFinish() {
+    public final synchronized boolean startFinish() {
         if (getStatus() != XTaskBean.STATUS_TODO &&
                 getStatus() != XTaskBean.STATUS_ERROR &&
                 getStatus() != XTaskBean.STATUS_STARTING
@@ -139,7 +146,7 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
      * 注意:此方法可以在onPause()中调用，也可在异步线程中调用。
      * @return
      */
-    public boolean pauseFinish() {
+    public final synchronized boolean pauseFinish() {
         if (getStatus() != XTaskBean.STATUS_PAUSING &&
                 getStatus() != XTaskBean.STATUS_DOING &&
                 getStatus() != XTaskBean.STATUS_STARTING)
