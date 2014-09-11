@@ -171,6 +171,12 @@ public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
     void setTaskFilter(XFilter<B> filter);
 
     /**
+     * 获取当前的TaskFilter
+     * @return
+     */
+    XFilter<B> getTaskFilter();
+
+    /**
      * 设置任务排序器，控制队列中任务的执行顺序。
      * 如果不设置TaskScheduler，则默认按照添加任务顺序执行。
      * @param scheduler 任务排序器

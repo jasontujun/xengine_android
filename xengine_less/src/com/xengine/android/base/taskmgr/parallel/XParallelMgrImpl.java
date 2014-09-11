@@ -545,6 +545,11 @@ public class XParallelMgrImpl<B extends XTaskBean>
     }
 
     @Override
+    public XFilter<B> getTaskFilter() {
+        return mFilter;
+    }
+
+    @Override
     public void setTaskScheduler(XTaskScheduler<B> scheduler) {
         mScheduler = scheduler;
     }
