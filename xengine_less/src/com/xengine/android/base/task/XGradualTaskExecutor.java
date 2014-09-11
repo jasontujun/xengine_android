@@ -27,8 +27,6 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
 
     private Integer mPrePauseStatus;// 暂停前的外部设置值
     private Integer mPostPauseStatus;// 暂停后的外部设置值
-    private boolean mCallInOnStart;
-    private boolean mCallInOnPause;
 
     public XGradualTaskExecutor(B bean) {
         super(bean);
