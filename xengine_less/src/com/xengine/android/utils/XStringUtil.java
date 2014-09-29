@@ -160,6 +160,8 @@ public class XStringUtil {
      * @return
      */
     public static boolean isNumber(String numStr) {
+        if (TextUtils.isEmpty(numStr))
+            return false;
         Pattern pattern = Pattern.compile("[0-9]*");
         Matcher match = pattern.matcher(numStr);
         return match.matches();
