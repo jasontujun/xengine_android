@@ -15,6 +15,7 @@ import java.util.Map;
 
 /**
  * <pre>
+ * 设备根路径相关的工具类。
  * User: jasontujun
  * Date: 14-6-3
  * Time: 下午5:03
@@ -31,8 +32,11 @@ public class XRootUtil {
     public static String getRootByApi() {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             File file = Environment.getExternalStorageDirectory();
-            if (file.exists() && file.canRead() && file.canWrite())
-                return file.getPath();
+            if (file == null)
+                return null;
+            String path = file.getAbsolutePath();
+            if (isValidRoot(path))
+                return path;
         }
         return null;
     }
@@ -61,13 +65,7 @@ public class XRootUtil {
 
             List<String> results = new ArrayList<String>();
             for (String path : paths) {
-                File file = new File(path);
-                boolean exist = file.exists();
-                boolean canRead = file.canRead();
-                boolean canWrite = file.canWrite();
-                XLog.d(TAG, ">" + path + ",exist:" + exist +",write:"
-                        + canWrite + ",read:" + canRead);
-                if (exist && canRead && canWrite)
+                if (isValidRoot(path))
                     results.add(path);
             }
             return results;
@@ -119,10 +117,8 @@ public class XRootUtil {
                     if (!Character.isLetterOrDigit(c) && c != '-' && c != '_')
                         path = path.substring(0, path.length() - 1);
                     // 判断该路径是否存在并可写
-                    File canW = new File(path);
-                    if (canW.exists() && canW.canRead() && canW.canWrite())
-                        if (!dfPaths.contains(path))
-                            dfPaths.add(path);
+                    if (isValidRoot(path) && !dfPaths.contains(path))
+                        dfPaths.add(path);
                 }
             }
         } catch (IOException e) {
@@ -136,7 +132,7 @@ public class XRootUtil {
             }
         }
         for (String df : dfPaths)
-                XLog.d(TAG, "df-result: " + df);
+            XLog.d(TAG, "df-result: " + df);
 
         // 用mount命令去除dfPaths中的属性为tmpfs的路径，并生成devPathMap
         Process mountProcess = null;
@@ -321,6 +317,18 @@ public class XRootUtil {
             return false;
         // 删除测试文件
         return testFile.delete();
+    }
+
+    /**
+     * 判断该根路径是否合法可用。
+     * @param root 根路径
+     * @return 如果合法可用，则返回true；否则返回false
+     */
+    public static boolean isValidRoot(String root) {
+        if (TextUtils.isEmpty(root))
+            return false;
+        File rootFile = new File(root);
+        return rootFile.exists() && rootFile.canRead() && rootFile.canWrite();
     }
 
     /**
