@@ -65,7 +65,7 @@ class XApacheHttpRequest extends XBaseHttpRequest {
         HttpGet httpGet = new HttpGet(getUrl());
         if (getHeaders() != null) {
             for (Map.Entry<String, String> header : getHeaders().entrySet())
-                httpGet.addHeader(header.getKey(), header.getValue());
+                httpGet.setHeader(header.getKey(), header.getValue());
         }
         return httpGet;
     }
@@ -77,7 +77,7 @@ class XApacheHttpRequest extends XBaseHttpRequest {
         HttpPost httpPost = new HttpPost(getUrl());
         if (getHeaders() != null) {
             for (Map.Entry<String, String> header : getHeaders().entrySet())
-                httpPost.addHeader(header.getKey(), header.getValue());
+                httpPost.setHeader(header.getKey(), header.getValue());
         }
         // 含有上传文件
         if (getFileParams() != null) {
@@ -127,7 +127,7 @@ class XApacheHttpRequest extends XBaseHttpRequest {
         HttpPut httpPut = new HttpPut(getUrl());
         if (getHeaders() != null) {
             for (Map.Entry<String, String> header : getHeaders().entrySet())
-                httpPut.addHeader(header.getKey(), header.getValue());
+                httpPut.setHeader(header.getKey(), header.getValue());
         }
         // 含有上传文件
         if (getFileParams() != null) {
@@ -176,7 +176,7 @@ class XApacheHttpRequest extends XBaseHttpRequest {
         HttpDelete httpDelete = new HttpDelete(getUrl());
         if (getHeaders() != null) {
             for (Map.Entry<String, String> header : getHeaders().entrySet())
-                httpDelete.addHeader(header.getKey(), header.getValue());
+                httpDelete.setHeader(header.getKey(), header.getValue());
         }
         return httpDelete;
     }
