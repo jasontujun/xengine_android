@@ -239,12 +239,15 @@ public class XFileUtil {
                 FileInputStream in = new FileInputStream(originFile);
                 // 创建指向压缩原始文件的入口
                 ZipEntry entry = new ZipEntry(originFile.getName());
+                // 创建压缩文件的一项
                 zipOut.putNextEntry(entry);
                 // 向压缩文件中输出数据
                 int nNumber = 0;
                 while ((nNumber = in.read(buffer)) != -1) {
                     zipOut.write(buffer, 0, nNumber);
                 }
+                // 关闭这一项
+                zipOut.closeEntry();
                 // 关闭创建的流对象
                 in.close();
             }
