@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,22 +56,26 @@ class XJavaHttpRequest extends XBaseHttpRequest {
     }
 
     public HttpURLConnection toJavaHttpRequest() {
+        return toJavaHttpRequest(null);
+    }
+
+    public HttpURLConnection toJavaHttpRequest(Proxy proxy) {
         if (TextUtils.isEmpty(getUrl()))
             return null;
 
         HttpURLConnection request = null;
         switch (getMethod()) {
             case GET:
-                request = createGetStyleRequest("GET");
+                request = createGetStyleRequest("GET", proxy);
                 break;
             case POST:
-                request = createPostStyleRequest("POST");
+                request = createPostStyleRequest("POST", proxy);
                 break;
             case PUT:
-                request = createPostStyleRequest("PUT");
+                request = createPostStyleRequest("PUT", proxy);
                 break;
             case DELETE:
-                request = createGetStyleRequest("DELETE");
+                request = createGetStyleRequest("DELETE", proxy);
                 break;
         }
         return request;
@@ -81,10 +86,11 @@ class XJavaHttpRequest extends XBaseHttpRequest {
      * @param method
      * @return
      */
-    private HttpURLConnection createGetStyleRequest(String method) {
+    private HttpURLConnection createGetStyleRequest(String method, Proxy proxy) {
         try {
             URL requestUrl = new URL(getUrl());
-            HttpURLConnection request = (HttpURLConnection) requestUrl.openConnection();
+            HttpURLConnection request = (HttpURLConnection) (proxy == null ?
+                    requestUrl.openConnection() : requestUrl.openConnection(proxy));
             request.setRequestMethod(method);
             request.setDoOutput(false);
             request.setDoInput(true);
@@ -115,10 +121,11 @@ class XJavaHttpRequest extends XBaseHttpRequest {
      * @param method
      * @return
      */
-    private HttpURLConnection createPostStyleRequest(String method) {
+    private HttpURLConnection createPostStyleRequest(String method, Proxy proxy) {
         try {
             URL requestUrl = new URL(getUrl());
-            HttpURLConnection request = (HttpURLConnection) requestUrl.openConnection();
+            HttpURLConnection request = (HttpURLConnection) (proxy == null ?
+                    requestUrl.openConnection() : requestUrl.openConnection(proxy));
             request.setRequestMethod(method);
             request.setDoOutput(true);
             request.setDoInput(true);

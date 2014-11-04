@@ -3,6 +3,7 @@ package com.xengine.android.session.http.apache;
 import android.content.Context;
 import android.text.TextUtils;
 import com.xengine.android.session.http.*;
+import com.xengine.android.utils.XApnUtil;
 import com.xengine.android.utils.XLog;
 import com.xengine.android.utils.XNetworkUtil;
 import org.apache.http.*;
@@ -13,6 +14,7 @@ import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.params.ConnPerRouteBean;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -109,11 +111,30 @@ public class XApacheHttpClient extends XBaseHttp {
         if (mIsDisposed)
             return null;
 
+        // 无网络时，创建爱你请求
         if (!XNetworkUtil.isNetworkConnected(mContext)) {
             XLog.d(TAG, "network not connected.");
             for (XHttpProgressListener listener: mProgressListeners)
                 listener.onNetworkBroken();
             return null;
+        }
+
+        // 判断是否WAP类型的APN连接，决定是否需要设置APN代理
+        HttpHost proxy = null;
+        XApnUtil.Apn[] apn = XApnUtil.getCurrentApn(mContext);
+        if (apn != null && apn.length > 0) {
+            if (XApnUtil.Apn.CTWAP.equals(apn[0])) {
+                proxy = new HttpHost(XApnUtil.CT_PROXY, XApnUtil.CM_UNI_CT_PORT);
+            } else if (XApnUtil.Apn.CMWAP.equals(apn[0])
+                    || XApnUtil.Apn.UNIWAP.equals(apn[0])
+                    || XApnUtil.Apn._3GWAP.equals(apn[0])) {
+                proxy = new HttpHost(XApnUtil.CM_UNI_PROXY, XApnUtil.CM_UNI_CT_PORT);
+            }
+        }
+        if (proxy != null) {
+            HttpParams params = mHttpClient.getParams();
+            params.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+            mHttpClient.setParams(params);
         }
 
         // 构造HttpUriRequest

@@ -2,14 +2,18 @@ package com.xengine.android.session.http.java;
 
 import android.content.Context;
 import com.xengine.android.session.http.*;
+import com.xengine.android.utils.XApnUtil;
 import com.xengine.android.utils.XLog;
 import com.xengine.android.utils.XNetworkUtil;
+import org.apache.http.HttpHost;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.mime.MIME;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -59,8 +63,21 @@ public class XJavaHttpClient extends XBaseHttp {
         XJavaHttpRequest javaRequest = (XJavaHttpRequest) req;
         javaRequest.setTimeOut(mConnectionTimeOut, mResponseTimeOut);
         javaRequest.setUserAgent(mUserAgent);
-        javaRequest.setCookies(mCookieStore.getCookies());// 设置request的cookie
-        HttpURLConnection request = javaRequest.toJavaHttpRequest();
+        javaRequest.setCookies(mCookieStore.getCookies());// 设置cookie
+        // 判断是否WAP类型的APN连接，决定是否需要设置APN代理
+        Proxy proxy = null;
+        XApnUtil.Apn[] apn = XApnUtil.getCurrentApn(mContext);
+        if (apn != null && apn.length > 0) {
+            if (XApnUtil.Apn.CTWAP.equals(apn[0])) {
+                proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(XApnUtil.CT_PROXY, XApnUtil.CM_UNI_CT_PORT));
+            } else if (XApnUtil.Apn.CMWAP.equals(apn[0])
+                    || XApnUtil.Apn.UNIWAP.equals(apn[0])
+                    || XApnUtil.Apn._3GWAP.equals(apn[0])) {
+                proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(XApnUtil.CM_UNI_PROXY, XApnUtil.CM_UNI_CT_PORT));
+            }
+        }
+        // 创建实际的连接
+        HttpURLConnection request = javaRequest.toJavaHttpRequest(proxy);
         mCurrentRequest = request;
 
         for (XHttpProgressListener listener: mProgressListeners)
