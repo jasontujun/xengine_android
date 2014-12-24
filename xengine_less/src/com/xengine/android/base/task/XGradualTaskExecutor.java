@@ -33,7 +33,7 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public final synchronized boolean start(int... preStatus) {
+    public final boolean start(int... preStatus) {
         if (getStatus() != XTaskBean.STATUS_TODO
                 && getStatus() != XTaskBean.STATUS_ERROR
                 && (preStatus.length == 0
@@ -56,7 +56,7 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public final synchronized boolean pause(int... postStatus) {
+    public final boolean pause(int... postStatus) {
         if (getStatus() != XTaskBean.STATUS_DOING
                 && getStatus() != XTaskBean.STATUS_STARTING)
             return false;
@@ -78,7 +78,7 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public final synchronized boolean abort() {
+    public final boolean abort() {
         if (getStatus() != XTaskBean.STATUS_TODO
                 && getStatus() != XTaskBean.STATUS_DOING
                 && getStatus() != XTaskBean.STATUS_STARTING)
@@ -94,12 +94,12 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     }
 
     @Override
-    public final synchronized boolean endSuccess() {
+    public final boolean endSuccess() {
         return super.endSuccess();
     }
 
     @Override
-    public final synchronized boolean endError(String errorCode, boolean retry) {
+    public final boolean endError(String errorCode, boolean retry) {
         if (getStatus() != XTaskBean.STATUS_DOING
                 && getStatus() != XTaskBean.STATUS_STARTING)
             return false;
@@ -116,9 +116,9 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     /**
      * 启动完成时调用此方法，此方法会把状态改成STATUS_DOING。
      * 注意:此方法可以在onStart()中调用，也可在异步线程中调用。
-     * @return
+     * @return 成功返回true;失败返回false
      */
-    public final synchronized boolean startFinish() {
+    public final boolean startFinish() {
         if (getStatus() != XTaskBean.STATUS_TODO &&
                 getStatus() != XTaskBean.STATUS_ERROR &&
                 getStatus() != XTaskBean.STATUS_STARTING
@@ -142,9 +142,9 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
     /**
      * 暂停完成时调用此方法，此方法会把状态改成STATUS_TODO。
      * 注意:此方法可以在onPause()中调用，也可在异步线程中调用。
-     * @return
+     * @return 成功返回true;失败返回false
      */
-    public final synchronized boolean pauseFinish() {
+    public final boolean pauseFinish() {
         if (getStatus() != XTaskBean.STATUS_PAUSING &&
                 getStatus() != XTaskBean.STATUS_DOING &&
                 getStatus() != XTaskBean.STATUS_STARTING)
