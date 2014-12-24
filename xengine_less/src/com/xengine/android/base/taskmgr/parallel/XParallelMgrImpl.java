@@ -29,8 +29,7 @@ import java.util.*;
  * Time: 下午3:35
  * </pre>
  */
-public class XParallelMgrImpl<B extends XTaskBean>
-        implements XParallelMgr<B> {
+public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
 
     protected volatile boolean mIsWorking;// 标识运行状态
     protected volatile boolean mAuto;// 标识是否自动执行
@@ -557,6 +556,11 @@ public class XParallelMgrImpl<B extends XTaskBean>
     @Override
     public void setAutoRunning(boolean auto) {
         mAuto = auto;
+    }
+
+    @Override
+    public boolean isAutoRunning() {
+        return mAuto;
     }
 
     /**

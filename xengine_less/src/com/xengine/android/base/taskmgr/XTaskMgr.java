@@ -185,9 +185,15 @@ public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
 
     /**
      * 设置是否自动执行。
-     * @param auto true表示开启自动执行;false表示关闭自动执行。
+     * @param auto true表示开启自动执行；false表示关闭自动执行。
      */
     void setAutoRunning(boolean auto);
+
+    /**
+     * 当前是否是自动执行。
+     * @return 是自动执行返回true；否则返回false。
+     */
+    boolean isAutoRunning();
 
     /**
      * 回调函数。任务完成后调用执行下一个或停止。
