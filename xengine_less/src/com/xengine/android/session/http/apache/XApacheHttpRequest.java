@@ -2,6 +2,8 @@ package com.xengine.android.session.http.apache;
 
 import android.text.TextUtils;
 import com.xengine.android.session.http.XBaseHttpRequest;
+import com.xengine.android.session.http.XHttp;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -20,11 +22,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 用于XApacheHttpClient的XHttpRequest实现类。
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-9-3
  * Time: 下午6:13
- * To change this template use File | Settings | File Templates.
  */
 class XApacheHttpRequest extends XBaseHttpRequest {
 
@@ -39,55 +41,48 @@ class XApacheHttpRequest extends XBaseHttpRequest {
         return this;
     }
 
-    public HttpRequest toApacheHttpRequest() {
-        HttpUriRequest request = null;
+    protected HttpRequest toApacheHttpRequest() {
+        if (TextUtils.isEmpty(getUrl()))
+            return null;
         switch (getMethod()) {
             case GET:
-                request = createHttpGet();
-                break;
+                return createGetStyleRequest(new HttpGet(getUrl()));
             case POST:
-                request = createHttpPost();
-                break;
+                return createPostStyleRequest(new HttpPost(getUrl()));
             case PUT:
-                request = createHttpPut();
-                break;
+                return createPostStyleRequest(new HttpPut(getUrl()));
             case DELETE:
-                request = createHttpDelete();
-                break;
+                return createGetStyleRequest(new HttpDelete(getUrl()));
+            default:
+                return null;
+        }
+    }
+
+    private HttpRequest createGetStyleRequest(HttpRequest request) {
+        // 设置Accept-Encoding为gizp
+        if (mGzip) {
+            request.addHeader(XHttp.ACCEPT_ENCODING, XHttp.GZIP);
+        }
+        // 设置用户自定义的http请求头
+        if (mHeaders != null) {
+            for (Map.Entry<String, String> header : mHeaders.entrySet())
+                request.setHeader(header.getKey(), header.getValue());
         }
         return request;
     }
 
-    private HttpGet createHttpGet() {
-        if (TextUtils.isEmpty(getUrl()))
-            return null;
-
-        HttpGet httpGet = new HttpGet(getUrl());
-        if (getHeaders() != null) {
-            for (Map.Entry<String, String> header : getHeaders().entrySet())
-                httpGet.setHeader(header.getKey(), header.getValue());
-        }
-        return httpGet;
-    }
-
-    private HttpPost createHttpPost() {
-        if (TextUtils.isEmpty(getUrl()))
-            return null;
-
-        HttpPost httpPost = new HttpPost(getUrl());
-        if (getHeaders() != null) {
-            for (Map.Entry<String, String> header : getHeaders().entrySet())
-                httpPost.setHeader(header.getKey(), header.getValue());
-        }
+    private HttpRequest createPostStyleRequest(HttpEntityEnclosingRequest request) {
+        // 设置用户自定义的http请求头
+        createGetStyleRequest(request);
         // 含有上传文件
-        if (getFileParams() != null) {
+        if (mFileParams != null) {
             XMultipartEntity reqEntity = new XMultipartEntity
                     (HttpMultipartMode.BROWSER_COMPATIBLE, mListener);
             try {
-                for (Map.Entry<String, File> fileParam : getFileParams().entrySet())
+                for (Map.Entry<String, File> fileParam : mFileParams.entrySet())
                     reqEntity.addPart(fileParam.getKey(), new FileBody(fileParam.getValue()));
-                if (getStringParams() != null) {
-                    for (Map.Entry<String, String> strParam : getStringParams().entrySet()) {
+                if (mStringParams != null) {
+                    for (Map.Entry<String, String> strParam : mStringParams.entrySet()) {
                         if (getCharset() != null)
                             reqEntity.addPart(strParam.getKey(),
                                     new StringBody(strParam.getValue(), Charset.forName(getCharset())));
@@ -99,85 +94,24 @@ class XApacheHttpRequest extends XBaseHttpRequest {
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            httpPost.setEntity(reqEntity);
+            request.setEntity(reqEntity);
         }
         // 不含上传文件，只有字符串参数
         else {
-            if (getStringParams() != null) {
+            if (mStringParams != null) {
                 List<NameValuePair> params = new ArrayList<NameValuePair>();
-                for (Map.Entry<String, String> strParam : getStringParams().entrySet())
+                for (Map.Entry<String, String> strParam : mStringParams.entrySet())
                     params.add(new BasicNameValuePair(strParam.getKey(), strParam.getValue()));
                 try {
                     if (getCharset() != null)
-                        httpPost.setEntity(new UrlEncodedFormEntity(params, getCharset()));
+                        request.setEntity(new UrlEncodedFormEntity(params, getCharset()));
                     else
-                        httpPost.setEntity(new UrlEncodedFormEntity(params));
+                        request.setEntity(new UrlEncodedFormEntity(params));
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
             }
         }
-        return httpPost;
-    }
-
-    private HttpPut createHttpPut() {
-        if (TextUtils.isEmpty(getUrl()))
-            return null;
-
-        HttpPut httpPut = new HttpPut(getUrl());
-        if (getHeaders() != null) {
-            for (Map.Entry<String, String> header : getHeaders().entrySet())
-                httpPut.setHeader(header.getKey(), header.getValue());
-        }
-        // 含有上传文件
-        if (getFileParams() != null) {
-            MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-            try {
-                for (Map.Entry<String, File> fileParam : getFileParams().entrySet())
-                    reqEntity.addPart(fileParam.getKey(), new FileBody(fileParam.getValue()));
-                if (getStringParams() != null) {
-                    for (Map.Entry<String, String> strParam : getStringParams().entrySet()) {
-                        if (getCharset() != null)
-                            reqEntity.addPart(strParam.getKey(),
-                                    new StringBody(strParam.getValue(), Charset.forName(getCharset())));
-                        else
-                            reqEntity.addPart(strParam.getKey(),
-                                    new StringBody(strParam.getValue()));
-                    }
-                }
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            httpPut.setEntity(reqEntity);
-        }
-        // 不含上传文件，只有字符串参数
-        else {
-            if (getStringParams() != null) {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                for (Map.Entry<String, String> strParam : getStringParams().entrySet())
-                    params.add(new BasicNameValuePair(strParam.getKey(), strParam.getValue()));
-                try {
-                    if (getCharset() != null)
-                        httpPut.setEntity(new UrlEncodedFormEntity(params, getCharset()));
-                    else
-                        httpPut.setEntity(new UrlEncodedFormEntity(params));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return httpPut;
-    }
-
-    private HttpDelete createHttpDelete() {
-        if (TextUtils.isEmpty(getUrl()))
-            return null;
-
-        HttpDelete httpDelete = new HttpDelete(getUrl());
-        if (getHeaders() != null) {
-            for (Map.Entry<String, String> header : getHeaders().entrySet())
-                httpDelete.setHeader(header.getKey(), header.getValue());
-        }
-        return httpDelete;
+        return request;
     }
 }

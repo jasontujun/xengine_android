@@ -22,7 +22,7 @@ public abstract class XBaseHttp implements XHttp {
     protected String mUserAgent;// 客户端名称
     protected CookieStore mCookieStore;
     protected List<XHttpProgressListener> mProgressListeners;
-    protected boolean mIsDisposed;// 标识是否通信线程池状态，是否已经关闭
+    protected boolean mIsDisposed;// 标识通信线程池状态，是否已经关闭
     protected int mConnectionTimeOut;// 尝试建立连接的等待时间，默认为10秒。
     protected int mResponseTimeOut;// 等待数据返回时间，默认为10秒。
 

@@ -1,6 +1,7 @@
 package com.xengine.android.session.http.java;
 
 import android.content.Context;
+import android.text.TextUtils;
 import com.xengine.android.session.http.*;
 import com.xengine.android.utils.XApnUtil;
 import com.xengine.android.utils.XLog;
@@ -8,6 +9,7 @@ import com.xengine.android.utils.XNetworkUtil;
 import org.apache.http.HttpHost;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.mime.MIME;
+import org.apache.http.protocol.HTTP;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +18,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 /**
  * XJavaHttpClient是实现XHttp接口的实现类。
@@ -27,7 +30,6 @@ import java.util.List;
  * User: tujun
  * Date: 13-9-3
  * Time: 下午2:38
- * To change this template use File | Settings | File Templates.
  */
 public class XJavaHttpClient extends XBaseHttp {
 
@@ -107,10 +109,16 @@ public class XJavaHttpClient extends XBaseHttp {
                 XJavaHttpResponse javaResponse = new XJavaHttpResponse();
                 javaResponse.setConnection(request);
                 javaResponse.setStatusCode(request.getResponseCode());
-                javaResponse.setContent(inputStream);
                 javaResponse.setContentLength(request.getContentLength());
                 javaResponse.setContentType(charset);
                 javaResponse.setAllHeaders(request.getHeaderFields());
+                // 如果response是压缩的，则自动用GZIPInputStream转换一下
+                String contentEncoding = request.getHeaderField(HTTP.CONTENT_ENCODING);
+                if (!TextUtils.isEmpty(contentEncoding) && contentEncoding.equalsIgnoreCase("gzip")) {
+                    javaResponse.setContent(new GZIPInputStream((inputStream)));
+                } else {
+                    javaResponse.setContent(inputStream);
+                }
                 for (XHttpProgressListener listener: mProgressListeners)
                     listener.onReceiveResponse(javaResponse);
 

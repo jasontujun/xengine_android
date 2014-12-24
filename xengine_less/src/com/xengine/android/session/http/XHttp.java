@@ -9,6 +9,9 @@ public interface XHttp {
     public static final Charset DEF_CONTENT_CHARSET = Charset.forName("ISO-8859-1");
     public static final Charset DEF_PROTOCOL_CHARSET = Charset.forName("US-ASCII");
 
+    public static final String ACCEPT_ENCODING = "Accept-Encoding";
+    public static final String GZIP = "gzip";
+
     /**
      * 创建一个Http请求对象。默认为GET请求
      * @param url

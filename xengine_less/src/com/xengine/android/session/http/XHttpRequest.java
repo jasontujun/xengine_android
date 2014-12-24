@@ -58,6 +58,12 @@ public interface XHttpRequest {
     String getCharset();
 
     /**
+     * 请求的数据是否压缩（实际在请求头中添加参数Accept-Encoding : gzip）
+     * @param gzip 是否压缩
+     */
+    XHttpRequest setGzip(boolean gzip);
+
+    /**
      * 添加字符串的参数（键值对）
      * @param key
      * @param value

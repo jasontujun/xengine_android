@@ -10,6 +10,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.mime.MIME;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,11 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 用于XApacheHttpClient的XHttpRequest实现类。
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-9-3
  * Time: 下午6:13
- * To change this template use File | Settings | File Templates.
  */
 class XJavaHttpRequest extends XBaseHttpRequest {
 
@@ -42,24 +43,24 @@ class XJavaHttpRequest extends XBaseHttpRequest {
     private String mUserAgent;
     private List<Cookie> mCookies;
 
-    public void setTimeOut(int connectionTimeOut, int responseTimeOut) {
+    protected void setTimeOut(int connectionTimeOut, int responseTimeOut) {
         mConnectionTimeOut = connectionTimeOut;
         mResponseTimeOut = responseTimeOut;
     }
 
-    void setUserAgent(String userAgent) {
+    protected void setUserAgent(String userAgent) {
         this.mUserAgent = userAgent;
     }
 
-    public void setCookies(List<Cookie> cookies) {
+    protected void setCookies(List<Cookie> cookies) {
         mCookies = cookies;
     }
 
-    public HttpURLConnection toJavaHttpRequest() {
+    protected HttpURLConnection toJavaHttpRequest() {
         return toJavaHttpRequest(null);
     }
 
-    public HttpURLConnection toJavaHttpRequest(Proxy proxy) {
+    protected HttpURLConnection toJavaHttpRequest(Proxy proxy) {
         if (TextUtils.isEmpty(getUrl()))
             return null;
 
@@ -83,8 +84,8 @@ class XJavaHttpRequest extends XBaseHttpRequest {
 
     /**
      * 创建不含Body的请求，包括GET、DELETE类型的请求。
-     * @param method
-     * @return
+     * @param method 请求类型
+     * @return 返回HttpURLConnection请求对象
      */
     private HttpURLConnection createGetStyleRequest(String method, Proxy proxy) {
         try {
@@ -97,15 +98,19 @@ class XJavaHttpRequest extends XBaseHttpRequest {
             request.setUseCaches(false);
             request.setConnectTimeout(mConnectionTimeOut);
             request.setReadTimeout(mResponseTimeOut);
-            // 设置userAgent
-            if (!TextUtils.isEmpty(mUserAgent))
-                request.addRequestProperty("User-Agent", mUserAgent);
             // 设置cookie
             initCookie(request, getUrl());
-            // 设置头部header
-            if (getHeaders() != null) {
-                for (Map.Entry<String, String> header : getHeaders().entrySet())
-                    request.addRequestProperty(header.getKey(), header.getValue());
+            // 设置userAgent
+            if (!TextUtils.isEmpty(mUserAgent))
+                request.addRequestProperty(HTTP.USER_AGENT, mUserAgent);
+            // 设置Accept-Encoding为gizp
+            if (mGzip) {
+                request.addRequestProperty(XHttp.ACCEPT_ENCODING, XHttp.GZIP);
+            }
+            // 设置用户自定义的http请求头
+            if (mHeaders != null) {
+                for (Map.Entry<String, String> header : mHeaders.entrySet())
+                    request.setRequestProperty(header.getKey(), header.getValue());
             }
             return request;
         } catch (MalformedURLException e) {
@@ -118,8 +123,8 @@ class XJavaHttpRequest extends XBaseHttpRequest {
 
     /**
      * 创建含有Body的请求，包括POST、PUT类型的请求。
-     * @param method
-     * @return
+     * @param method 请求类型
+     * @return 返回HttpURLConnection请求对象
      */
     private HttpURLConnection createPostStyleRequest(String method, Proxy proxy) {
         try {
@@ -132,18 +137,22 @@ class XJavaHttpRequest extends XBaseHttpRequest {
             request.setUseCaches(false);
             request.setConnectTimeout(mConnectionTimeOut);
             request.setReadTimeout(mResponseTimeOut);
-            // 设置userAgent
-            if (!TextUtils.isEmpty(mUserAgent))
-                request.addRequestProperty("User-Agent", mUserAgent);
             // 设置cookie
             initCookie(request, getUrl());
-            // 设置头部header
-            if (getHeaders() != null) {
-                for (Map.Entry<String, String> header : getHeaders().entrySet())
+            // 设置userAgent
+            if (!TextUtils.isEmpty(mUserAgent))
+                request.addRequestProperty(HTTP.USER_AGENT, mUserAgent);
+            // 设置Accept-Encoding为gizp
+            if (mGzip) {
+                request.addRequestProperty(XHttp.ACCEPT_ENCODING, XHttp.GZIP);
+            }
+            // 设置用户自定义的http请求头
+            if (mHeaders != null) {
+                for (Map.Entry<String, String> header : mHeaders.entrySet())
                     request.addRequestProperty(header.getKey(), header.getValue());
             }
             // 含有上传文件，Content-Type:multipart/form-data
-            if (getFileParams() != null) {
+            if (mFileParams != null) {
                 // 设置ContentType
                 String boundary = XJavaHttpUtil.generateBoundary();
                 String contentType = XJavaHttpUtil.generateMultiContentType(boundary, getCharset());
@@ -151,9 +160,9 @@ class XJavaHttpRequest extends XBaseHttpRequest {
                 // 设置内容entity
                 OutputStream out = request.getOutputStream();
                 writeFileParams(out, boundary);
-                if (getStringParams() != null)
+                if (mStringParams != null)
                     writeStringParams(out, boundary);
-                if (getFileParams() != null && getStringParams() != null)
+                if (mFileParams != null && mStringParams != null)
                     paramsEnd(out, boundary);
                 out.flush();
                 out.close();
@@ -166,7 +175,7 @@ class XJavaHttpRequest extends XBaseHttpRequest {
                 // 设置内容entity
                 OutputStream out = request.getOutputStream();
                 List<NameValuePair> parameters = new ArrayList<NameValuePair>();
-                for (Map.Entry<String, String> entry : getStringParams().entrySet())
+                for (Map.Entry<String, String> entry : mStringParams.entrySet())
                     parameters.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
                 String charset = getCharset() != null ? getCharset() : XHttp.DEF_CONTENT_CHARSET.name();
                 String content = URLEncodedUtils.format(parameters, charset);
@@ -215,7 +224,7 @@ class XJavaHttpRequest extends XBaseHttpRequest {
     //普通字符串数据
     private void writeStringParams(OutputStream out, String boundary) {
         try {
-            for (Map.Entry<String, String> entry : getStringParams().entrySet()) {
+            for (Map.Entry<String, String> entry : mStringParams.entrySet()) {
                 XJavaHttpUtil.writeBytes(XJavaHttpUtil.TWO_DASHES, out);
                 XJavaHttpUtil.writeBytes(boundary, out);
                 XJavaHttpUtil.writeBytes(XJavaHttpUtil.CR_LF, out);
@@ -237,7 +246,7 @@ class XJavaHttpRequest extends XBaseHttpRequest {
     //文件数据
     private void writeFileParams(OutputStream out, String boundary) {
         try {
-            for (Map.Entry<String, File> entry : getFileParams().entrySet()) {
+            for (Map.Entry<String, File> entry : mFileParams.entrySet()) {
                 File file = entry.getValue();
                 XJavaHttpUtil.writeBytes(XJavaHttpUtil.TWO_DASHES, out);
                 XJavaHttpUtil.writeBytes(boundary, out);

@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 /**
  * XApacheHttpClient是实现XHttp接口的实现类。
@@ -44,13 +45,10 @@ import java.util.Map;
  * User: tujun
  * Date: 13-9-2
  * Time: 下午3:38
- * To change this template use File | Settings | File Templates.
  */
 public class XApacheHttpClient extends XBaseHttp {
 
     private static final String TAG = XApacheHttpClient.class.getSimpleName();
-    private static final String ACCEPT_ENCODING = "Accept-Encoding";
-    private static final String GZIP = "gzip";
 
     public final static int MAX_TOTAL_CONNECTIONS = 800;// 最大连接数
     public final static int MAX_ROUTE_CONNECTIONS = 400;// 每个路由最大连接数
@@ -58,7 +56,6 @@ public class XApacheHttpClient extends XBaseHttp {
     private HttpContext mHttpContext;
     private DefaultHttpClient mHttpClient;
     private HttpUriRequest mCurrentRequest;
-    private XHttpTransferListener mTransferListener;
 
     public XApacheHttpClient(Context context, String userAgent) {
         super(context, userAgent);
@@ -97,17 +94,15 @@ public class XApacheHttpClient extends XBaseHttp {
     public XHttpRequest newRequest(String url) {
         XApacheHttpRequest request = new XApacheHttpRequest();
         request.setUrl(url);
-        request.setListener(mTransferListener);
         return request;
     }
 
     /**
      * 用XHttpRequest生成HttpUriRequest请求
-     * @param req
-     * @param isZipped
-     * @return
+     * @param req XHttpRequest的http请求
+     * @return 返回apache框架的HttpUriRequest请求
      */
-    private HttpUriRequest prepareHttpRequest(XHttpRequest req, boolean isZipped) {
+    private HttpUriRequest prepareHttpRequest(XHttpRequest req) {
         if (mIsDisposed)
             return null;
 
@@ -139,27 +134,18 @@ public class XApacheHttpClient extends XBaseHttp {
 
         // 构造HttpUriRequest
         XApacheHttpRequest apacheRequest = (XApacheHttpRequest) req;
-        HttpUriRequest request = (HttpUriRequest) apacheRequest.toApacheHttpRequest();
-        if (isZipped) {
-            request.addHeader(ACCEPT_ENCODING, GZIP);
-            request.addHeader(HTTP.CONTENT_ENCODING, GZIP);
-        }
-        return request;
+        return (HttpUriRequest) apacheRequest.toApacheHttpRequest();
     }
 
     @Override
     public XHttpResponse execute(XHttpRequest req) {
-        return execute(req, false);
-    }
-
-    public XHttpResponse execute(XHttpRequest req, boolean isZipped) {
         if (req == null || !(req instanceof XApacheHttpRequest))
             throw new IllegalArgumentException("XHttpRequest is not correct. Required XApacheHttpRequest!");
 
         try {
             // 构造HttpUriRequest
             XApacheHttpRequest apacheRequest = (XApacheHttpRequest) req;
-            HttpUriRequest request = prepareHttpRequest(apacheRequest, isZipped);
+            HttpUriRequest request = prepareHttpRequest(apacheRequest);
             mCurrentRequest = request;
             if (request == null)
                 return null;
@@ -173,7 +159,7 @@ public class XApacheHttpClient extends XBaseHttp {
             // 自动处理重定向
             if (isRedirect(request, response)) {
                 XLog.d(TAG, "Request need redirect: " + apacheRequest.getUrl());
-                response = handleRedirect(req, response, isZipped);
+                response = handleRedirect(req, response);
             }
 
             if (response == null)
@@ -183,11 +169,17 @@ public class XApacheHttpClient extends XBaseHttp {
             if (response.getStatusLine() != null)
                 apacheResponse.setStatusCode(response.getStatusLine().getStatusCode());
             if (response.getEntity() != null) {
-                apacheResponse.setContent(response.getEntity().getContent());
+                // 如果response是压缩的，则自动用GZIPInputStream转换一下
+                Header contentEncoding = response.getFirstHeader(HTTP.CONTENT_ENCODING);
+                if (contentEncoding != null && contentEncoding.getValue().equalsIgnoreCase("gzip")) {
+                    apacheResponse.setContent(new GZIPInputStream((response.getEntity().getContent())));
+                } else {
+                    apacheResponse.setContent(response.getEntity().getContent());
+                }
                 apacheResponse.setContentLength(response.getEntity().getContentLength());
             }
-            if (response.getAllHeaders() != null) {
-                Header[] headers = response.getAllHeaders();
+            Header[] headers = response.getAllHeaders();
+            if (headers != null) {
                 Map<String, List<String>> wrapperHeaders = new HashMap<String, List<String>>();
                 for (Header header : headers) {
                     if (wrapperHeaders.containsKey(header.getName())) {
@@ -207,17 +199,13 @@ public class XApacheHttpClient extends XBaseHttp {
             return apacheResponse;
         } catch (IOException e) {
             e.printStackTrace();
-            XLog.d(TAG, "http connection error.");
+            XLog.d(TAG, "http connection error." + e.getMessage());
             for (XHttpProgressListener listener: mProgressListeners)
                 listener.onException(e);
         } finally {
             mCurrentRequest = null;
         }
         return null;
-    }
-
-    public void setTransferListener(XHttpTransferListener transferListener) {
-        mTransferListener = transferListener;
     }
 
     @Override
@@ -272,8 +260,7 @@ public class XApacheHttpClient extends XBaseHttp {
         }
     }
 
-    private HttpResponse handleRedirect(XHttpRequest req, HttpResponse response,
-                                        boolean isZipped) {
+    private HttpResponse handleRedirect(XHttpRequest req, HttpResponse response) {
         while (true) {
             if (response == null)
                 return null;
@@ -298,7 +285,7 @@ public class XApacheHttpClient extends XBaseHttp {
 
             try {
                 // 生成新的url的请求
-                HttpUriRequest request = prepareHttpRequest(req, isZipped);
+                HttpUriRequest request = prepareHttpRequest(req);
                 mCurrentRequest = request;
                 if (request == null)
                     return null;

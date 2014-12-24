@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * XHttpRequest的基础实现类
  * Created with IntelliJ IDEA.
  * User: tujun
  * Date: 13-9-3
@@ -16,9 +17,10 @@ public abstract class XBaseHttpRequest implements XHttpRequest {
     private String mUrl;
     private HttpMethod mMethod;
     private String mCharsetName;
-    private Map<String, String> mStringParams;
-    private Map<String, File> mFileParams;
-    private Map<String, String> mHeaders;
+    protected boolean mGzip;
+    protected Map<String, String> mStringParams;
+    protected Map<String, File> mFileParams;
+    protected Map<String, String> mHeaders;
 
     protected XBaseHttpRequest() {
         mMethod = HttpMethod.GET;
@@ -33,6 +35,12 @@ public abstract class XBaseHttpRequest implements XHttpRequest {
     @Override
     public XHttpRequest setMethod(HttpMethod method) {
         mMethod = method;
+        return this;
+    }
+
+    @Override
+    public XHttpRequest setGzip(boolean gzip) {
+        mGzip = gzip;
         return this;
     }
 
@@ -79,17 +87,5 @@ public abstract class XBaseHttpRequest implements XHttpRequest {
     @Override
     public String getCharset() {
         return mCharsetName;
-    }
-
-    public Map<String, String> getStringParams() {
-        return mStringParams;
-    }
-
-    public Map<String, File> getFileParams() {
-        return mFileParams;
-    }
-
-    public Map<String, String> getHeaders() {
-        return mHeaders;
     }
 }
