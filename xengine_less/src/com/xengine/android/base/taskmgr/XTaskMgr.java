@@ -159,6 +159,14 @@ public interface XTaskMgr<T extends XMgrTaskExecutor<B>, B extends XTaskBean> {
     void stopAndReset();
 
     /**
+     * 如果运行队列未满，则将指定Id的任务
+     * 从等待队列添加进运行队列，且不启动执行。
+     * 如果运行队列已满，则什么都不做。
+     * @param taskId 任务的唯一Id
+     */
+    void setRunningTask(String taskId);
+
+    /**
      * 设置速度监控器
      * @param speedMonitor
      */

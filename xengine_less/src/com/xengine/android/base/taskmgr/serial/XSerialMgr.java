@@ -20,14 +20,6 @@ public interface XSerialMgr<B extends XTaskBean>
         extends XTaskMgr<XMgrTaskExecutor<B>, B> {
 
     /**
-     * 如果当前运行任务为空，则将指定任务从等待队列中移除，
-     * 并设置为当前运行任务，不会启动执行。
-     * 如果当前运行任务不为空，则什么都不做。
-     * @param taskId 任务的唯一Id
-     */
-    void setRunningTask(String taskId);
-
-    /**
      * 获取当前正在运行的任务
      * @return 返回当前正在运行的任务，如果没有，则返回null
      */
