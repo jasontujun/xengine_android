@@ -530,7 +530,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
             mSpeedMonitor.stop();
         // 通知监听者
         for (XTaskMgrListener<B> listener : mListeners.getListeners())
-            listener.onStopAndReset();
+            listener.onStopAll();
     }
 
     @Override

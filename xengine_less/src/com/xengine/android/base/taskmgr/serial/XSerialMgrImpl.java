@@ -481,7 +481,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         mTobeExecuted.clear();
         // 通知监听者
         for (XTaskMgrListener<B> listener : mListeners.getListeners())
-            listener.onStopAndReset();
+            listener.onStopAll();
     }
 
     @Override

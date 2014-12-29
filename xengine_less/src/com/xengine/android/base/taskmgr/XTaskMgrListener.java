@@ -39,11 +39,6 @@ public interface XTaskMgrListener<T extends XTaskBean> {
     void onRemoveAll(List<T> tasks);
 
     /**
-     * 终止并清空所有下载任务
-     */
-    void onStopAndReset();
-
-    /**
      * 启动的回调函数
      * start、resume等操作会触发此回调。
      * @param task
@@ -60,7 +55,7 @@ public interface XTaskMgrListener<T extends XTaskBean> {
 
     /**
      * 所有任务都暂停。
-     * remove、stop等操作会触发此回调。
+     * remove、stop、stopAndReset等操作会触发此回调。
      * pause等操作不会触发此回调。
      */
     void onStopAll();
