@@ -96,9 +96,6 @@ public class XStringUtil {
 
     /**
      * 过滤HTML标签，取出文本内的相关数据
-     *
-     * @param inputString
-     * @return
      */
     public static String filterHtmlTag(String inputString) {
         String htmlStr = inputString; // 含html标签的字符串
@@ -371,8 +368,6 @@ public class XStringUtil {
             return srcName.substring(0, dotIndex);
     }
 
-    // 获取随即数
-
     /**
      * 获取随机字符串
      * @param length 字符串长度
@@ -389,5 +384,22 @@ public class XStringUtil {
             sb.append(RANDOM_CHARS.charAt(r.nextInt(range)));
         }
         return sb.toString();
+    }
+
+    /**
+     * 截取url中的host域
+     * @param url url地址
+     * @return 返回url中的host域；截取失败返回null
+     */
+    public static String getHost(String url){
+        if(url == null || "".equals(url.trim()))
+            return null;
+
+        Pattern p =  Pattern.compile("(?<=//|)((\\w)+\\.)+\\w+");
+        Matcher matcher = p.matcher(url);
+        if (matcher.find())
+            return matcher.group();
+        else
+            return null;
     }
 }
