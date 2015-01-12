@@ -58,7 +58,7 @@ public abstract class XFiniteRetryRunnable<T> implements XRetryRunnable<T> {
         while (isRunning && retryCount <= maxRetryCount) {
             if (doInBackground(bean) || !isRunning)
                 break;
-            // 如果下载失败，等待一段时间后，再次执行
+            // 如果执行失败，等待一段时间后，再次执行
             retryCount++;
             try {
                 interval = Math.max(getRetryInterval(getRetryCount()), 0);

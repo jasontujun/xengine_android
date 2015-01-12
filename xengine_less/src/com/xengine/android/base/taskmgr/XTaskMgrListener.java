@@ -61,7 +61,7 @@ public interface XTaskMgrListener<T extends XTaskBean> {
     void onStopAll();
 
     /**
-     * 完成所有下载任务。
+     * 完成所有执行任务。
      */
     void onFinishAll();
 

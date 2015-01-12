@@ -20,8 +20,8 @@ public interface XTaskBean {
     public static final int STATUS_PAUSING = 5;// 正在暂停状态
 
 	/**
-	 * 获取下载任务的唯一Id，用于区分不同的下载任务。
-	 * @return 返回该下载任务的唯一Id
+	 * 获取任务的唯一Id，用于区分不同的任务。
+	 * @return 返回该任务的唯一Id
 	 */
 	String getId();
 

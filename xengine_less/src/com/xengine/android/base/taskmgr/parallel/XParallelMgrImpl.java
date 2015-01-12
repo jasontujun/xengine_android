@@ -38,7 +38,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
     protected XTaskScheduler<B> mScheduler;// 任务排序器(外部设置)
     protected XFilter<B> mFilter;// 任务过滤器
     protected InnerTaskComparator mInnerComparator;// 实际用来排序的比较器
-    protected XSpeedMonitor<XMgrTaskExecutor<B>> mSpeedMonitor;// 下载速度监视器
+    protected XSpeedMonitor<XMgrTaskExecutor<B>> mSpeedMonitor;// 速度监视器
     protected XListenerMgr<XTaskMgrListener<B>> mListeners;// 外部监听者
     protected XTaskListener<B> mInnerTaskListener;// 内部管理器对每个Task的监听
     protected int mParallelLimit;// 并行任务的数量上限

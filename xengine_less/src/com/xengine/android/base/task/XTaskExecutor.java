@@ -13,22 +13,22 @@ package com.xengine.android.base.task;
 public interface XTaskExecutor<B extends XTaskBean> {
 
     /**
-     * 开始或继续下载。
+     * 开始或继续执行。
      * @param preStatus 增加兼容的启动前的状态
-     * @return 开始或继续下载是否成功
+     * @return 开始或继续执行是否成功
      */
     boolean start(int... preStatus);
 
     /**
-     * 暂停下载。
+     * 暂停执行。
      * @param postStatus 设置暂停后的状态
-     * @return 暂停下载是否成功
+     * @return 暂停执行是否成功
      */
     boolean pause(int... postStatus);
 
     /**
-     * 终止并清除下载任务（删除相关内存和文件中的数据）。
-     * @return 终止并清除下载任务是否成功
+     * 终止并清除任务（删除相关内存和文件中的数据）。
+     * @return 终止并清除任务是否成功
      */
     boolean abort();
 
@@ -45,7 +45,7 @@ public interface XTaskExecutor<B extends XTaskBean> {
     String getId();
 
     /**
-     * 设置下载任务的状态
+     * 设置任务的状态
      * @param status
      */
     void setStatus(int status);

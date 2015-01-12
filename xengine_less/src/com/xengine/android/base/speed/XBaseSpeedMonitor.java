@@ -78,7 +78,7 @@ public abstract class XBaseSpeedMonitor<T extends XSpeedCalculable>
 
                 XSpeedCalculator calculator = task.getSpeedCalculator();
                 if (calculator != null) {
-                    long speed = calculator.getSpeed(task.getCompleteSize());// 计算下载速度
+                    long speed = calculator.getSpeed(task.getCompleteSize());// 计算速度
                     notifyUpdateSpeed(task, speed);
                 }
             }

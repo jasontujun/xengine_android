@@ -19,7 +19,7 @@ public interface XSpeedCalculator {
     /**
      * 获取当前速度。
      * @param size 当前的文件大小（单位：byte）
-     * @return 当前下载速度（单位：byte/s）
+     * @return 返回当前速度（单位：byte/s）
      */
     long getSpeed(long size);
 }
