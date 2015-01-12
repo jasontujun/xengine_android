@@ -13,7 +13,8 @@ package com.xengine.android.base.task;
  *      endSuccess = DOING -> DONE
  *      endError = DOING -> ERROR
  * 2.子类继承时，重写五个行为的回调方法即可：
- *      onStart(),onPause(),onAbort(),onEndSuccess(),onEndError
+ *      onStart(),onPause(),onAbort(),onEndSuccess(),onEndError()
+ * 3.不允许在onStart()等5个自定义回调方法中，同步调用start()等5个行为方法；
  * User: jasontujun
  * Date: 13-9-27
  * Time: 上午10:03
@@ -64,16 +65,18 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
 
     @Override
     public boolean start(int... preStatus) {
-        if (getStatus() != XTaskBean.STATUS_TODO
-                && getStatus() != XTaskBean.STATUS_ERROR
-                && (preStatus.length == 0
-                || getStatus() != preStatus[0]))
-            return false;
+        synchronized (this) {
+            if (getStatus() != XTaskBean.STATUS_TODO
+                    && getStatus() != XTaskBean.STATUS_ERROR
+                    && (preStatus.length == 0
+                    || getStatus() != preStatus[0]))
+                return false;
 
-        if (!onStart())
-            return false;
+            if (!onStart())
+                return false;
 
-        setStatus(XTaskBean.STATUS_DOING);
+            setStatus(XTaskBean.STATUS_DOING);
+        }
         if (mListener != null)
             mListener.onStart(getBean());
         return true;
@@ -81,16 +84,18 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
 
     @Override
     public boolean pause(int... postStatus) {
-        if (getStatus() != XTaskBean.STATUS_DOING)
-            return false;
+        synchronized (this) {
+            if (getStatus() != XTaskBean.STATUS_DOING)
+                return false;
 
-        if (!onPause())
-            return false;
+            if (!onPause())
+                return false;
 
-        if (postStatus.length > 0) {
-            setStatus(postStatus[0]);
-        } else {
-            setStatus(XTaskBean.STATUS_TODO);
+            if (postStatus.length > 0) {
+                setStatus(postStatus[0]);
+            } else {
+                setStatus(XTaskBean.STATUS_TODO);
+            }
         }
         if (mListener != null)
             mListener.onPause(getBean());
@@ -99,40 +104,46 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
 
     @Override
     public boolean abort() {
-        if (getStatus() != XTaskBean.STATUS_TODO
-                && getStatus() != XTaskBean.STATUS_DOING)
-            return false;
+        synchronized (this) {
+            if (getStatus() != XTaskBean.STATUS_TODO
+                    && getStatus() != XTaskBean.STATUS_DOING)
+                return false;
 
-        if (!onAbort())
-            return false;
+            if (!onAbort())
+                return false;
 
-        setStatus(XTaskBean.STATUS_DONE);
+            setStatus(XTaskBean.STATUS_DONE);
+        }
         if (mListener != null)
             mListener.onAbort(getBean());
         return true;
     }
 
     public boolean endSuccess() {
-        if (getStatus() != XTaskBean.STATUS_DOING)
-            return false;
+        synchronized (this) {
+            if (getStatus() != XTaskBean.STATUS_DOING)
+                return false;
 
-        if (!onEndSuccess())
-            return false;
+            if (!onEndSuccess())
+                return false;
 
-        setStatus(XTaskBean.STATUS_DONE);
+            setStatus(XTaskBean.STATUS_DONE);
+        }
         if (mListener != null)
             mListener.onComplete(getBean());
         return true;
     }
 
     public boolean endError(String errorCode, boolean retry) {
-        if (getStatus() != XTaskBean.STATUS_DOING)
-            return false;
+        synchronized (this) {
+            if (getStatus() != XTaskBean.STATUS_DOING)
+                return false;
 
-        if (!onEndError(errorCode, retry))
-            return false;
+            if (!onEndError(errorCode, retry))
+                return false;
 
-        setStatus(XTaskBean.STATUS_ERROR);
+            setStatus(XTaskBean.STATUS_ERROR);
+        }
         if (mListener != null)
             mListener.onError(getBean(), errorCode, retry);
         return true;
