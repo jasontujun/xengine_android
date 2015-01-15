@@ -40,7 +40,7 @@ public abstract class XFiniteRetryRunnable<T> implements XRetryRunnable<T> {
     }
 
     @Override
-    public void run() {
+    public final void run() {
         T bean = getBean();
 
         // 准备活动
@@ -56,7 +56,7 @@ public abstract class XFiniteRetryRunnable<T> implements XRetryRunnable<T> {
         // 核心重试逻辑
         long interval;
         while (isRunning && retryCount <= maxRetryCount) {
-            if (doInBackground(bean) || !isRunning)
+            if (onRepeatExecute(bean) || !isRunning)
                 break;
             // 如果执行失败，等待一段时间后，再次执行
             retryCount++;

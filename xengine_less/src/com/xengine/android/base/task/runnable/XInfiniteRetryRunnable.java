@@ -32,7 +32,7 @@ public abstract class XInfiniteRetryRunnable<T> implements XRetryRunnable<T> {
     }
 
     @Override
-    public void run() {
+    public final void run() {
         T bean = getBean();
 
         // 准备活动
@@ -49,7 +49,7 @@ public abstract class XInfiniteRetryRunnable<T> implements XRetryRunnable<T> {
         long interval;
         while (isRunning) {
             // 如果任务执行完成或者外部中断，则退出循环
-            if (doInBackground(bean) || !isRunning)
+            if (onRepeatExecute(bean) || !isRunning)
                 break;
             try {
                 interval = Math.max(getRetryInterval(getRetryCount()), 0);

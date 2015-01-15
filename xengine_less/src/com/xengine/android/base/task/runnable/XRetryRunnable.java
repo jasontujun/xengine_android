@@ -67,7 +67,7 @@ public interface XRetryRunnable<T> extends Runnable {
      * @param bean
      * @return 如果任务完成，则返回true；否则返回false，并过段时间重复执行该方法
      */
-    boolean doInBackground(T bean);
+    boolean onRepeatExecute(T bean);
 
     /**
      * 执行后的善后工作
