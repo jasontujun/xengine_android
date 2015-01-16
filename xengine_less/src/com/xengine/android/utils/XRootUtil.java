@@ -305,18 +305,27 @@ public class XRootUtil {
             dir.mkdirs();
         File testFile = new File(dir, "test.dat");
         String testStr = "test";
-        // 写数据进文件
-        if (!XFileUtil.string2File(testStr, testFile))
-            return false;
-        // 从文件中读数据
-        String readStr = XFileUtil.file2String(testFile);
-        if (readStr == null)
-            return false;
-        // 比较字符串内容
-        if (!testStr.equals(readStr))
-            return false;
-        // 删除测试文件
-        return testFile.delete();
+        boolean deleteResult;
+        try {
+            // 写数据进文件
+            if (!XFileUtil.string2File(testStr, testFile))
+                return false;
+            // 从文件中读数据
+            String readStr = XFileUtil.file2String(testFile);
+            if (readStr == null)
+                return false;
+            // 比较字符串内容
+            if (!testStr.equals(readStr))
+                return false;
+        } finally {
+            // 删除测试文件
+            File renameFile = new File(testFile.getAbsolutePath() + System.currentTimeMillis());
+            boolean renameResult = testFile.renameTo(renameFile);// 为了解决EBUSY问题，重命名后再删除
+            if (renameResult)
+                testFile = renameFile;
+            deleteResult = testFile.delete();
+        }
+        return deleteResult;
     }
 
     /**
