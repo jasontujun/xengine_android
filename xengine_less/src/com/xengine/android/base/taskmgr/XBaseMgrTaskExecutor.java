@@ -8,8 +8,6 @@ import com.xengine.android.base.task.XTaskBean;
  * <pre>
  * 继承自XBaseTaskExecutor的抽象类。
  * XBaseMgrTaskExecutor代表可以添加进TaskMgr的任务。
- * 该方法添加了任务
- * 用于
  * </pre>
  */
 public abstract class XBaseMgrTaskExecutor<B extends XTaskBean>

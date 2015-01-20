@@ -4,9 +4,9 @@ package com.xengine.android.base.task.runnable;
  * <pre>
  * 定义了一套执行和重试流程的Runnable。
  *      1.前期准备工作，执行一次onPreExecute()
- *      2.核心逻辑，多次重试执行doInBackground()
+ *      2.核心逻辑，多次重试执行onRepeatExecute()
  *        如果执行完成不再重试，则返回true，否则返回false
- *      3.如果是正常结束的(doInBackground返回true或达到重试最大上限)，
+ *      3.如果是正常结束的(onRepeatExecute返回true或达到重试最大上限)，
  *        则最后回调onPostExecute()
  *      4.如果是被中断的(调用cancel())，则最后回调onCancelled()
  * User: jasontujun
@@ -19,14 +19,14 @@ public interface XRetryRunnable<T> extends Runnable {
     static final int INFINITE_RETRY = -1;
 
     /**
-     * 获取当前的重试执行doInBackground的累计次数
+     * 获取当前的重试执行onRepeatExecute的累计次数
      * @return 如果任务是无限重试的，则返回{@link #INFINITE_RETRY}；否则返回当前重试次数
      * @see #INFINITE_RETRY
      */
     long getRetryCount();
 
     /**
-     * 获取重试doInBackground的时间间隔(大于等于0)
+     * 获取重试onRepeatExecute的时间间隔(大于等于0)
      * @param retryCount 当前重试次数(如果是无限重试的，则该值为-1)
      * @return
      * @see #getRetryCount()

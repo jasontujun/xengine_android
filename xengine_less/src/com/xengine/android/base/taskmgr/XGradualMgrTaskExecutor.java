@@ -8,8 +8,6 @@ import com.xengine.android.base.task.XTaskBean;
  * <pre>
  * 继承自XGradualTaskExecutor的抽象类。
  * XGradualMgrTaskExecutor代表可以添加进TaskMgr的任务。
- * 该方法添加了任务
- * 用于
  * </pre>
  */
 public abstract class XGradualMgrTaskExecutor<B extends XTaskBean>
