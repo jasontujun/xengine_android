@@ -22,6 +22,10 @@ public abstract class XEvolvableTaskExecutor<B extends XTaskBean>
         super(bean);
     }
 
+    public XEvolvableTaskExecutor(B bean, int status) {
+        super(bean, status);
+    }
+
     /**
      * 进化成另一个任务。
      */

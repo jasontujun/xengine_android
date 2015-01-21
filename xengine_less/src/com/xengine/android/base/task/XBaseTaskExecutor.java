@@ -32,6 +32,11 @@ public abstract class XBaseTaskExecutor<B extends XTaskBean>
         mStatus = bean.getStatus();
     }
 
+    public XBaseTaskExecutor(B bean, int status) {
+        mBean = bean;
+        mStatus = status;
+    }
+
     @Override
     public B getBean() {
         return mBean;

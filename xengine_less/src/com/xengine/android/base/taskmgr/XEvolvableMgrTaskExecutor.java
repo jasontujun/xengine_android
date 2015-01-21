@@ -24,6 +24,10 @@ public abstract class XEvolvableMgrTaskExecutor<B extends XTaskBean>
         super(bean);
     }
 
+    public XEvolvableMgrTaskExecutor(B bean, int status) {
+        super(bean, status);
+    }
+
     @Override
     protected synchronized void evolve(XBaseTaskExecutor<B> evolvedTask) {
         super.evolve(evolvedTask);

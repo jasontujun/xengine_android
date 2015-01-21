@@ -20,6 +20,10 @@ public abstract class XGradualMgrTaskExecutor<B extends XTaskBean>
         super(bean);
     }
 
+    public XGradualMgrTaskExecutor(B bean, int status) {
+        super(bean, status);
+    }
+
     @Override
     public void setTaskMgr(XTaskMgr<XMgrTaskExecutor<B>, B> taskMgr) {
         mTaskMgr = taskMgr;

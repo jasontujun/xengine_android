@@ -32,6 +32,10 @@ public abstract class XGradualTaskExecutor<B extends XTaskBean>
         super(bean);
     }
 
+    public XGradualTaskExecutor(B bean, int status) {
+        super(bean, status);
+    }
+
     @Override
     public final boolean start(int... preStatus) {
         synchronized (this) {
