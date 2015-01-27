@@ -1,7 +1,7 @@
 package com.xengine.android.system.externalroot;
 
 import android.content.Context;
-import com.xengine.android.base.filter.XFilter;
+import com.xengine.android.toolkit.filter.XFilter;
 
 import java.util.List;
 

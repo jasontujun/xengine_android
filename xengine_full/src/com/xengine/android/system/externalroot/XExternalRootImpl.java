@@ -2,7 +2,7 @@ package com.xengine.android.system.externalroot;
 
 import android.content.Context;
 import android.text.TextUtils;
-import com.xengine.android.base.filter.XFilter;
+import com.xengine.android.toolkit.filter.XFilter;
 import com.xengine.android.utils.XRootUtil;
 
 import java.util.ArrayList;

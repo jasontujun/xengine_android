@@ -1,8 +1,8 @@
 package com.xengine.android.data.cache;
 
-import com.xengine.android.base.filter.XFilter;
-import com.xengine.android.base.listener.XCowListenerMgr;
-import com.xengine.android.base.listener.XListenerMgr;
+import com.xengine.android.toolkit.filter.XFilter;
+import com.xengine.android.toolkit.listener.XCowListenerMgr;
+import com.xengine.android.toolkit.listener.XListenerMgr;
 
 import java.util.ArrayList;
 import java.util.Collections;
