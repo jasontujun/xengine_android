@@ -1,8 +1,6 @@
 package com.xengine.android.toolkit.taskmgr.serial;
 
 import com.xengine.android.toolkit.filter.XFilter;
-import com.xengine.android.toolkit.listener.XCowListenerMgr;
-import com.xengine.android.toolkit.listener.XListenerMgr;
 import com.xengine.android.toolkit.speed.XSpeedMonitor;
 import com.xengine.android.toolkit.speed.calc.DefaultSpeedCalculator;
 import com.xengine.android.toolkit.task.XTaskBean;
@@ -12,6 +10,7 @@ import com.xengine.android.toolkit.taskmgr.XTaskMgrListener;
 import com.xengine.android.toolkit.taskmgr.XTaskScheduler;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * <pre>
@@ -40,26 +39,26 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
     protected XFilter<B> mFilter;// 任务过滤器
     protected Comparator<XMgrTaskExecutor<B>> mInnerComparator;// 实际用来排序的比较器
     protected XSpeedMonitor<XMgrTaskExecutor<B>> mSpeedMonitor;// 速度监视器
-    protected XListenerMgr<XTaskMgrListener<B>> mListeners;// 外部监听者
+    protected List<XTaskMgrListener<B>> mListeners;// 外部监听者
     protected XTaskListener<B> mInnerTaskListener;// 内部管理器对每个Task的监听
 
     public XSerialMgrImpl() {
         mCurrentExecuted = null;
         mTobeExecuted = new LinkedList<XMgrTaskExecutor<B>>();
         mInnerComparator = new InnerTaskComparator();
-        mListeners = new XCowListenerMgr<XTaskMgrListener<B>>();
+        mListeners = new CopyOnWriteArrayList<XTaskMgrListener<B>>();
         mIsWorking = false;
         mAuto = true;
         mInnerTaskListener = new XTaskListener<B>() {
             @Override
             public void onStart(B task) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onStart(task);
             }
 
             @Override
             public void onPause(B task) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onStop(task);
             }
 
@@ -68,13 +67,13 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
 
             @Override
             public void onDoing(B task, long completeSize) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onDoing(task, completeSize);
             }
 
             @Override
             public void onComplete(B task) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onComplete(task);
 
                 XMgrTaskExecutor<B> taskExecutor = getTaskById(task.getId());
@@ -84,7 +83,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
 
             @Override
             public void onError(B task, String errorCode, boolean retry) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onError(task, errorCode);
 
                 XMgrTaskExecutor<B> taskExecutor = getTaskById(task.getId());
@@ -125,7 +124,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         if (task.getSpeedCalculator() == null)
             task.setSpeedCalculator(new DefaultSpeedCalculator());
         mTobeExecuted.offer(task);
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onAdd(task.getBean());
 
         return true;
@@ -151,7 +150,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
             mTobeExecuted.offer(task);
         }
         if (added.size() > 0)
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onAddAll(added);
     }
 
@@ -172,11 +171,11 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
             if (mSpeedMonitor != null)
                 mSpeedMonitor.stop();
             mIsWorking = false;
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         if (isRemoved)
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onRemove(task.getBean());
     }
 
@@ -207,11 +206,11 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
             if (mSpeedMonitor != null)
                 mSpeedMonitor.stop();
             mIsWorking = false;
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         if (removed.size() > 0)
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onRemoveAll(removed);
     }
 
@@ -369,7 +368,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         if (mSpeedMonitor != null)
             mSpeedMonitor.stop();
         mIsWorking = false;
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onStopAll();
         return true;
     }
@@ -386,7 +385,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         if (mSpeedMonitor != null)
             mSpeedMonitor.stop();
         mIsWorking = false;
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onStopAll();
         return true;
     }
@@ -403,7 +402,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         if (mSpeedMonitor != null)
             mSpeedMonitor.stop();
         mIsWorking = false;
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onStopAll();
         return true;
     }
@@ -421,7 +420,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         // 添加回等待队列
         mTobeExecuted.addFirst(mCurrentExecuted);
         mCurrentExecuted = null;
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onStopAll();
         return true;
     }
@@ -441,7 +440,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         // 添加回等待队列
         mTobeExecuted.addFirst(mCurrentExecuted);
         mCurrentExecuted = null;
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onStopAll();
         return true;
     }
@@ -461,7 +460,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         // 添加回等待队列
         mTobeExecuted.addFirst(mCurrentExecuted);
         mCurrentExecuted = null;
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onStopAll();
         return true;
     }
@@ -480,7 +479,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         // 清空等待队列中的任务
         mTobeExecuted.clear();
         // 通知监听者
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onStopAll();
     }
 
@@ -596,7 +595,7 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
         // 如果已经标记停止，或者不自动执行，则什么都不做
         if (!mIsWorking || !mAuto) {
             // 回调onStopAll()
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
             return;
         }
@@ -614,11 +613,11 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
             mIsWorking = false;
             if (mTobeExecuted.size() == 0) {
                 // 当前没有执行任务，等待队列也没任务，则回调onFinishAll()
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onFinishAll();
             } else {
                 // 当前没有执行任务，等待队列有任务，则回调onStopAll()
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onStopAll();
             }
         }
@@ -626,17 +625,18 @@ public class XSerialMgrImpl<B extends XTaskBean> implements XSerialMgr<B> {
 
     @Override
     public void registerListener(XTaskMgrListener<B> listener) {
-        mListeners.registerListener(listener);
+        if (!mListeners.contains(listener))
+            mListeners.add(listener);
     }
 
     @Override
     public void unregisterListener(XTaskMgrListener<B> listener) {
-        mListeners.unregisterListener(listener);
+        mListeners.remove(listener);
     }
 
     @Override
     public List<XTaskMgrListener<B>> getListeners() {
-        return mListeners.getListeners();
+        return mListeners;
     }
 
     /**

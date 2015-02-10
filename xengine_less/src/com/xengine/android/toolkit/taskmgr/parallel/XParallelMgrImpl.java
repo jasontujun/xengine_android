@@ -1,8 +1,6 @@
 package com.xengine.android.toolkit.taskmgr.parallel;
 
 import com.xengine.android.toolkit.filter.XFilter;
-import com.xengine.android.toolkit.listener.XCowListenerMgr;
-import com.xengine.android.toolkit.listener.XListenerMgr;
 import com.xengine.android.toolkit.speed.XSpeedMonitor;
 import com.xengine.android.toolkit.speed.calc.DefaultSpeedCalculator;
 import com.xengine.android.toolkit.task.XTaskBean;
@@ -12,6 +10,7 @@ import com.xengine.android.toolkit.taskmgr.XTaskMgrListener;
 import com.xengine.android.toolkit.taskmgr.XTaskScheduler;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * <pre>
@@ -39,7 +38,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
     protected XFilter<B> mFilter;// 任务过滤器
     protected InnerTaskComparator mInnerComparator;// 实际用来排序的比较器
     protected XSpeedMonitor<XMgrTaskExecutor<B>> mSpeedMonitor;// 速度监视器
-    protected XListenerMgr<XTaskMgrListener<B>> mListeners;// 外部监听者
+    protected List<XTaskMgrListener<B>> mListeners;// 外部监听者
     protected XTaskListener<B> mInnerTaskListener;// 内部管理器对每个Task的监听
     protected int mParallelLimit;// 并行任务的数量上限
 
@@ -48,19 +47,19 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         mCurrentExecuted = new LinkedList<XMgrTaskExecutor<B>>();
         mTobeExecuted = new LinkedList<XMgrTaskExecutor<B>>();
         mInnerComparator = new InnerTaskComparator();
-        mListeners = new XCowListenerMgr<XTaskMgrListener<B>>();
+        mListeners = new CopyOnWriteArrayList<XTaskMgrListener<B>>();
         mIsWorking = false;
         mAuto = true;
         mInnerTaskListener = new XTaskListener<B>() {
             @Override
             public void onStart(B task) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onStart(task);
             }
 
             @Override
             public void onPause(B task) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onStop(task);
             }
 
@@ -69,13 +68,13 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
 
             @Override
             public void onDoing(B task, long completeSize) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onDoing(task, completeSize);
             }
 
             @Override
             public void onComplete(B task) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onComplete(task);
 
                 XMgrTaskExecutor<B> taskExecutor = getTaskById(task.getId());
@@ -85,7 +84,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
 
             @Override
             public void onError(B task, String errorCode, boolean retry) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onError(task, errorCode);
 
                 XMgrTaskExecutor<B> taskExecutor = getTaskById(task.getId());
@@ -162,7 +161,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         if (task.getSpeedCalculator() == null) // 若没有速度计算器，则设置默认的
             task.setSpeedCalculator(new DefaultSpeedCalculator());
         mTobeExecuted.offer(task);
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onAdd(task.getBean());
 
         return true;
@@ -188,7 +187,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
             mTobeExecuted.offer(task);
         }
         if (added.size() > 0)
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onAddAll(added);
     }
 
@@ -205,11 +204,11 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
             isRemoved = mTobeExecuted.remove(task);
         }
         if (setStopIfAllStop()) {// 如果当前没有任务运行，则标记结束
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         if (isRemoved)
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onRemove(task.getBean());
     }
 
@@ -237,11 +236,11 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
             }
         }
         if (setStopIfAllStop()) {// 如果当前没有任务运行，则标记结束
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         if (removed.size() > 0)
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onRemoveAll(removed);
     }
 
@@ -409,7 +408,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         for (XMgrTaskExecutor<B> task : mCurrentExecuted)
             task.pause();
         if (setStopIfAllStop()) {
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         return true;
@@ -425,7 +424,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         if (!task.pause())
             return false;
         if (setStopIfAllStop()) {
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         return true;
@@ -445,7 +444,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         if (stopTasks.size() == 0)
             return false;
         if (setStopIfAllStop()) {
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         return true;
@@ -468,7 +467,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         mCurrentExecuted.removeAll(stopTasks);
         mTobeExecuted.addAll(0, stopTasks);
         if (setStopIfAllStop()) {
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         return true;
@@ -487,7 +486,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         mCurrentExecuted.remove(task);
         mTobeExecuted.addFirst(task);
         if (setStopIfAllStop()) {
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         return true;
@@ -510,7 +509,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         mCurrentExecuted.removeAll(stopTasks);
         mTobeExecuted.addAll(0, stopTasks);
         if (setStopIfAllStop()) {
-            for (XTaskMgrListener<B> listener : mListeners.getListeners())
+            for (XTaskMgrListener<B> listener : mListeners)
                 listener.onStopAll();
         }
         return true;
@@ -529,7 +528,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         if (mSpeedMonitor != null)
             mSpeedMonitor.stop();
         // 通知监听者
-        for (XTaskMgrListener<B> listener : mListeners.getListeners())
+        for (XTaskMgrListener<B> listener : mListeners)
             listener.onStopAll();
     }
 
@@ -651,7 +650,7 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
         if (!mIsWorking || !mAuto) {
             // 回调onStopAll()
             if (isAllStop()) {
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onStopAll();
             }
             return;
@@ -669,12 +668,12 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
             if (isEmptyParallel() && mTobeExecuted.size() == 0) {
                 // 执行队列没有任务，等待队列也没任务，则回调onFinishAll()
                 mIsWorking = false;
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onFinishAll();
             } else if (isAllStop()) {
                 // 当前有任务，但都暂停或完成了，则回调onStopAll()
                 mIsWorking = false;
-                for (XTaskMgrListener<B> listener : mListeners.getListeners())
+                for (XTaskMgrListener<B> listener : mListeners)
                     listener.onStopAll();
             }
         }
@@ -682,17 +681,18 @@ public class XParallelMgrImpl<B extends XTaskBean> implements XParallelMgr<B> {
 
     @Override
     public void registerListener(XTaskMgrListener<B> listener) {
-        mListeners.registerListener(listener);
+        if (!mListeners.contains(listener))
+            mListeners.add(listener);
     }
 
     @Override
     public void unregisterListener(XTaskMgrListener<B> listener) {
-        mListeners.unregisterListener(listener);
+        mListeners.remove(listener);
     }
 
     @Override
     public List<XTaskMgrListener<B>> getListeners() {
-        return mListeners.getListeners();
+        return mListeners;
     }
 
     /**
