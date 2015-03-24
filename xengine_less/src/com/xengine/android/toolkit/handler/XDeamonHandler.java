@@ -15,18 +15,18 @@ import android.os.Message;
  * Time: 下午3:06
  * </pre>
  */
-public class DeamonHandler implements XHandler {
+public class XDeamonHandler implements XHandler {
 
     private HandlerThread mDeamonThread;
     private Handler mDeamonHandler;
 
-    public DeamonHandler(String name, Handler.Callback callback) {
+    public XDeamonHandler(String name, Handler.Callback callback) {
         mDeamonThread = new HandlerThread(name);
         mDeamonThread.start();
         mDeamonHandler = new Handler(mDeamonThread.getLooper(), callback);
     }
 
-    public DeamonHandler(String name) {
+    public XDeamonHandler(String name) {
         this(name, new Handler.Callback() {
             @Override
             public boolean handleMessage(Message msg) {

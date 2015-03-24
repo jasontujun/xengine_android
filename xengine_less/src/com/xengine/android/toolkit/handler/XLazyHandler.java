@@ -16,14 +16,14 @@ import com.xengine.android.toolkit.switcher.XBooleanSwitcher;
  * Time: 下午4:37
  * </pre>
  */
-public class LazyHandler implements XHandler {
+public class XLazyHandler implements XHandler {
 
     private final XBooleanSwitcher mSwitcher;// 开关
-    private DeamonHandler mDeamonHandler;// 后台Handler
+    private XDeamonHandler mDeamonHandler;// 后台Handler
 
-    public LazyHandler(String name, Handler.Callback callback) {
+    public XLazyHandler(String name, Handler.Callback callback) {
         mSwitcher = new XBooleanSwitcher(false);
-        mDeamonHandler = new DeamonHandler(name, new InnerCallback(callback));
+        mDeamonHandler = new XDeamonHandler(name, new InnerCallback(callback));
     }
 
     /**
