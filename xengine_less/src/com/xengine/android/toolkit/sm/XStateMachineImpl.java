@@ -238,7 +238,7 @@ public class XStateMachineImpl implements XStateMachine {
                             mCurrentState = postState;
                             // 通知状态的监听者(TODO可以不直接回调，通过消息队列让实际回调在另一个线程)
                             for (Listener listener : mListeners)
-                                listener.onState(postState, XStateMachineImpl.this);
+                                listener.onState(postState, action, XStateMachineImpl.this);
                             // 如果后置状态是IState.END，意味着状态机执行完毕，则停止整个状态机
                             if (mEndState.equals(postState)) {
                                 terminate();

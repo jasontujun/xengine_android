@@ -16,9 +16,10 @@ public interface XStateMachine {
         /**
          * 当状态机发生状态转变时，会回调此方法。
          * @param state 状态机转变后最新的状态
+         * @param action 导致这个状态发生的动作
          * @param sm 状态机对象实例
          */
-        void onState(String state, XStateMachine sm);
+        void onState(String state, XAction action, XStateMachine sm);
     }
 
     /**
