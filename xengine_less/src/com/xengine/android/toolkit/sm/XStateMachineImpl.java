@@ -130,9 +130,6 @@ public class XStateMachineImpl implements XStateMachine {
 
     @Override
     public synchronized boolean act(XAction action) {
-        // 如果状态机未启动,则直接返回
-        if (mActionWorker == null)
-            return false;
         if (action == null) {
             return false;
         }
@@ -142,9 +139,6 @@ public class XStateMachineImpl implements XStateMachine {
 
     @Override
     public synchronized boolean act(XAction[] actions) {
-        // 如果状态机未启动,则直接返回
-        if (mActionWorker == null)
-            return false;
         if (actions == null || actions.length == 0) {
             return false;
         }
@@ -158,9 +152,6 @@ public class XStateMachineImpl implements XStateMachine {
 
     @Override
     public synchronized boolean act(List<XAction> actions) {
-        // 如果状态机未启动,则直接返回
-        if (mActionWorker == null)
-            return false;
         if (actions == null || actions.size() == 0) {
             return false;
         }
@@ -225,18 +216,17 @@ public class XStateMachineImpl implements XStateMachine {
                     }
                     // 检验该action的前置后置状态是否在此状态机中
                     if (!mStates.contains(preState) || !mStates.contains(postState)) {
-                        action.onAct(false);// 通知action的监听者该action不执行
+                        action.reject();// 通知action的监听者该action不执行
                         continue;
                     }
                     // 检验该action的前置状态是否满足
                     if (preState == null || mCurrentState == null ||
                             !action.getPreState().equals(mCurrentState)) {
-                        action.onAct(false);// 通知action的监听者该action不执行
+                        action.reject();// 通知action的监听者该action不执行
                         continue;
                     }
                     // 执行action的实际操作(默认为阻塞执行)
                     boolean result = action.act();
-                    action.onAct(true);// 通知action的监听者该action已执行
                     synchronized (currentStateLock) {// 与end()和reset()方法进行互斥(针对mCurrentState的修改)
                         // 线程被暂停结束
                         if (!isRunning) {

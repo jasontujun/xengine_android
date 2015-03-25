@@ -10,8 +10,8 @@ package com.xengine.android.toolkit.sm;
 public interface XAction {
 
     /**
-     * 实际执行的动作，在前置条件被满足时会调用此方法。
-     * 状态机会根据该方法的返回值判断是否执行成功，
+     * 前置条件被满足时，会调用此方法，此方法中包含实际执行的操作。
+     * 状态机会根据该方法的返回值，判断是否进入该action指定的后置状态，
      * 如果返回true状态机"可能"将会进入后置状态
      * (也有可能在执行act()过程中状态机被暂停或终止，状态机就不会进入后置状态)，
      * 如果返回false状态机的当前状态不会改变。
@@ -20,12 +20,9 @@ public interface XAction {
 	boolean act();
 
     /**
-     * act()是否被执行的回调。
-     * 如果由于前置条件不满足等原因该act()没有被执行，会回调此方法，isActed=false。
-     * 如果前置条件满足act()被执行，会回调此方法，isActed=true。
-     * @param isActed act()是否被执行
+     * 前置条件不被满足时，会调用此方法，此方法中做一些被拒绝的处理。
      */
-    void onAct(boolean isActed);
+    void reject();
 
     /**
      * 获取该动作的前置状态
